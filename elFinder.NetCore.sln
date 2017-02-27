@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{85D031AA-AA64-473F-A22E-7DEB51589E9F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{47C0CC0E-D6FB-4488-89F7-0C0A10D68F66}"
+	ProjectSection(SolutionItems) = preProject
+		global.json = global.json
+	EndProjectSection
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "elFinder.NetCore", "src\elFinder.NetCore\elFinder.NetCore.xproj", "{411EDE10-4313-4942-9E1C-147292B065E2}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "elFinder.NetCore.Web", "src\elFinder.NetCore.Web\elFinder.NetCore.Web.xproj", "{EF30E958-2539-4C1A-83D1-B0AAE4239237}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{411EDE10-4313-4942-9E1C-147292B065E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{411EDE10-4313-4942-9E1C-147292B065E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{411EDE10-4313-4942-9E1C-147292B065E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{411EDE10-4313-4942-9E1C-147292B065E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF30E958-2539-4C1A-83D1-B0AAE4239237}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF30E958-2539-4C1A-83D1-B0AAE4239237}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF30E958-2539-4C1A-83D1-B0AAE4239237}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF30E958-2539-4C1A-83D1-B0AAE4239237}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{411EDE10-4313-4942-9E1C-147292B065E2} = {85D031AA-AA64-473F-A22E-7DEB51589E9F}
+		{EF30E958-2539-4C1A-83D1-B0AAE4239237} = {85D031AA-AA64-473F-A22E-7DEB51589E9F}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,14 @@
+﻿@model IEnumerable<string>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+Available 1st level Folders - clicking will navigate you to the File Manager setting the selected folder as elFinder's start path.
+
+<ul>
+    @foreach (string folder in Model)
+    {
+        <li><a href="@Url.Action("Files", "Home", new { subFolder = folder })">@folder</a> </li>
+    }
+</ul>
