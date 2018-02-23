@@ -37,6 +37,7 @@ namespace elFinder.NetCore.Models.Response
             }
             Url = fullPath.Root.Url ?? string.Empty;
             ThumbnailsUrl = fullPath.Root.ThumbnailsUrl ?? string.Empty;
+            //ThumbnailsUrl = fullPath.Root.ThumbnailsUrl ?? fullPath.Root.Url + "/.tmb/";
         }
 
         [DataMember(Name = "archivers")]

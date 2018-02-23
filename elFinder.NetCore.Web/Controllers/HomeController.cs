@@ -10,7 +10,7 @@ namespace elFinder.NetCore.Web.Controllers
         [Route("")]
         public virtual IActionResult Index()
         {
-            var directoryInfo = new DirectoryInfo(Startup.MapPath("~/Files/MyFolder"));
+            var directoryInfo = new DirectoryInfo(Startup.MapPath("~/Files"));
 
             var folders = directoryInfo.GetDirectories()
                 .ToList()

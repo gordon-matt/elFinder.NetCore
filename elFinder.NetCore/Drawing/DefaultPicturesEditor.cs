@@ -234,27 +234,26 @@ namespace elFinder.NetCore.Drawing
 
         private ImageWithMimeType SaveImage(Bitmap image, ImageFormat imageFormat)
         {
-            using (var memoryStream = new MemoryStream())
+            var memoryStream = new MemoryStream(); // Will be disposed when "ImageWithMimeType" is disposed
+
+            string mimeType;
+            if (imageFormat.Guid == ImageFormat.Jpeg.Guid)
             {
-                string mime;
-                if (imageFormat.Guid == ImageFormat.Jpeg.Guid)
-                {
-                    image.Save(memoryStream, ImageFormat.Jpeg);
-                    mime = "image/jpeg";
-                }
-                else if (imageFormat.Guid == ImageFormat.Gif.Guid)
-                {
-                    image.Save(memoryStream, ImageFormat.Gif);
-                    mime = "image/gif";
-                }
-                else
-                {
-                    image.Save(memoryStream, ImageFormat.Png);
-                    mime = "image/png";
-                }
-                memoryStream.Position = 0;
-                return new ImageWithMimeType(mime, memoryStream);
+                image.Save(memoryStream, ImageFormat.Jpeg);
+                mimeType = "image/jpeg";
             }
+            else if (imageFormat.Guid == ImageFormat.Gif.Guid)
+            {
+                image.Save(memoryStream, ImageFormat.Gif);
+                mimeType = "image/gif";
+            }
+            else
+            {
+                image.Save(memoryStream, ImageFormat.Png);
+                mimeType = "image/png";
+            }
+            memoryStream.Position = 0;
+            return new ImageWithMimeType(mimeType, memoryStream);
         }
 
         private ImageWithMimeType ScaleOrCrop(Image image, Rectangle source, Rectangle destination)

@@ -22,8 +22,8 @@
             var selectedFile = null;
 
             var options = {
-                url: '/file/connector', // connector route defined in \App_Start\RouteConfig.cs
-                customData: { folder: '@Model.Folder', subFolder: '@Model.SubFolder' }, // customData passed in every request to the connector as query strings. These values are used in FileController's Index method.
+                url: '/file/connector',
+                //customData: { folder: '@Model.Folder', subFolder: '@Model.SubFolder' }, // customData passed in every request to the connector as query strings. These values are used in FileController's Index method.
                 rememberLastDir: false, // Prevent elFinder saving in the Browser LocalStorage the last visited directory
                 commands: myCommands,
                 //lang: 'pt_BR', // elFinder supports UI and messages localization. Check the folder Content\elfinder\js\i18n for all available languages. Be sure to include the corresponding .js file(s) in the JavaScript bundle.
@@ -46,7 +46,6 @@
                 handlers: {
                     select: function (event, elfinderInstance)
                     {
-
                         if (event.data.selected.length == 1)
                         {
                             var item = $('#' + event.data.selected[0]);
@@ -64,17 +63,17 @@
             };
             $('#elfinder').elfinder(options).elfinder('instance');
 
-            $('.elfinder-toolbar:first').append('<div class="ui-widget-content ui-corner-all elfinder-buttonset" id="elfinder-selectFile" style="display:none; float:right;">' +
-            '<div class="ui-state-default elfinder-button" title="Select" style="width: 100px;"></div>');
-            $('#elfinder-selectFile').click(function ()
-            {
-                if (selectedFile != null)
-                    $.post('file/select-file', { target: selectedFile }, function (response)
-                    {
-                        alert(response);
-                    });
+            //$('.elfinder-toolbar:first').append('<div class="ui-widget-content ui-corner-all elfinder-buttonset" id="elfinder-selectFile" style="display:none; float:right;">' +
+            //'<div class="ui-state-default elfinder-button" title="Select" style="width: 100px;"></div>');
+            //$('#elfinder-selectFile').click(function ()
+            //{
+            //    if (selectedFile != null)
+            //        $.post('file/select-file', { target: selectedFile }, function (response)
+            //        {
+            //            alert(response);
+            //        });
 
-            });
+            //});
         });
     </script>
 }

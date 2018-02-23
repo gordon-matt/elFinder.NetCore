@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using elFinder.NetCore.Web;
-using elFinder.NetCore;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,7 +11,20 @@ namespace elFinder.NetCore.Web.Controllers
     public partial class FileController : Controller
     {
         [Route("connector")]
-        public virtual async Task<IActionResult> Index(string folder, string subFolder)
+        public virtual async Task<IActionResult> Index()
+        {
+            var connector = GetConnector();
+            return await connector.Process(HttpContext.Request);
+        }
+
+        [Route("thumb/{hash}")]
+        public IActionResult Thumbs(string hash)
+        {
+            var connector = GetConnector();
+            return connector.GetThumbnail(HttpContext.Request, HttpContext.Response, hash);
+        }
+
+        private Connector GetConnector()
         {
             var driver = new FileSystemDriver();
 
@@ -21,8 +32,9 @@ namespace elFinder.NetCore.Web.Controllers
             var uri = new Uri(absoluteUrl);
 
             var root = new Root(
-                new DirectoryInfo(Startup.MapPath("~/Files/" + folder)),
-                "http://" + uri.Authority + "/Files/" + folder)
+                new DirectoryInfo(Startup.MapPath("~/Files")),
+                string.Format("http://{0}/Files", uri.Authority),
+                string.Format("http://{0}/file/thumb/", uri.Authority))
             {
                 // Sample using ASP.NET built in Membership functionality...
                 // Only the super user can READ (download files) & WRITE (create folders/files/upload files).
@@ -35,36 +47,34 @@ namespace elFinder.NetCore.Web.Controllers
                 LockedFolders = new List<string>(new string[] { "Folder1" })
             };
 
-            // Was a subfolder selected in Home Index page?
-            if (!string.IsNullOrEmpty(subFolder))
-            {
-                root.StartPath = new DirectoryInfo(Startup.MapPath("~/Files/" + folder + "/" + subFolder));
-            }
+            //// Was a subfolder selected in Home Index page?
+            //if (!string.IsNullOrEmpty(subFolder))
+            //{
+            //    root.StartPath = new DirectoryInfo(Startup.MapPath("~/Files/" + folder + "/" + subFolder));
+            //}
 
             driver.AddRoot(root);
 
-            var connector = new Connector(driver);
-
-            return await connector.Process(this.HttpContext.Request);
+            return new Connector(driver);
         }
 
-        [Route("select-file")]
-        public virtual IActionResult SelectFile(string target)
-        {
-            var driver = new FileSystemDriver();
+        //[Route("select-file")]
+        //public virtual IActionResult SelectFile(string target)
+        //{
+        //    var driver = new FileSystemDriver();
 
-            string absoluteUrl = UriHelper.BuildAbsolute(Request.Scheme, Request.Host);
-            var uri = new Uri(absoluteUrl);
+        //    string absoluteUrl = UriHelper.BuildAbsolute(Request.Scheme, Request.Host);
+        //    var uri = new Uri(absoluteUrl);
 
-            driver.AddRoot(
-                new Root(
-                    new DirectoryInfo(Startup.MapPath("~/Files")),
-                    "http://" + uri.Authority + "/Files")
-                { IsReadOnly = false });
+        //    driver.AddRoot(
+        //        new Root(
+        //            new DirectoryInfo(Startup.MapPath("~/Files")),
+        //            "http://" + uri.Authority + "/Files")
+        //        { IsReadOnly = false });
 
-            var connector = new Connector(driver);
+        //    var connector = new Connector(driver);
 
-            return Json(connector.GetFileByHash(target).FullName);
-        }
+        //    return Json(connector.GetFileByHash(target).FullName);
+        //}
     }
 }

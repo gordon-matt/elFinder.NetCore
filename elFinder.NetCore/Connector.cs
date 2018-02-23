@@ -307,7 +307,7 @@ namespace elFinder.NetCore
                 {
                     return null;
                 }
-                targets = t.Split(',');
+                targets = t.Split(';'); // 2018.02.23: Bug Fix Issue #3
             }
             return targets;
         }

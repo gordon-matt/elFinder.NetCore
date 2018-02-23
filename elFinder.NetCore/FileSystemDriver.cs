@@ -16,7 +16,7 @@ namespace elFinder.NetCore
     /// </summary>
     public class FileSystemDriver : IDriver
     {
-        #region private
+        #region Private
 
         private const string _volumePrefix = "v";
         private List<Root> _roots;
@@ -84,9 +84,9 @@ namespace elFinder.NetCore
             }
         }
 
-        #endregion private
+        #endregion Private
 
-        #region public
+        #region Public
 
         public FullPath ParsePath(string target)
         {
@@ -139,7 +139,7 @@ namespace elFinder.NetCore
         /// </summary>
         public IEnumerable<Root> Roots { get { return _roots; } }
 
-        #endregion public
+        #endregion Public
 
         #region IDriver
 
@@ -541,6 +541,7 @@ namespace elFinder.NetCore
             {
                 FullPath path = ParsePath(target);
                 response.Images.Add(target, path.Root.GenerateThumbHash(path.File));
+                //response.Images.Add(target, path.Root.GenerateThumbHash(path.File) + path.File.Extension); // 2018.02.23: Fix
             }
             return await Json(response);
         }

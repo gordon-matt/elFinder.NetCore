@@ -18,13 +18,15 @@ namespace elFinder.NetCore
         private DirectoryInfo startPath;
         private DirectoryInfo thumbnailsDirectory;
         private int thumbnailSize;
-        private DirectoryInfo thumbnailsStorage;
         private string thumbnailsUrl;
         private bool uploadOverwrite;
         private string url;
         private string volumeId;
 
-        public Root(DirectoryInfo directoryInfo, string url)
+        public Root(
+            DirectoryInfo directoryInfo,
+            string url,
+            string thumbnailsUrl = null)
         {
             if (directoryInfo == null)
             {
@@ -41,6 +43,19 @@ namespace elFinder.NetCore
             this.url = url;
             uploadOverwrite = true;
             thumbnailSize = 48;
+
+            // https://github.com/EvgenNoskov/Elfinder.NET/blob/fb19f17a3682ed81cadcfea978dcce575806eebd/docs/Documentation.md
+            if (!string.IsNullOrEmpty(thumbnailsUrl))
+            {
+                ThumbnailsUrl = thumbnailsUrl;
+            }
+
+            thumbnailsDirectory = new DirectoryInfo(Path.Combine(directoryInfo.FullName, ".tmb"));
+            if (!thumbnailsDirectory.Exists)
+            {
+                thumbnailsDirectory = System.IO.Directory.CreateDirectory(thumbnailsDirectory.FullName);
+                thumbnailsDirectory.Attributes |= FileAttributes.Hidden;
+            }
         }
 
         public Root(DirectoryInfo directory)
@@ -195,36 +210,6 @@ namespace elFinder.NetCore
                     throw new ArgumentException("Size can not be less or equals zero");
                 }
                 thumbnailSize = value;
-            }
-        }
-
-        /// <summary>
-        /// Get or sets directory for store all thumbnails.
-        /// </summary>
-        public DirectoryInfo ThumbnailsStorage
-        {
-            get { return thumbnailsStorage; }
-            set
-            {
-                if (value != null)
-                {
-                    if (!value.Exists)
-                    {
-                        throw new ArgumentException("Thumbnails storage directory must exist");
-                    }
-
-                    thumbnailsDirectory = new DirectoryInfo(Path.Combine(value.FullName, ".tmb_" + directoryInfo.Name));
-                    if (!thumbnailsDirectory.Exists)
-                    {
-                        thumbnailsDirectory = System.IO.Directory.CreateDirectory(thumbnailsDirectory.FullName);
-                        thumbnailsDirectory.Attributes |= FileAttributes.Hidden;
-                    }
-                }
-                else
-                {
-                    thumbnailsDirectory = value;
-                }
-                thumbnailsStorage = value;
             }
         }
 
