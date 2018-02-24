@@ -302,34 +302,35 @@ namespace elFinder.NetCore
 
             if (thumbnailsDirectory != null)
             {
-                FileInfo thumbPath;
+                FileInfo thumbFile;
                 if (originalImage.File.FullName.StartsWith(thumbnailsDirectory.FullName))
                 {
-                    thumbPath = originalImage.File;
+                    thumbFile = originalImage.File;
                 }
                 else
                 {
-                    thumbPath = new FileInfo(Path.Combine(thumbnailsDirectory.FullName, originalImage.RelativePath));
+                    thumbFile = new FileInfo(Path.Combine(thumbnailsDirectory.FullName, originalImage.RelativePath));
                 }
 
-                if (!thumbPath.Exists)
+                if (!thumbFile.Exists)
                 {
-                    if (!thumbPath.Directory.Exists)
+                    if (!thumbFile.Directory.Exists)
                     {
-                        System.IO.Directory.CreateDirectory(thumbPath.Directory.FullName);
+                        System.IO.Directory.CreateDirectory(thumbFile.Directory.FullName);
                     }
-                    using (var thumbFile = thumbPath.Create())
+                    using (var thumbFileStream = thumbFile.Create())
                     using (var original = File.OpenRead(fullPath))
                     {
                         var thumb = PicturesEditor.GenerateThumbnail(original, thumbnailSize, true);
-                        thumb.ImageStream.CopyTo(thumbFile);
+                        thumb.ImageStream.CopyTo(thumbFileStream);
                         thumb.ImageStream.Position = 0;
                         return thumb;
                     }
                 }
                 else
                 {
-                    return new ImageWithMimeType(PicturesEditor.ConvertThumbnailExtension(thumbPath.Extension), thumbPath.OpenRead());
+                    string mimeType = Utils.GetMimeType(PicturesEditor.ConvertThumbnailExtension(thumbFile.Extension));
+                    return new ImageWithMimeType(mimeType, thumbFile.OpenRead());
                 }
             }
             else

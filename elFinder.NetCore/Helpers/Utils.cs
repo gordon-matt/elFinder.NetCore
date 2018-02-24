@@ -79,6 +79,10 @@ namespace elFinder.NetCore.Helpers
 
         public static string GetMimeType(string ext)
         {
+            if (ext.Contains("."))
+            {
+                return Mime.GetMimeType(ext.Replace(".", string.Empty));
+            }
             return Mime.GetMimeType(ext);
         }
     }

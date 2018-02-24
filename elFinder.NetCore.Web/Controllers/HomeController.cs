@@ -1,7 +1,4 @@
-﻿using System.IO;
-using System.Linq;
-using elFinder.NetCore.Web.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace elFinder.NetCore.Web.Controllers
 {
@@ -10,25 +7,13 @@ namespace elFinder.NetCore.Web.Controllers
         [Route("")]
         public virtual IActionResult Index()
         {
-            var directoryInfo = new DirectoryInfo(Startup.MapPath("~/Files"));
-
-            var folders = directoryInfo.GetDirectories()
-                .ToList()
-                .Select(d => d.Name);
-
-            return View(folders);
+            return View();
         }
 
-        [Route("file-manager/{subFolder?}")]
-        public virtual IActionResult Files(string subFolder)
+        [Route("file-manager")]
+        public virtual IActionResult Files()
         {
-            var model = new FileModel()
-            {
-                Folder = "MyFolder",
-                SubFolder = subFolder
-            };
-
-            return View(model);
+            return View();
         }
     }
 }
