@@ -82,7 +82,7 @@ namespace elFinder.NetCore.Models
             }
             response.Read = 1;
             response.Write = root.IsReadOnly ? (byte)0 : (byte)1;
-            response.Locked = (root.LockedFolders.Any(f => f == info.Directory.Name) || root.IsLocked) ? (byte)1 : (byte)0;
+            response.Locked = ((root.LockedFolders != null && root.LockedFolders.Any(f => f == info.Directory.Name)) || root.IsLocked) ? (byte)1 : (byte)0;
             response.Name = info.Name;
             response.Size = info.Length;
             response.UnixTimeStamp = (long)(info.LastWriteTimeUtc - _unixOrigin).TotalSeconds;
