@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http.Extensions;
@@ -44,7 +43,7 @@ namespace elFinder.NetCore.Web.Controllers
                 IsReadOnly = false, // Can be readonly according to user's membership permission
                 Alias = "Files", // Beautiful name given to the root/home folder
                 MaxUploadSizeInKb = 500, // Limit imposed to user uploaded file <= 500 KB
-                LockedFolders = new List<string>(new string[] { "Folder1" })
+                //LockedFolders = new List<string>(new string[] { "Folder1" })
             };
 
             //// Was a subfolder selected in Home Index page?

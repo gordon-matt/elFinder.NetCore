@@ -26,7 +26,10 @@
 .elfinder .elfinder-dialog .ui-dialog-titlebar-close:hover {
   background: url('../images/close-hover.png');
 }
-
+.std42-dialog .ui-dialog-titlebar .elfinder-titlebar-button.elfinder-titlebar-button-right {
+  left: 1px;
+  top: 12px;
+}
 /* Dialog content */
 .elfinder .elfinder-dialog .ui-dialog-content {
   /* */
@@ -51,8 +54,11 @@
 /* Active tab */
 .elfinder .elfinder-dialog .ui-tabs-nav li:active {
   /* */
+ }
+.elfinder .ui-state-active {
+	background: #1979CA none repeat scroll 0 0;	
+	/*background: #009688 none repeat scroll 0 0;	*/
 }
-
 /* Icons */
 /* Dialog icon (e.g. for error messages) */
 .elfinder .elfinder-dialog .elfinder-dialog-icon {
