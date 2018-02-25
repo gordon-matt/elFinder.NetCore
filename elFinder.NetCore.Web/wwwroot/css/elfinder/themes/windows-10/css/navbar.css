@@ -30,11 +30,17 @@
 /* Arrow */
 .elfinder .elfinder-navbar .elfinder-navbar-arrow {
   /* */
+    background-image: url('../images/16px/arrow_right.png');
+  background-position: center center;
+  background-repeat: no-repeat;
 }
 
 /* Expanded directory arrow */
 .elfinder .elfinder-navbar-expanded .elfinder-navbar-arrow {
   /* */
+  background-image: url('../images/16px/arrow_down.png');
+  background-position: center center;
+  background-repeat: no-repeat;
 }
 
 /* All icons (directories) */
@@ -46,7 +52,10 @@
   height: 16px;
   width: 16px;
 }
-
+/* Expanded directory */
+.elfinder .elfinder-navbar-expanded.ui-state-active .elfinder-navbar-icon {
+	  background-image: url('../images/16px/directory_opened.png') !important;
+}
 /* Root/volume */
 .elfinder .elfinder-navbar-root > .elfinder-navbar-icon {
   /* */

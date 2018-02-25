@@ -1,100 +1,37 @@
-<svg version="1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="16px" height="16px" viewBox="0 0 16 16">
-  <!-- 16= RADIUS*2 + STROKEWIDTH -->
-
-  <title>Material design circular activity spinner with CSS3 animation</title>
-  <style type="text/css">
-      /**************************/
-      /* STYLES FOR THE SPINNER */
-      /**************************/
-
-      /*
-       * Constants:
-       *      RADIUS      = 6.875
-       *      STROKEWIDTH = 2.25
-       *      ARCSIZE     = 270 degrees (amount of circle the arc takes up)
-       *      ARCTIME     = 1333ms (time it takes to expand and contract arc)
-       *      ARCSTARTROT = 216 degrees (how much the start location of the arc
-       *                                should rotate each time, 216 gives us a
-       *                                5 pointed star shape (it's 360/5 * 2).
-       *                                For a 7 pointed star, we might do
-       *                                360/7 * 3 = 154.286)
-       *
-       *      SHRINK_TIME = 400ms
-       */
-
-      .qp-circular-loader {
-        width: 14px;  /* 2*RADIUS + STROKEWIDTH */
-        height: 14px; /* 2*RADIUS + STROKEWIDTH */
-      }
-      .qp-circular-loader-path {
-        stroke-dasharray: 32.4;  /* 2*RADIUS*PI * ARCSIZE/360 */
-        stroke-dashoffset: 32.4; /* 2*RADIUS*PI * ARCSIZE/360 */
-                                 /* hides things initially */
-      }
-
-      /* SVG elements seem to have a different default origin */
-      .qp-circular-loader, .qp-circular-loader * {
-        -webkit-transform-origin: 50% 50%;
-      }
-
-      /* Rotating the whole thing */
-      @-webkit-keyframes rotate {
-        from {transform: rotate(0deg);}
-        to {transform: rotate(360deg);}
-      }
-      .qp-circular-loader {
-        -webkit-animation-name: rotate;
-        -webkit-animation-duration: 1568.63ms; /* 360 * ARCTIME / (ARCSTARTROT + (360-ARCSIZE)) */
-        -webkit-animation-iteration-count: infinite;
-        -webkit-animation-timing-function: linear;
-      }
-
-      /* Filling and unfilling the arc */
-      @-webkit-keyframes fillunfill {
-        from {
-          stroke-dashoffset: 32.3 /* 2*RADIUS*PI * ARCSIZE/360 - 0.1 */
-                                  /* 0.1 a bit of a magic constant here */
-        }
-        50% {
-          stroke-dashoffset: 0;
-        }
-        to {
-          stroke-dashoffset: -31.9 /* -(2*RADIUS*PI * ARCSIZE/360 - 0.5) */
-                                   /* 0.5 a bit of a magic constant here */
-        }
-      }
-      @-webkit-keyframes rot {
-        from {
-          transform: rotate(0deg);
-        }
-        to {
-          transform: rotate(-360deg);
-        }
-      }
-      @-webkit-keyframes colors {
-        from {
-          stroke: #dee1e6 /*#4285f4*/;
-        }
-        to {
-          stroke: #dee1e6/*#4285f4*/;
-        }
-      }
-      .qp-circular-loader-path {
-        -webkit-animation-name: fillunfill, rot, colors;
-        -webkit-animation-duration: 1333ms, 5332ms, 5332ms; /* ARCTIME, 4*ARCTIME, 4*ARCTIME */
-        -webkit-animation-iteration-count: infinite, infinite, infinite;
-        -webkit-animation-timing-function: cubic-bezier(0.4, 0.0, 0.2, 1), steps(4), linear;
-        -webkit-animation-play-state: running, running, running;
-        -webkit-animation-fill-mode: forwards;
-      }
-
-  </style>
-
-  <!-- 2.25= STROKEWIDTH -->
-  <!-- 8 = RADIUS + STROKEWIDTH/2 -->
-  <!-- 6.875= RADIUS -->
-  <!-- 1.125=  STROKEWIDTH/2 -->
-  <g class="qp-circular-loader">
-    <path class="qp-circular-loader-path" fill="none" d="M 8,1.125 A 6.875,6.875 0 1 1 1.125,8" stroke-width="2.25" stroke-linecap="round"></path>
-  </g>
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 16 16" style="enable-background:new 0 0 16 16;" xml:space="preserve">
+<style type="text/css">.st0{fill:#333333;}</style>
+<path class="st0" d="M11.4,0.7c1.8,0.9,3.1,2.1,3.9,3.9l-1,0.5c-0.6-1.3-2-2.7-3.3-3.4">
+<animate  accumulate="none" additive="replace" attributeName="fill" begin="0s" calcMode="linear" dur="1s" fill="remove" repeatCount="indefinite" restart="always" values="#333;#eee;#333;#333">
+		</animate>
+</path>
+<path class="st0" d="M15.5,5.2c0.6,1.9,0.7,3.7,0,5.5l-1-0.4c0.5-1.4,0.5-3.3,0-4.8">
+<animate  accumulate="none" additive="replace" attributeName="fill" begin="0.125s" calcMode="linear" dur="1s" fill="remove" repeatCount="indefinite" restart="always" values="#333;#eee;#333;#333">
+		</animate>
+</path>
+<path class="st0" d="M15.2,11.4c-0.9,1.8-2.1,3.1-3.9,3.9l-0.5-1c1.3-0.6,2.7-2,3.3-3.4">
+<animate  accumulate="none" additive="replace" attributeName="fill" begin="0.250s" calcMode="linear" dur="1s" fill="remove" repeatCount="indefinite" restart="always" values="#333;#eee;#333;#333">
+		</animate>
+</path>
+<path class="st0" d="M10.7,15.5c-1.9,0.6-3.6,0.7-5.5,0l0.4-1.1c1.4,0.5,3.3,0.5,4.7,0">
+<animate  accumulate="none" additive="replace" attributeName="fill" begin="0.375s" calcMode="linear" dur="1s" fill="remove" repeatCount="indefinite" restart="always" values="#333;#eee;#333;#333">
+		</animate>
+</path>
+<path class="st0" d="M4.7,15.3c-1.8-0.9-3.1-2.1-3.9-3.9l1-0.5c0.6,1.3,2,2.7,3.3,3.4">
+<animate  accumulate="none" additive="replace" attributeName="fill" begin="0.500s" calcMode="linear" dur="1s" fill="remove" repeatCount="indefinite" restart="always" values="#333;#eee;#333;#333">
+		</animate>
+</path>
+<path class="st0" d="M0.5,10.8c-0.6-1.9-0.7-3.7,0-5.5l1.1,0.4c-0.5,1.4-0.5,3.3,0,4.8">
+<animate  accumulate="none" additive="replace" attributeName="fill" begin="0.625s" calcMode="linear" dur="1s" fill="remove" repeatCount="indefinite" restart="always" values="#333;#eee;#333;#333">
+		</animate>
+</path>
+<path class="st0" d="M0.7,4.7c0.9-1.8,2.1-3.1,3.9-3.9l0.5,1c-1.3,0.6-2.7,2-3.3,3.4">
+<animate  accumulate="none" additive="replace" attributeName="fill" begin="0.750s" calcMode="linear" dur="1s" fill="remove" repeatCount="indefinite" restart="always" values="#333;#eee;#333;#333">
+		</animate>
+</path>
+<path class="st0" d="M5.3,0.5c1.9-0.6,3.6-0.7,5.5,0l-0.4,1.1C9,1.1,7.1,1.1,5.7,1.6">
+<animate  accumulate="none" additive="replace" attributeName="fill" begin="0.875s" calcMode="linear" dur="1s" fill="remove" repeatCount="indefinite" restart="always" values="#333;#eee;#333;#333">
+		</animate>
+</path>
 </svg>
