@@ -7,45 +7,45 @@ namespace elFinder.NetCore
 {
     public interface IDriver
     {
-        Task<JsonResult> Open(string target, bool tree);
+        Task<JsonResult> OpenAsync(string target, bool tree);
 
-        Task<JsonResult> Init(string target);
+        Task<JsonResult> InitAsync(string target);
 
-        Task<JsonResult> Parents(string target);
+        Task<JsonResult> ParentsAsync(string target);
 
-        Task<JsonResult> Tree(string target);
+        Task<JsonResult> TreeAsync(string target);
 
-        Task<JsonResult> List(string target);
+        Task<JsonResult> ListAsync(string target);
 
-        Task<JsonResult> MakeDir(string target, string name);
+        Task<JsonResult> MakeDirAsync(string target, string name);
 
-        Task<JsonResult> MakeFile(string target, string name);
+        Task<JsonResult> MakeFileAsync(string target, string name);
 
-        Task<JsonResult> Rename(string target, string name);
+        Task<JsonResult> RenameAsync(string target, string name);
 
-        Task<JsonResult> Remove(IEnumerable<string> targets);
+        Task<JsonResult> RemoveAsync(IEnumerable<string> targets);
 
-        Task<JsonResult> Duplicate(IEnumerable<string> targets);
+        Task<JsonResult> DuplicateAsync(IEnumerable<string> targets);
 
-        Task<JsonResult> Get(string target);
+        Task<JsonResult> GetAsync(string target);
 
-        Task<JsonResult> Put(string target, string content);
+        Task<JsonResult> PutAsync(string target, string content);
 
-        Task<JsonResult> Paste(string source, string dest, IEnumerable<string> targets, bool isCut);
+        Task<JsonResult> PasteAsync(string source, string dest, IEnumerable<string> targets, bool isCut);
 
-        Task<JsonResult> Upload(string target, IEnumerable<IFormFile> targets);
+        Task<JsonResult> UploadAsync(string target, IEnumerable<IFormFile> targets);
 
-        Task<JsonResult> Thumbs(IEnumerable<string> targets);
+        Task<JsonResult> ThumbsAsync(IEnumerable<string> targets);
 
-        Task<JsonResult> Dim(string target);
+        Task<JsonResult> DimAsync(string target);
 
-        Task<JsonResult> Resize(string target, int width, int height);
+        Task<JsonResult> ResizeAsync(string target, int width, int height);
 
-        Task<JsonResult> Crop(string target, int x, int y, int width, int height);
+        Task<JsonResult> CropAsync(string target, int x, int y, int width, int height);
 
-        Task<JsonResult> Rotate(string target, int degree);
+        Task<JsonResult> RotateAsync(string target, int degree);
 
-        Task<IActionResult> File(string target, bool download);
+        Task<IActionResult> FileAsync(string target, bool download);
 
         FullPath ParsePath(string target);
     }

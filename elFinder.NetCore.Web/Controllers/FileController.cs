@@ -32,7 +32,7 @@ namespace elFinder.NetCore.Web.Controllers
 
             var root = new Root(
                 new DirectoryInfo(Startup.MapPath("~/Files")),
-                string.Format("http://{0}/Files", uri.Authority),
+                string.Format("http://{0}/Files/", uri.Authority),
                 string.Format("http://{0}/file/thumb/", uri.Authority))
             {
                 // Sample using ASP.NET built in Membership functionality...

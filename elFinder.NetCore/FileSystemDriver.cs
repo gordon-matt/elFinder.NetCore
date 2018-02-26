@@ -74,13 +74,17 @@ namespace elFinder.NetCore
             {
                 string thumbPath = path.Root.GetExistingThumbPath(path.Directory);
                 if (thumbPath != null)
+                {
                     Directory.Delete(thumbPath, true);
+                }
             }
             else
             {
                 string thumbPath = path.Root.GetExistingThumbPath(path.File);
                 if (thumbPath != null)
+                {
                     System.IO.File.Delete(thumbPath);
+                }
             }
         }
 
@@ -101,10 +105,11 @@ namespace elFinder.NetCore
                     break;
                 }
             }
-            Root root = _roots.First(r => r.VolumeId == volumePrefix);
+            var root = _roots.First(r => r.VolumeId == volumePrefix);
             string path = Utils.DecodePath(pathHash);
             string dirUrl = path != root.Directory.Name ? path : string.Empty;
             var dir = new DirectoryInfo(root.Directory.FullName + dirUrl);
+
             if (dir.Exists)
             {
                 return new FullPath(root, dir);
@@ -137,79 +142,92 @@ namespace elFinder.NetCore
         /// <summary>
         /// Gets collection of roots
         /// </summary>
-        public IEnumerable<Root> Roots { get { return _roots; } }
+        public IEnumerable<Root> Roots => _roots;
 
         #endregion Public
 
         #region IDriver
 
-        public async Task<JsonResult> Open(string target, bool tree)
+        public async Task<JsonResult> OpenAsync(string target, bool tree)
         {
-            FullPath fullPath = ParsePath(target);
-            OpenResponse answer = new OpenResponse(BaseModel.Create(fullPath.Directory, fullPath.Root), fullPath);
-            foreach (FileInfo item in fullPath.Directory.GetFiles())
+            var fullPath = ParsePath(target);
+            var response = new OpenResponse(BaseModel.Create(fullPath.Directory, fullPath.Root), fullPath);
+            foreach (var item in fullPath.Directory.GetFiles())
             {
                 if ((item.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden)
-                    answer.Files.Add(BaseModel.Create(item, fullPath.Root));
+                {
+                    response.Files.Add(BaseModel.Create(item, fullPath.Root));
+                }
             }
-            foreach (DirectoryInfo item in fullPath.Directory.GetDirectories())
+            foreach (var item in fullPath.Directory.GetDirectories())
             {
                 if ((item.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden)
-                    answer.Files.Add(BaseModel.Create(item, fullPath.Root));
+                {
+                    response.Files.Add(BaseModel.Create(item, fullPath.Root));
+                }
             }
-            return await Json(answer);
+            return await Json(response);
         }
 
-        public async Task<JsonResult> Init(string target)
+        public async Task<JsonResult> InitAsync(string target)
         {
             FullPath fullPath;
             if (string.IsNullOrEmpty(target))
             {
-                Root root = _roots.FirstOrDefault(r => r.StartPath != null);
+                var root = _roots.FirstOrDefault(r => r.StartPath != null);
                 if (root == null)
+                {
                     root = _roots.First();
+                }
+
                 fullPath = new FullPath(root, root.StartPath ?? root.Directory);
             }
             else
             {
                 fullPath = ParsePath(target);
             }
-            InitResponseModel answer = new InitResponseModel(BaseModel.Create(fullPath.Directory, fullPath.Root), new Options(fullPath));
+            var response = new InitResponseModel(BaseModel.Create(fullPath.Directory, fullPath.Root), new Options(fullPath));
 
-            foreach (FileInfo item in fullPath.Directory.GetFiles())
+            foreach (var item in fullPath.Directory.GetFiles())
             {
                 if ((item.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden)
-                    answer.Files.Add(BaseModel.Create(item, fullPath.Root));
+                {
+                    response.Files.Add(BaseModel.Create(item, fullPath.Root));
+                }
             }
-            foreach (DirectoryInfo item in fullPath.Directory.GetDirectories())
+            foreach (var item in fullPath.Directory.GetDirectories())
             {
                 if ((item.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden)
-                    answer.Files.Add(BaseModel.Create(item, fullPath.Root));
+                {
+                    response.Files.Add(BaseModel.Create(item, fullPath.Root));
+                }
             }
-            foreach (Root item in _roots)
+            foreach (var item in _roots)
             {
-                answer.Files.Add(BaseModel.Create(item.Directory, item));
+                response.Files.Add(BaseModel.Create(item.Directory, item));
             }
             if (fullPath.Root.Directory.FullName != fullPath.Directory.FullName)
             {
-                foreach (DirectoryInfo item in fullPath.Root.Directory.GetDirectories())
+                foreach (var item in fullPath.Root.Directory.GetDirectories())
                 {
                     if ((item.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden)
-                        answer.Files.Add(BaseModel.Create(item, fullPath.Root));
+                    {
+                        response.Files.Add(BaseModel.Create(item, fullPath.Root));
+                    }
                 }
             }
             if (fullPath.Root.MaxUploadSize.HasValue)
             {
-                answer.UploadMaxSize = fullPath.Root.MaxUploadSizeInKb.Value + "K";
+                response.UploadMaxSize = fullPath.Root.MaxUploadSizeInKb.Value + "K";
             }
-            return await Json(answer);
+            return await Json(response);
         }
 
-        public async Task<IActionResult> File(string target, bool download)
+        public async Task<IActionResult> FileAsync(string target, bool download)
         {
             IActionResult result;
 
-            FullPath fullPath = ParsePath(target);
+            var fullPath = ParsePath(target);
             if (fullPath.IsDirectory)
             {
                 result = new ForbidResult();
@@ -229,146 +247,150 @@ namespace elFinder.NetCore
             return await Task.FromResult(result);
         }
 
-        public async Task<JsonResult> Parents(string target)
+        public async Task<JsonResult> ParentsAsync(string target)
         {
-            FullPath fullPath = ParsePath(target);
-            TreeResponseModel answer = new TreeResponseModel();
+            var fullPath = ParsePath(target);
+            var response = new TreeResponseModel();
             if (fullPath.Directory.FullName == fullPath.Root.Directory.FullName)
             {
-                answer.Tree.Add(BaseModel.Create(fullPath.Directory, fullPath.Root));
+                response.Tree.Add(BaseModel.Create(fullPath.Directory, fullPath.Root));
             }
             else
             {
-                DirectoryInfo parent = fullPath.Directory;
+                var parent = fullPath.Directory;
                 foreach (var item in parent.Parent.GetDirectories())
                 {
-                    answer.Tree.Add(BaseModel.Create(item, fullPath.Root));
+                    response.Tree.Add(BaseModel.Create(item, fullPath.Root));
                 }
                 while (parent.FullName != fullPath.Root.Directory.FullName)
                 {
                     parent = parent.Parent;
-                    answer.Tree.Add(BaseModel.Create(parent, fullPath.Root));
+                    response.Tree.Add(BaseModel.Create(parent, fullPath.Root));
                 }
             }
-            return await Json(answer);
+            return await Json(response);
         }
 
-        public async Task<JsonResult> Tree(string target)
+        public async Task<JsonResult> TreeAsync(string target)
         {
-            FullPath fullPath = ParsePath(target);
-            TreeResponseModel answer = new TreeResponseModel();
+            var fullPath = ParsePath(target);
+            var response = new TreeResponseModel();
             foreach (var item in fullPath.Directory.GetDirectories())
             {
                 if ((item.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden)
-                    answer.Tree.Add(BaseModel.Create(item, fullPath.Root));
+                {
+                    response.Tree.Add(BaseModel.Create(item, fullPath.Root));
+                }
             }
-            return await Json(answer);
+            return await Json(response);
         }
 
-        public async Task<JsonResult> List(string target)
+        public async Task<JsonResult> ListAsync(string target)
         {
-            FullPath fullPath = ParsePath(target);
-            ListResponseModel answer = new ListResponseModel();
+            var fullPath = ParsePath(target);
+            var response = new ListResponseModel();
             foreach (var item in fullPath.Directory.GetFileSystemInfos())
             {
-                answer.List.Add(item.Name);
+                response.List.Add(item.Name);
             }
-            return await Json(answer);
+            return await Json(response);
         }
 
-        public async Task<JsonResult> MakeDir(string target, string name)
+        public async Task<JsonResult> MakeDirAsync(string target, string name)
         {
-            FullPath fullPath = ParsePath(target);
-            DirectoryInfo newDir = Directory.CreateDirectory(Path.Combine(fullPath.Directory.FullName, name));
+            var fullPath = ParsePath(target);
+            var newDir = Directory.CreateDirectory(Path.Combine(fullPath.Directory.FullName, name));
             return await Json(new AddResponseModel(newDir, fullPath.Root));
         }
 
-        public async Task<JsonResult> MakeFile(string target, string name)
+        public async Task<JsonResult> MakeFileAsync(string target, string name)
         {
-            FullPath fullPath = ParsePath(target);
-            FileInfo newFile = new FileInfo(Path.Combine(fullPath.Directory.FullName, name));
+            var fullPath = ParsePath(target);
+            var newFile = new FileInfo(Path.Combine(fullPath.Directory.FullName, name));
             //newFile.Create().Close();
             newFile.Create();
             return await Json(new AddResponseModel(newFile, fullPath.Root));
         }
 
-        public async Task<JsonResult> Rename(string target, string name)
+        public async Task<JsonResult> RenameAsync(string target, string name)
         {
-            FullPath fullPath = ParsePath(target);
-            var answer = new ReplaceResponseModel();
-            answer.Removed.Add(target);
+            var fullPath = ParsePath(target);
+            var response = new ReplaceResponseModel();
+            response.Removed.Add(target);
             RemoveThumbs(fullPath);
             if (fullPath.Directory != null)
             {
                 string newPath = Path.Combine(fullPath.Directory.Parent.FullName, name);
                 System.IO.Directory.Move(fullPath.Directory.FullName, newPath);
-                answer.Added.Add(BaseModel.Create(new DirectoryInfo(newPath), fullPath.Root));
+                response.Added.Add(BaseModel.Create(new DirectoryInfo(newPath), fullPath.Root));
             }
             else
             {
                 string newPath = Path.Combine(fullPath.File.DirectoryName, name);
                 System.IO.File.Move(fullPath.File.FullName, newPath);
-                answer.Added.Add(BaseModel.Create(new FileInfo(newPath), fullPath.Root));
+                response.Added.Add(BaseModel.Create(new FileInfo(newPath), fullPath.Root));
             }
-            return await Json(answer);
+            return await Json(response);
         }
 
-        public async Task<JsonResult> Remove(IEnumerable<string> targets)
+        public async Task<JsonResult> RemoveAsync(IEnumerable<string> targets)
         {
-            RemoveResponseModel answer = new RemoveResponseModel();
+            var response = new RemoveResponseModel();
             foreach (string item in targets)
             {
-                FullPath fullPath = ParsePath(item);
+                var fullPath = ParsePath(item);
                 RemoveThumbs(fullPath);
                 if (fullPath.Directory != null)
                 {
-                    System.IO.Directory.Delete(fullPath.Directory.FullName, true);
+                    Directory.Delete(fullPath.Directory.FullName, true);
                 }
                 else
                 {
                     System.IO.File.Delete(fullPath.File.FullName);
                 }
-                answer.Removed.Add(item);
+                response.Removed.Add(item);
             }
-            return await Json(answer);
+            return await Json(response);
         }
 
-        public async Task<JsonResult> Get(string target)
+        public async Task<JsonResult> GetAsync(string target)
         {
-            FullPath fullPath = ParsePath(target);
-            GetResponseModel answer = new GetResponseModel();
-            using (StreamReader reader = new StreamReader(fullPath.File.OpenRead()))
+            var fullPath = ParsePath(target);
+            var response = new GetResponseModel();
+            using (var reader = new StreamReader(fullPath.File.OpenRead()))
             {
-                answer.Content = reader.ReadToEnd();
+                response.Content = reader.ReadToEnd();
             }
-            return await Json(answer);
+            return await Json(response);
         }
 
-        public async Task<JsonResult> Put(string target, string content)
+        public async Task<JsonResult> PutAsync(string target, string content)
         {
-            FullPath fullPath = ParsePath(target);
-            ChangedResponseModel answer = new ChangedResponseModel();
+            var fullPath = ParsePath(target);
+            var response = new ChangedResponseModel();
             using (var fileStream = new FileStream(fullPath.File.FullName, FileMode.Create))
             using (var writer = new StreamWriter(fileStream))
             {
                 writer.Write(content);
             }
-            answer.Changed.Add((FileModel)BaseModel.Create(fullPath.File, fullPath.Root));
-            return await Json(answer);
+            response.Changed.Add((FileModel)BaseModel.Create(fullPath.File, fullPath.Root));
+            return await Json(response);
         }
 
-        public async Task<JsonResult> Paste(string source, string dest, IEnumerable<string> targets, bool isCut)
+        public async Task<JsonResult> PasteAsync(string source, string dest, IEnumerable<string> targets, bool isCut)
         {
-            FullPath destPath = ParsePath(dest);
-            ReplaceResponseModel response = new ReplaceResponseModel();
+            var destPath = ParsePath(dest);
+            var response = new ReplaceResponseModel();
             foreach (var item in targets)
             {
-                FullPath src = ParsePath(item);
+                var src = ParsePath(item);
                 if (src.Directory != null)
                 {
-                    DirectoryInfo newDir = new DirectoryInfo(Path.Combine(destPath.Directory.FullName, src.Directory.Name));
+                    var newDir = new DirectoryInfo(Path.Combine(destPath.Directory.FullName, src.Directory.Name));
                     if (newDir.Exists)
+                    {
                         Directory.Delete(newDir.FullName, true);
+                    }
                     if (isCut)
                     {
                         RemoveThumbs(src);
@@ -402,11 +424,11 @@ namespace elFinder.NetCore
             return await Json(response);
         }
 
-        public async Task<JsonResult> Upload(string target, IEnumerable<IFormFile> targets)
+        public async Task<JsonResult> UploadAsync(string target, IEnumerable<IFormFile> targets)
         {
             int fileCount = targets.Count();
 
-            FullPath dest = ParsePath(target);
+            var dest = ParsePath(target);
             var response = new AddResponseModel();
             if (dest.Root.MaxUploadSize.HasValue)
             {
@@ -422,7 +444,7 @@ namespace elFinder.NetCore
             for (int i = 0; i < fileCount; i++)
             {
                 IFormFile file = targets.ElementAt(i);
-                FileInfo path = new FileInfo(Path.Combine(dest.Directory.FullName, Path.GetFileName(file.FileName)));
+                var path = new FileInfo(Path.Combine(dest.Directory.FullName, Path.GetFileName(file.FileName)));
 
                 if (path.Exists)
                 {
@@ -475,12 +497,12 @@ namespace elFinder.NetCore
             return await Json(response);
         }
 
-        public async Task<JsonResult> Duplicate(IEnumerable<string> targets)
+        public async Task<JsonResult> DuplicateAsync(IEnumerable<string> targets)
         {
-            AddResponseModel response = new AddResponseModel();
+            var response = new AddResponseModel();
             foreach (var target in targets)
             {
-                FullPath fullPath = ParsePath(target);
+                var fullPath = ParsePath(target);
                 if (fullPath.Directory != null)
                 {
                     var parentPath = fullPath.Directory.Parent.FullName;
@@ -534,28 +556,28 @@ namespace elFinder.NetCore
             return await Json(response);
         }
 
-        public async Task<JsonResult> Thumbs(IEnumerable<string> targets)
+        public async Task<JsonResult> ThumbsAsync(IEnumerable<string> targets)
         {
-            ThumbsResponseModel response = new ThumbsResponseModel();
+            var response = new ThumbsResponseModel();
             foreach (string target in targets)
             {
-                FullPath path = ParsePath(target);
+                var path = ParsePath(target);
                 response.Images.Add(target, path.Root.GenerateThumbHash(path.File));
                 //response.Images.Add(target, path.Root.GenerateThumbHash(path.File) + path.File.Extension); // 2018.02.23: Fix
             }
             return await Json(response);
         }
 
-        public async Task<JsonResult> Dim(string target)
+        public async Task<JsonResult> DimAsync(string target)
         {
-            FullPath path = ParsePath(target);
-            DimResponseModel response = new DimResponseModel(path.Root.GetImageDimension(path.File));
+            var path = ParsePath(target);
+            var response = new DimResponseModel(path.Root.GetImageDimension(path.File));
             return await Json(response);
         }
 
-        public async Task<JsonResult> Resize(string target, int width, int height)
+        public async Task<JsonResult> ResizeAsync(string target, int width, int height)
         {
-            FullPath path = ParsePath(target);
+            var path = ParsePath(target);
             RemoveThumbs(path);
             path.Root.PicturesEditor.Resize(path.File.FullName, width, height);
             var output = new ChangedResponseModel();
@@ -563,9 +585,9 @@ namespace elFinder.NetCore
             return await Json(output);
         }
 
-        public async Task<JsonResult> Crop(string target, int x, int y, int width, int height)
+        public async Task<JsonResult> CropAsync(string target, int x, int y, int width, int height)
         {
-            FullPath path = ParsePath(target);
+            var path = ParsePath(target);
             RemoveThumbs(path);
             path.Root.PicturesEditor.Crop(path.File.FullName, x, y, width, height);
             var output = new ChangedResponseModel();
@@ -573,9 +595,9 @@ namespace elFinder.NetCore
             return await Json(output);
         }
 
-        public async Task<JsonResult> Rotate(string target, int degree)
+        public async Task<JsonResult> RotateAsync(string target, int degree)
         {
-            FullPath path = ParsePath(target);
+            var path = ParsePath(target);
             RemoveThumbs(path);
             path.Root.PicturesEditor.Rotate(path.File.FullName, degree);
             var output = new ChangedResponseModel();

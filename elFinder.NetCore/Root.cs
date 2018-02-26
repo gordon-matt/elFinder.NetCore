@@ -132,14 +132,8 @@ namespace elFinder.NetCore
         /// </summary>
         public double? MaxUploadSizeInKb
         {
-            get
-            {
-                return maxUploadSize.HasValue ? (double?)(maxUploadSize.Value / 1024.0) : null;
-            }
-            set
-            {
-                MaxUploadSize = value.HasValue ? (int?)(value * 1024) : null;
-            }
+            get { return maxUploadSize.HasValue ? (double?)(maxUploadSize.Value / 1024.0) : null; }
+            set { MaxUploadSize = value.HasValue ? (int?)(value * 1024) : null; }
         }
 
         /// <summary>
@@ -149,10 +143,7 @@ namespace elFinder.NetCore
         public double? MaxUploadSizeInMb
         {
             get { return MaxUploadSizeInKb.HasValue ? (double?)(MaxUploadSizeInKb.Value / 1024.0) : null; }
-            set
-            {
-                MaxUploadSizeInKb = value.HasValue ? (int?)(value * 1024) : null;
-            }
+            set { MaxUploadSizeInKb = value.HasValue ? (int?)(value * 1024) : null; }
         }
 
         /// <summary>
@@ -168,14 +159,7 @@ namespace elFinder.NetCore
                 }
                 return picturesEditor;
             }
-            set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException("value");
-                }
-                picturesEditor = value;
-            }
+            set { picturesEditor = value ?? throw new ArgumentNullException("value"); }
         }
 
         /// <summary>
@@ -188,12 +172,9 @@ namespace elFinder.NetCore
             {
                 if (value != null && !value.Exists)
                 {
-                    startPath = null;//throw new ArgumentException("Start directory must exist or can be null", "value");
+                    startPath = null; //throw new ArgumentException("Start directory must exist or can be null", "value");
                 }
-                else
-                {
-                    startPath = value;
-                }
+                else { startPath = value; }
             }
         }
 
@@ -243,18 +224,8 @@ namespace elFinder.NetCore
         /// </summary>
         public string Url
         {
-            get
-            {
-                return url;
-            }
-            set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException("Url can not be null", "value");
-                }
-                url = value;
-            }
+            get { return url; }
+            set { url = value ?? throw new ArgumentNullException("Url can not be null", "value"); }
         }
 
         /// <summary>

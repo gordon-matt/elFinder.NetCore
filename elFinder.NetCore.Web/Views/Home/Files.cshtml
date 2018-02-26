@@ -19,7 +19,7 @@
                 (idx = $.inArray(cmd, myCommands)) !== -1 && myCommands.splice(idx, 1);
             });
 
-            var selectedFile = null;
+            //var selectedFile = null;
 
             var options = {
                 url: '/file/connector',
@@ -43,23 +43,23 @@
                     ]
                 },
 
-                handlers: {
-                    select: function (event, elfinderInstance)
-                    {
-                        if (event.data.selected.length == 1)
-                        {
-                            var item = $('#' + event.data.selected[0]);
-                            if (!item.hasClass('directory'))
-                            {
-                                selectedFile = event.data.selected[0];
-                                $('#elfinder-selectFile').show();
-                                return;
-                            }
-                        }
-                        $('#elfinder-selectFile').hide();
-                        selectedFile = null;
-                    }
-                }
+                //handlers: {
+                //    select: function (event, elfinderInstance)
+                //    {
+                //        if (event.data.selected.length == 1)
+                //        {
+                //            var item = $('#' + event.data.selected[0]);
+                //            if (!item.hasClass('directory'))
+                //            {
+                //                selectedFile = event.data.selected[0];
+                //                $('#elfinder-selectFile').show();
+                //                return;
+                //            }
+                //        }
+                //        $('#elfinder-selectFile').hide();
+                //        selectedFile = null;
+                //    }
+                //}
             };
             $('#elfinder').elfinder(options).elfinder('instance');
 

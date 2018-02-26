@@ -14,9 +14,6 @@ namespace elFinder.NetCore.Models.Response
         }
 
         [DataMember(Name = "images")]
-        public Dictionary<string, string> Images
-        {
-            get { return images; }
-        }
+        public Dictionary<string, string> Images => images;
     }
 }
