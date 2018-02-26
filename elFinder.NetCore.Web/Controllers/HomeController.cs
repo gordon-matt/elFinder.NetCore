@@ -15,5 +15,17 @@ namespace elFinder.NetCore.Web.Controllers
         {
             return View();
         }
+
+        [Route("tiny-mce")]
+        public virtual IActionResult TinyMCE()
+        {
+            return View();
+        }
+
+        [Route("browse")]
+        public virtual IActionResult Browse()
+        {
+            return View();
+        }
     }
 }

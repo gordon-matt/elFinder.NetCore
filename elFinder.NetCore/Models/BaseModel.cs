@@ -62,24 +62,33 @@ namespace elFinder.NetCore.Models
         public static BaseModel Create(FileInfo info, Root root)
         {
             if (info == null)
+            {
                 throw new ArgumentNullException("info");
+            }
+
             if (root == null)
+            {
                 throw new ArgumentNullException("root");
+            }
+
             string parentPath = info.Directory.FullName.Substring(root.Directory.FullName.Length);
             string relativePath = info.FullName.Substring(root.Directory.FullName.Length);
+
             FileModel response;
             if (root.CanCreateThumbnail(info))
             {
-                ImageModel imageResponse = new ImageModel();
-                imageResponse.Thumbnail = root.GetExistingThumbHash(info) ?? (object)1;
                 var dim = root.GetImageDimension(info);
-                imageResponse.Dimension = string.Format("{0}x{1}", dim.Width, dim.Height);
-                response = imageResponse;
+                response = new ImageModel
+                {
+                    Thumbnail = root.GetExistingThumbHash(info) ?? (object)1,
+                    Dimension = string.Format("{0}x{1}", dim.Width, dim.Height)
+                };
             }
             else
             {
                 response = new FileModel();
             }
+
             response.Read = 1;
             response.Write = root.IsReadOnly ? (byte)0 : (byte)1;
             response.Locked = ((root.LockedFolders != null && root.LockedFolders.Any(f => f == info.Directory.Name)) || root.IsLocked) ? (byte)1 : (byte)0;
@@ -95,9 +104,15 @@ namespace elFinder.NetCore.Models
         public static BaseModel Create(DirectoryInfo directory, Root root)
         {
             if (directory == null)
+            {
                 throw new ArgumentNullException("directory");
+            }
+
             if (root == null)
+            {
                 throw new ArgumentNullException("root");
+            }
+
             if (root.Directory.FullName == directory.FullName)
             {
                 bool hasSubdirs = false;
@@ -110,7 +125,7 @@ namespace elFinder.NetCore.Models
                         break;
                     }
                 }
-                RootModel response = new RootModel()
+                var response = new RootModel
                 {
                     Mime = "directory",
                     Dirs = hasSubdirs ? (byte)1 : (byte)0,
@@ -128,14 +143,14 @@ namespace elFinder.NetCore.Models
             else
             {
                 string parentPath = directory.Parent.FullName.Substring(root.Directory.FullName.Length);
-                DirectoryModel response = new DirectoryModel()
+                var response = new DirectoryModel
                 {
                     Mime = "directory",
                     ContainsChildDirs = directory.GetDirectories().Length > 0 ? (byte)1 : (byte)0,
                     Hash = root.VolumeId + Utils.EncodePath(directory.FullName.Substring(root.Directory.FullName.Length)),
                     Read = 1,
                     Write = root.IsReadOnly ? (byte)0 : (byte)1,
-                    Locked = (root.LockedFolders.Any(f => f == directory.Name) || root.IsLocked) ? (byte)1 : (byte)0,
+                    Locked = ((root.LockedFolders != null && root.LockedFolders.Any(f => f == directory.Name)) || root.IsLocked) ? (byte)1 : (byte)0,
                     Size = 0,
                     Name = directory.Name,
                     UnixTimeStamp = (long)(directory.LastWriteTimeUtc - _unixOrigin).TotalSeconds,

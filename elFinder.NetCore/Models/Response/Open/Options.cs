@@ -9,16 +9,10 @@ namespace elFinder.NetCore.Models.Response
         private static string[] empty = new string[0];
 
         [DataMember(Name = "create")]
-        public IEnumerable<string> Create
-        {
-            get { return empty; }
-        }
+        public IEnumerable<string> Create => empty;
 
         [DataMember(Name = "extract")]
-        public IEnumerable<string> Extract
-        {
-            get { return empty; }
-        }
+        public IEnumerable<string> Extract => empty;
     }
 
     [DataContract]
@@ -41,31 +35,19 @@ namespace elFinder.NetCore.Models.Response
         }
 
         [DataMember(Name = "archivers")]
-        public Archive Archivers
-        {
-            get { return emptyArchives; }
-        }
+        public Archive Archivers => emptyArchives;
 
         [DataMember(Name = "disabled")]
-        public IEnumerable<string> Disabled
-        {
-            get { return disabled; }
-        }
+        public IEnumerable<string> Disabled => disabled;
 
         [DataMember(Name = "copyOverwrite")]
-        public byte IsCopyOverwrite
-        {
-            get { return 1; }
-        }
+        public byte IsCopyOverwrite => 1;
 
         [DataMember(Name = "path")]
         public string Path { get; set; }
 
         [DataMember(Name = "separator")]
-        public char Separator
-        {
-            get { return '/'; }
-        }
+        public char Separator => '/';
 
         [DataMember(Name = "tmbUrl")]
         public string ThumbnailsUrl { get; set; }

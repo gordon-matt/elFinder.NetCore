@@ -53,19 +53,10 @@ namespace elFinder.NetCore
             get { return !isDirectory ? (FileInfo)fileSystemInfo : null; }
         }
 
-        public bool IsDirectory
-        {
-            get { return isDirectory; }
-        }
+        public bool IsDirectory => isDirectory;
 
-        public string RelativePath
-        {
-            get { return relativePath; }
-        }
+        public string RelativePath => relativePath;
 
-        public Root Root
-        {
-            get { return root; }
-        }
+        public Root Root => root;
     }
 }

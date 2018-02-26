@@ -25,9 +25,6 @@ namespace elFinder.NetCore.Models.Response
         }
 
         [DataMember(Name = "added")]
-        public List<BaseModel> Added
-        {
-            get { return added; }
-        }
+        public List<BaseModel> Added => added;
     }
 }

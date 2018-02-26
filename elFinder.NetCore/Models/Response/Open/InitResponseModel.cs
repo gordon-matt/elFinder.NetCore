@@ -15,16 +15,10 @@ namespace elFinder.NetCore.Models.Response
         }
 
         [DataMember(Name = "api")]
-        public string Api
-        {
-            get { return "2.0"; }
-        }
+        public string Api => "2.0";
 
         [DataMember(Name = "netDrivers")]
-        public IEnumerable<string> NetDrivers
-        {
-            get { return empty; }
-        }
+        public IEnumerable<string> NetDrivers => empty;
 
         [DataMember(Name = "uplMaxSize")]
         public string UploadMaxSize { get; set; }

@@ -8,18 +8,24 @@ namespace elFinder.NetCore.Helpers
         public static byte[] UrlTokenDecode(string input)
         {
             if (input == null)
+            {
                 throw new ArgumentNullException("input");
+            }
 
             int len = input.Length;
             if (len < 1)
+            {
                 return new byte[0];
+            }
 
             ///////////////////////////////////////////////////////////////////
             // Step 1: Calculate the number of padding chars to append to this string.
             //         The number of padding chars to append is stored in the last char of the string.
             int numPadChars = (int)input[len - 1] - (int)'0';
             if (numPadChars < 0 || numPadChars > 10)
+            {
                 return null;
+            }
 
             ///////////////////////////////////////////////////////////////////
             // Step 2: Create array to store the chars (not including the last char)
@@ -34,17 +40,9 @@ namespace elFinder.NetCore.Helpers
 
                 switch (c)
                 {
-                    case '-':
-                        base64Chars[iter] = '+';
-                        break;
-
-                    case '_':
-                        base64Chars[iter] = '/';
-                        break;
-
-                    default:
-                        base64Chars[iter] = c;
-                        break;
+                    case '-': base64Chars[iter] = '+'; break;
+                    case '_': base64Chars[iter] = '/'; break;
+                    default: base64Chars[iter] = c; break;
                 }
             }
 
@@ -62,9 +60,13 @@ namespace elFinder.NetCore.Helpers
         public static string UrlTokenEncode(byte[] input)
         {
             if (input == null)
+            {
                 throw new ArgumentNullException("input");
+            }
             if (input.Length < 1)
+            {
                 return String.Empty;
+            }
 
             string base64Str = null;
             int endPos = 0;
@@ -74,7 +76,9 @@ namespace elFinder.NetCore.Helpers
             // Step 1: Do a Base64 encoding
             base64Str = Convert.ToBase64String(input);
             if (base64Str == null)
+            {
                 return null;
+            }
 
             ////////////////////////////////////////////////////////
             // Step 2: Find how many padding chars are present in the end
@@ -100,22 +104,10 @@ namespace elFinder.NetCore.Helpers
 
                 switch (c)
                 {
-                    case '+':
-                        base64Chars[iter] = '-';
-                        break;
-
-                    case '/':
-                        base64Chars[iter] = '_';
-                        break;
-
-                    case '=':
-                        Debug.Assert(false);
-                        base64Chars[iter] = c;
-                        break;
-
-                    default:
-                        base64Chars[iter] = c;
-                        break;
+                    case '+': base64Chars[iter] = '-'; break;
+                    case '/': base64Chars[iter] = '_'; break;
+                    case '=': Debug.Assert(false); base64Chars[iter] = c; break;
+                    default: base64Chars[iter] = c; break;
                 }
             }
             return new string(base64Chars);

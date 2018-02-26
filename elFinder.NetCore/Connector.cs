@@ -45,7 +45,7 @@ namespace elFinder.NetCore
                 case "open":
                     if (parameters.GetValueOrDefault("init") == "1")
                     {
-                        return await driver.Init(target);
+                        return await driver.InitAsync(target);
                     }
                     else
                     {
@@ -53,28 +53,28 @@ namespace elFinder.NetCore
                         {
                             return Error.MissedParameter(cmd);
                         }
-                        return await driver.Open(target, parameters.GetValueOrDefault("tree") == "1");
+                        return await driver.OpenAsync(target, parameters.GetValueOrDefault("tree") == "1");
                     }
                 case "file":
                     if (string.IsNullOrEmpty(target))
                     {
                         return Error.MissedParameter(cmd);
                     }
-                    return await driver.File(target, parameters.GetValueOrDefault("download") == "1");
+                    return await driver.FileAsync(target, parameters.GetValueOrDefault("download") == "1");
 
                 case "tree":
                     if (string.IsNullOrEmpty(target))
                     {
                         return Error.MissedParameter(cmd);
                     }
-                    return await driver.Tree(target);
+                    return await driver.TreeAsync(target);
 
                 case "parents":
                     if (string.IsNullOrEmpty(target))
                     {
                         return Error.MissedParameter(cmd);
                     }
-                    return await driver.Parents(target);
+                    return await driver.ParentsAsync(target);
 
                 case "mkdir":
                     {
@@ -89,7 +89,7 @@ namespace elFinder.NetCore
                             return Error.MissedParameter("name");
                         }
 
-                        return await driver.MakeDir(target, name);
+                        return await driver.MakeDirAsync(target, name);
                     }
                 case "mkfile":
                     {
@@ -104,7 +104,7 @@ namespace elFinder.NetCore
                             return Error.MissedParameter("name");
                         }
 
-                        return await driver.MakeFile(target, name);
+                        return await driver.MakeFileAsync(target, name);
                     }
                 case "rename":
                     {
@@ -119,7 +119,7 @@ namespace elFinder.NetCore
                             return Error.MissedParameter("name");
                         }
 
-                        return await driver.Rename(target, name);
+                        return await driver.RenameAsync(target, name);
                     }
                 case "rm":
                     {
@@ -128,21 +128,21 @@ namespace elFinder.NetCore
                         {
                             return Error.MissedParameter("targets");
                         }
-                        return await driver.Remove(targets);
+                        return await driver.RemoveAsync(targets);
                     }
                 case "ls":
                     if (string.IsNullOrEmpty(target))
                     {
                         return Error.MissedParameter(cmd);
                     }
-                    return await driver.List(target);
+                    return await driver.ListAsync(target);
 
                 case "get":
                     if (string.IsNullOrEmpty(target))
                     {
                         return Error.MissedParameter(cmd);
                     }
-                    return await driver.Get(target);
+                    return await driver.GetAsync(target);
 
                 case "put":
                     if (string.IsNullOrEmpty(target))
@@ -156,7 +156,7 @@ namespace elFinder.NetCore
                         return Error.MissedParameter("content");
                     }
 
-                    return await driver.Put(target, content);
+                    return await driver.PutAsync(target, content);
 
                 case "paste":
                     {
@@ -178,14 +178,14 @@ namespace elFinder.NetCore
                             return Error.MissedParameter("dst");
                         }
 
-                        return await driver.Paste(src, dst, targets, parameters.GetValueOrDefault("cut") == "1");
+                        return await driver.PasteAsync(src, dst, targets, parameters.GetValueOrDefault("cut") == "1");
                     }
                 case "upload":
                     if (string.IsNullOrEmpty(target))
                     {
                         return Error.MissedParameter(cmd);
                     }
-                    return await driver.Upload(target, request.Form.Files);
+                    return await driver.UploadAsync(target, request.Form.Files);
 
                 case "duplicate":
                     {
@@ -194,7 +194,7 @@ namespace elFinder.NetCore
                         {
                             Error.MissedParameter("targets");
                         }
-                        return await driver.Duplicate(targets);
+                        return await driver.DuplicateAsync(targets);
                     }
                 case "tmb":
                     {
@@ -203,7 +203,7 @@ namespace elFinder.NetCore
                         {
                             Error.MissedParameter("targets");
                         }
-                        return await driver.Thumbs(targets);
+                        return await driver.ThumbsAsync(targets);
                     }
                 case "dim":
                     {
@@ -211,7 +211,7 @@ namespace elFinder.NetCore
                         {
                             return Error.MissedParameter(cmd);
                         }
-                        return await driver.Dim(target);
+                        return await driver.DimAsync(target);
                     }
                 case "resize":
                     {
@@ -223,14 +223,14 @@ namespace elFinder.NetCore
                         {
                             case "resize":
                                 {
-                                    return await driver.Resize(
+                                    return await driver.ResizeAsync(
                                         target,
                                         int.Parse(parameters.GetValueOrDefault("width")),
                                         int.Parse(parameters.GetValueOrDefault("height")));
                                 }
                             case "crop":
                                 {
-                                    return await driver.Crop(
+                                    return await driver.CropAsync(
                                         target,
                                         int.Parse(parameters.GetValueOrDefault("x")),
                                         int.Parse(parameters.GetValueOrDefault("y")),
@@ -239,7 +239,7 @@ namespace elFinder.NetCore
                                 }
                             case "rotate":
                                 {
-                                    return await driver.Rotate(
+                                    return await driver.RotateAsync(
                                         target,
                                         int.Parse(parameters.GetValueOrDefault("degree")));
                                 }
@@ -270,7 +270,7 @@ namespace elFinder.NetCore
                 {
                     if (!HttpCacheHelper.IsFileFromCache(path.File, request, response))
                     {
-                        ImageWithMimeType thumb = path.Root.GenerateThumbnail(path);
+                        var thumb = path.Root.GenerateThumbnail(path);
                         return new FileStreamResult(thumb.ImageStream, thumb.MimeType);
                     }
                     else

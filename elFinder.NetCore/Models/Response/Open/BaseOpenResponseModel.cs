@@ -23,16 +23,10 @@ namespace elFinder.NetCore.Models.Response
         }
 
         [DataMember(Name = "debug")]
-        public DebugResponseModel Debug
-        {
-            get { return debug; }
-        }
+        public DebugResponseModel Debug => debug;
 
         [DataMember(Name = "files")]
-        public List<BaseModel> Files
-        {
-            get { return files; }
-        }
+        public List<BaseModel> Files => files;
 
         [DataMember(Name = "options")]
         public Options Options { get; protected set; }

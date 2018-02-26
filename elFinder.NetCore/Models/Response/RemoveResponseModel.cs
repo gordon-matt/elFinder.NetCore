@@ -14,9 +14,6 @@ namespace elFinder.NetCore.Models.Response
         }
 
         [DataMember(Name = "removed")]
-        public List<string> Removed
-        {
-            get { return removed; }
-        }
+        public List<string> Removed => removed;
     }
 }

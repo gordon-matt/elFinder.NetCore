@@ -6,9 +6,6 @@ namespace elFinder.NetCore.Models.Response
     internal class DebugResponseModel
     {
         [DataMember(Name = "connector")]
-        public string Connector
-        {
-            get { return ".net"; }
-        }
+        public string Connector => ".net";
     }
 }

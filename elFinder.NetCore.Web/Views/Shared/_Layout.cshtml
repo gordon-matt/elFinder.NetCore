@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="~/css/themes/base/all.css" />
     <link rel="stylesheet" href="~/css/elfinder/css/elfinder.full.css" />
     <link rel="stylesheet" href="~/css/elfinder/css/theme.css" /> @* <-- NOTE: This file is new and some of the themes may not look quite right if this is used. *@
-    <link rel="stylesheet" href="~/css/elfinder/themes/windows-10/css/theme.css" id="elfinder-theme" />
+    <link rel="stylesheet" href="~/css/elfinder/themes/material/css/theme-gray.css" id="elfinder-theme" />
 </head>
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -39,6 +39,7 @@
                 <ul class="nav navbar-nav">
                     <li>@Html.ActionLink("Home", "Index", "Home")</li>
                     <li>@Html.ActionLink("Files", "Files", "Home")</li>
+                    <li>@Html.ActionLink("TinyMCE", "TinyMCE", "Home")</li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <li class="dropdown">
