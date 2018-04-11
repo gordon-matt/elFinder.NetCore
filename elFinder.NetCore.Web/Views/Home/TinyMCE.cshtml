@@ -12,8 +12,6 @@
         toolbar1: "undo redo | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | styleselect",
         toolbar2: "| link unlink anchor | image media | forecolor backcolor  | print preview code ",
         image_advtab: true,
-        
-        //filemanager_title: "File Manager"
         file_picker_callback: elFinderBrowser
     });
 
@@ -21,7 +19,7 @@
     function elFinderBrowser(callback, value, meta) {
         tinymce.activeEditor.windowManager.open({
             file: '/browse',// use an absolute path!
-            title: 'elFinder 2.1',
+            title: 'File Manager',
             width: 900,
             height: 450,
             resizable: 'yes'
