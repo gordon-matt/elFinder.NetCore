@@ -64,6 +64,11 @@ namespace elFinder.NetCore
         }
 
         /// <summary>
+        /// Supported UNIX and Linux
+        /// </summary>
+        public bool IsUnix { get; set; }
+
+        /// <summary>
         /// Get or sets alias for root. If not set will use directory name of path
         /// </summary>
         public string Alias { get; set; }
@@ -248,7 +253,7 @@ namespace elFinder.NetCore
             {
                 string thumbName = Path.GetFileNameWithoutExtension(originalImage.Name) + "_" + Utils.GetFileMd5(originalImage) + originalImage.Extension;
                 string relativePath = originalImage.DirectoryName.Substring(directoryInfo.FullName.Length);
-                return VolumeId + Utils.EncodePath(relativePath + "\\" + thumbName);
+                return VolumeId + Utils.EncodePath(relativePath + (IsUnix ? "/" : "\\") + thumbName);
             }
             else
             {
@@ -269,7 +274,7 @@ namespace elFinder.NetCore
                     break;
                 }
             }
-            string fullPath = originalImage.File.DirectoryName + "\\" + name + originalImage.File.Extension;
+            string fullPath = originalImage.File.DirectoryName + (IsUnix ? "/" : "\\") + name + originalImage.File.Extension;
 
             if (thumbnailsDirectory != null)
             {
