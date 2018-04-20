@@ -382,7 +382,7 @@ namespace elFinder.NetCore
             return await Json(response);
         }
 
-        public async Task<JsonResult> PasteAsync(string source, string dest, IEnumerable<string> targets, bool isCut)
+        public async Task<JsonResult> PasteAsync(string dest, IEnumerable<string> targets, bool isCut)
         {
             var destPath = ParsePath(dest);
             var response = new ReplaceResponseModel();
