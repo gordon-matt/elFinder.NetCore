@@ -166,19 +166,13 @@ namespace elFinder.NetCore
                             Error.MissedParameter("targets");
                         }
 
-                        string src = parameters.GetValueOrDefault("src");
-                        if (string.IsNullOrEmpty(src))
-                        {
-                            return Error.MissedParameter("src");
-                        }
-
                         string dst = parameters.GetValueOrDefault("dst");
-                        if (string.IsNullOrEmpty(src))
+                        if (string.IsNullOrEmpty(dst))
                         {
                             return Error.MissedParameter("dst");
                         }
 
-                        return await driver.PasteAsync(src, dst, targets, parameters.GetValueOrDefault("cut") == "1");
+                        return await driver.PasteAsync(dst, targets, parameters.GetValueOrDefault("cut") == "1");
                     }
                 case "upload":
                     if (string.IsNullOrEmpty(target))

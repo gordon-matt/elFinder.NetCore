@@ -2,12 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Authors>Yevhen Noskov, Leniel Macaferi, Matt Gordon</Authors>
-    <Company />
+    <Authors>Yevhen Noskov, Leniel Macaferi, Matt Gordon,Core System</Authors>
+    <Company>Yevhen Noskov, Leniel Macaferi, Matt Gordon,Core System</Company>
     <NeutralLanguage>en-US</NeutralLanguage>
     <Description>elFinder ASP.NET Core backend</Description>
-    <PackageProjectUrl>https://github.com/gordon-matt/elFinder.NetCore</PackageProjectUrl>
-    <Version>1.0.1</Version>
+    <PackageProjectUrl>https://github.com/cores-system/elFinder.NetCore</PackageProjectUrl>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>

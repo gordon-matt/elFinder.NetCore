@@ -144,6 +144,11 @@ namespace elFinder.NetCore
         /// </summary>
         public IEnumerable<Root> Roots => _roots;
 
+        /// <summary>
+        /// Supported UNIX and Linux
+        /// </summary>
+        public bool IsUnix { get; set; }
+
         #endregion Public
 
         #region IDriver
@@ -377,7 +382,7 @@ namespace elFinder.NetCore
             return await Json(response);
         }
 
-        public async Task<JsonResult> PasteAsync(string source, string dest, IEnumerable<string> targets, bool isCut)
+        public async Task<JsonResult> PasteAsync(string dest, IEnumerable<string> targets, bool isCut)
         {
             var destPath = ParsePath(dest);
             var response = new ReplaceResponseModel();
@@ -507,7 +512,7 @@ namespace elFinder.NetCore
                 {
                     var parentPath = fullPath.Directory.Parent.FullName;
                     var name = fullPath.Directory.Name;
-                    var newName = string.Format(@"{0}\{1} copy", parentPath, name);
+                    var newName = string.Format(@"{0}{2}{1} copy", parentPath, name, (IsUnix ? "/" : @"\"));
                     if (!Directory.Exists(newName))
                     {
                         DirectoryCopy(fullPath.Directory, newName, true);
@@ -516,7 +521,7 @@ namespace elFinder.NetCore
                     {
                         for (int i = 1; i < 100; i++)
                         {
-                            newName = string.Format(@"{0}\{1} copy {2}", parentPath, name, i);
+                            newName = string.Format(@"{0}{3}{1} copy {2}", parentPath, name, i, (IsUnix ? "/" : @"\"));
                             if (!Directory.Exists(newName))
                             {
                                 DirectoryCopy(fullPath.Directory, newName, true);
@@ -532,7 +537,7 @@ namespace elFinder.NetCore
                     var name = fullPath.File.Name.Substring(0, fullPath.File.Name.Length - fullPath.File.Extension.Length);
                     var ext = fullPath.File.Extension;
 
-                    var newName = string.Format(@"{0}\{1} copy{2}", parentPath, name, ext);
+                    var newName = string.Format(@"{0}{3}{1} copy{2}", parentPath, name, ext, (IsUnix ? "/" : @"\"));
 
                     if (!System.IO.File.Exists(newName))
                     {
@@ -542,7 +547,7 @@ namespace elFinder.NetCore
                     {
                         for (int i = 1; i < 100; i++)
                         {
-                            newName = string.Format(@"{0}\{1} copy {2}{3}", parentPath, name, i, ext);
+                            newName = string.Format(@"{0}{4}{1} copy {2}{3}", parentPath, name, i, ext, (IsUnix ? "/" : @"\"));
                             if (!System.IO.File.Exists(newName))
                             {
                                 fullPath.File.CopyTo(newName);
