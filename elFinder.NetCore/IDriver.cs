@@ -31,7 +31,7 @@ namespace elFinder.NetCore
 
         Task<JsonResult> PutAsync(string target, string content);
 
-        Task<JsonResult> PasteAsync(string source, string dest, IEnumerable<string> targets, bool isCut);
+        Task<JsonResult> PasteAsync(string dest, IEnumerable<string> targets, bool isCut);
 
         Task<JsonResult> UploadAsync(string target, IEnumerable<IFormFile> targets);
 

@@ -248,7 +248,7 @@ namespace elFinder.NetCore
             {
                 string thumbName = Path.GetFileNameWithoutExtension(originalImage.Name) + "_" + Utils.GetFileMd5(originalImage) + originalImage.Extension;
                 string relativePath = originalImage.DirectoryName.Substring(directoryInfo.FullName.Length);
-                return VolumeId + Utils.EncodePath(relativePath + "\\" + thumbName);
+                return VolumeId + Utils.EncodePath($"{relativePath}{Path.DirectorySeparatorChar}{thumbName}");
             }
             else
             {
@@ -269,7 +269,7 @@ namespace elFinder.NetCore
                     break;
                 }
             }
-            string fullPath = originalImage.File.DirectoryName + "\\" + name + originalImage.File.Extension;
+            string fullPath = $"{originalImage.File.DirectoryName}{Path.DirectorySeparatorChar}{name}{originalImage.File.Extension}";
 
             if (thumbnailsDirectory != null)
             {
