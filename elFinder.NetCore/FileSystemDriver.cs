@@ -83,7 +83,7 @@ namespace elFinder.NetCore
                 string thumbPath = path.Root.GetExistingThumbPath(path.File);
                 if (thumbPath != null)
                 {
-                    System.IO.File.Delete(thumbPath);
+                    File.Delete(thumbPath);
                 }
             }
         }
@@ -321,13 +321,13 @@ namespace elFinder.NetCore
             if (fullPath.Directory != null)
             {
                 string newPath = Path.Combine(fullPath.Directory.Parent.FullName, name);
-                System.IO.Directory.Move(fullPath.Directory.FullName, newPath);
+                Directory.Move(fullPath.Directory.FullName, newPath);
                 response.Added.Add(BaseModel.Create(new DirectoryInfo(newPath), fullPath.Root));
             }
             else
             {
                 string newPath = Path.Combine(fullPath.File.DirectoryName, name);
-                System.IO.File.Move(fullPath.File.FullName, newPath);
+                File.Move(fullPath.File.FullName, newPath);
                 response.Added.Add(BaseModel.Create(new FileInfo(newPath), fullPath.Root));
             }
             return await Json(response);
@@ -346,7 +346,7 @@ namespace elFinder.NetCore
                 }
                 else
                 {
-                    System.IO.File.Delete(fullPath.File.FullName);
+                    File.Delete(fullPath.File.FullName);
                 }
                 response.Removed.Add(item);
             }
@@ -377,7 +377,7 @@ namespace elFinder.NetCore
             return await Json(response);
         }
 
-        public async Task<JsonResult> PasteAsync(string source, string dest, IEnumerable<string> targets, bool isCut)
+        public async Task<JsonResult> PasteAsync(string dest, IEnumerable<string> targets, bool isCut)
         {
             var destPath = ParsePath(dest);
             var response = new ReplaceResponseModel();
@@ -406,8 +406,8 @@ namespace elFinder.NetCore
                 else
                 {
                     string newFilePath = Path.Combine(destPath.Directory.FullName, src.File.Name);
-                    if (System.IO.File.Exists(newFilePath))
-                        System.IO.File.Delete(newFilePath);
+                    if (File.Exists(newFilePath))
+                        File.Delete(newFilePath);
                     if (isCut)
                     {
                         RemoveThumbs(src);
@@ -416,7 +416,7 @@ namespace elFinder.NetCore
                     }
                     else
                     {
-                        System.IO.File.Copy(src.File.FullName, newFilePath);
+                        File.Copy(src.File.FullName, newFilePath);
                     }
                     response.Added.Add(BaseModel.Create(new FileInfo(newFilePath), destPath.Root));
                 }
@@ -468,12 +468,12 @@ namespace elFinder.NetCore
                         {
                             if (uploaded)
                             {
-                                System.IO.File.Delete(path.FullName);
-                                System.IO.File.Move(tmpPath, path.FullName);
+                                File.Delete(path.FullName);
+                                File.Move(tmpPath, path.FullName);
                             }
                             else
                             {
-                                System.IO.File.Delete(tmpPath);
+                                File.Delete(tmpPath);
                             }
                         }
                     }
@@ -507,7 +507,7 @@ namespace elFinder.NetCore
                 {
                     var parentPath = fullPath.Directory.Parent.FullName;
                     var name = fullPath.Directory.Name;
-                    var newName = string.Format(@"{0}\{1} copy", parentPath, name);
+                    string newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy";
                     if (!Directory.Exists(newName))
                     {
                         DirectoryCopy(fullPath.Directory, newName, true);
@@ -516,7 +516,7 @@ namespace elFinder.NetCore
                     {
                         for (int i = 1; i < 100; i++)
                         {
-                            newName = string.Format(@"{0}\{1} copy {2}", parentPath, name, i);
+                            newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy {i}";
                             if (!Directory.Exists(newName))
                             {
                                 DirectoryCopy(fullPath.Directory, newName, true);
@@ -532,9 +532,9 @@ namespace elFinder.NetCore
                     var name = fullPath.File.Name.Substring(0, fullPath.File.Name.Length - fullPath.File.Extension.Length);
                     var ext = fullPath.File.Extension;
 
-                    var newName = string.Format(@"{0}\{1} copy{2}", parentPath, name, ext);
+                    string newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy{ext}";
 
-                    if (!System.IO.File.Exists(newName))
+                    if (!File.Exists(newName))
                     {
                         fullPath.File.CopyTo(newName);
                     }
@@ -542,8 +542,8 @@ namespace elFinder.NetCore
                     {
                         for (int i = 1; i < 100; i++)
                         {
-                            newName = string.Format(@"{0}\{1} copy {2}{3}", parentPath, name, i, ext);
-                            if (!System.IO.File.Exists(newName))
+                            newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy {i}{ext}";
+                            if (!File.Exists(newName))
                             {
                                 fullPath.File.CopyTo(newName);
                                 break;
