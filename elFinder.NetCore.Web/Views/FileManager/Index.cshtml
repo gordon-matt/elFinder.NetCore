@@ -1,28 +1,24 @@
-﻿@*@model FileModel*@
-
-@{
-    ViewBag.Title = "Files";
+﻿@{
+    ViewBag.Title = "File Manager";
 }
 
 <div id="elfinder"></div>
 
 @section scripts {
     <script type="text/javascript">
-        $(function ()
-        {
+		// Documentation for client options:
+		// https://github.com/Studio-42/elFinder/wiki/Client-configuration-options
+        $(document).ready(function () {
             var myCommands = elFinder.prototype._options.commands;
-
             var disabled = ['extract', 'archive', 'resize', 'help', 'select']; // Not yet implemented commands in ElFinder.Net
 
-            $.each(disabled, function (i, cmd)
-            {
+            $.each(disabled, function (i, cmd) {
                 (idx = $.inArray(cmd, myCommands)) !== -1 && myCommands.splice(idx, 1);
             });
-
-            //var selectedFile = null;
-
+            
             var options = {
-                url: '/el-finder/file-system/connector',
+                url: '/el-finder/file-system/connector', // Default (Local File System)
+                //url: '/el-finder/azure-storage/connector', // Microsoft Azure Connector
                 @*//customData: { folder: '@Model.Folder', subFolder: '@Model.SubFolder' }, // customData passed in every request to the connector as query strings. These values are used in FileController's Index method.*@
                 rememberLastDir: false, // Prevent elFinder saving in the Browser LocalStorage the last visited directory
                 commands: myCommands,
@@ -44,38 +40,8 @@
                 },
 
                 //lang: 'vi', // Change language
-
-                //handlers: {
-                //    select: function (event, elfinderInstance)
-                //    {
-                //        if (event.data.selected.length == 1)
-                //        {
-                //            var item = $('#' + event.data.selected[0]);
-                //            if (!item.hasClass('directory'))
-                //            {
-                //                selectedFile = event.data.selected[0];
-                //                $('#elfinder-selectFile').show();
-                //                return;
-                //            }
-                //        }
-                //        $('#elfinder-selectFile').hide();
-                //        selectedFile = null;
-                //    }
-                //}
             };
             $('#elfinder').elfinder(options).elfinder('instance');
-
-            //$('.elfinder-toolbar:first').append('<div class="ui-widget-content ui-corner-all elfinder-buttonset" id="elfinder-selectFile" style="display:none; float:right;">' +
-            //'<div class="ui-state-default elfinder-button" title="Select" style="width: 100px;"></div>');
-            //$('#elfinder-selectFile').click(function ()
-            //{
-            //    if (selectedFile != null)
-            //        $.post('file/select-file', { target: selectedFile }, function (response)
-            //        {
-            //            alert(response);
-            //        });
-
-            //});
         });
     </script>
 }

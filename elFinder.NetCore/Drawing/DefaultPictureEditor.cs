@@ -47,16 +47,11 @@ namespace elFinder.NetCore.Drawing
             }
         }
 
-        public void Crop(string file, int x, int y, int width, int height)
+        public ImageWithMimeType Crop(Stream input, int x, int y, int width, int height)
         {
-            ImageWithMimeType output;
-            using (var image = Image.FromFile(file))
+            using (var image = Image.FromStream(input))
             {
-                output = ScaleOrCrop(image, new Rectangle(x, y, width, height), new Rectangle(0, 0, width, height));
-            }
-            using (var fileStream = File.Create(file))
-            {
-                output.ImageStream.CopyTo(fileStream);
+                return ScaleOrCrop(image, new Rectangle(x, y, width, height), new Rectangle(0, 0, width, height));
             }
         }
 
@@ -91,29 +86,27 @@ namespace elFinder.NetCore.Drawing
             }
         }
 
-        public void Resize(string file, int width, int height)
+        public ImageWithMimeType Resize(Stream input, int width, int height)
         {
-            ImageWithMimeType output;
-            using (var image = Image.FromFile(file))
+            using (var image = Image.FromStream(input))
             {
-                output = ScaleOrCrop(image, new Rectangle(0, 0, image.Width, image.Height), new Rectangle(0, 0, width, height));
-            }
-            using (var fileStream = File.Create(file))
-            {
-                output.ImageStream.CopyTo(fileStream);
+                return ScaleOrCrop(image, new Rectangle(0, 0, image.Width, image.Height), new Rectangle(0, 0, width, height));
             }
         }
 
-        public void Rotate(string file, int angle)
+        public ImageWithMimeType Rotate(Stream input, int angle)
         {
-            ImageWithMimeType output;
-            using (var image = Image.FromFile(file))
+            using (var image = Image.FromStream(input))
             {
-                output = Rotate(image, angle);
+                return Rotate(image, angle);
             }
-            using (var fileStream = File.Create(file))
+        }
+
+        public Size ImageSize(Stream input)
+        {
+            using (var image = Image.FromStream(input))
             {
-                output.ImageStream.CopyTo(fileStream);
+                return new Size(image.Width, image.Height);
             }
         }
 

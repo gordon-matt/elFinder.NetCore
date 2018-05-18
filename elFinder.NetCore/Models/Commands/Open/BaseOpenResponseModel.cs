@@ -10,7 +10,7 @@ namespace elFinder.NetCore.Models.Commands
         public BaseOpenResponseModel(BaseModel currentWorkingDirectory)
         {
             Files = new List<BaseModel>();
-            this.CurrentWorkingDirectory = currentWorkingDirectory;
+            CurrentWorkingDirectory = currentWorkingDirectory;
         }
 
         [JsonProperty("cwd")]

@@ -2,6 +2,8 @@
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
+using elFinder.NetCore.Drivers;
 
 namespace elFinder.NetCore.Helpers
 {
@@ -51,9 +53,9 @@ namespace elFinder.NetCore.Helpers
             return newName;
         }
 
-        public static string GetFileMd5(FileInfo info)
+        public static async Task<string> GetFileMd5(IFile info)
         {
-            return GetFileMd5(info.Name, info.LastWriteTimeUtc);
+            return GetFileMd5(info.Name, await info.LastWriteTimeUtcAsync);
         }
 
         public static string GetFileMd5(string fileName, DateTime modified)
@@ -65,7 +67,7 @@ namespace elFinder.NetCore.Helpers
             return BitConverter.ToString(md5.ComputeHash(buffer)).Replace("-", string.Empty);
         }
 
-        public static string GetMimeType(FileInfo file)
+        public static string GetMimeType(IFile file)
         {
             if (file.Extension.Length > 1)
             {
