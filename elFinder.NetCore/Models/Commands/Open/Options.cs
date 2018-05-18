@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace elFinder.NetCore.Models.Commands
 {
-    internal class Archive
+    public class Archive
     {
         private static string[] empty = new string[0];
 
@@ -14,7 +14,7 @@ namespace elFinder.NetCore.Models.Commands
         public IEnumerable<string> Extract => empty;
     }
 
-    internal class Options
+    public class Options
     {
         private static string[] disabled = new string[] { "extract", "create" };
         private static string[] empty = new string[0];
@@ -22,14 +22,14 @@ namespace elFinder.NetCore.Models.Commands
 
         public Options(FullPath fullPath)
         {
-            Path = fullPath.Root.Alias;
+            Path = fullPath.RootVolume.Alias;
             if (fullPath.RelativePath != string.Empty)
             {
                 Path += Separator + fullPath.RelativePath.Replace('\\', Separator);
             }
-            Url = fullPath.Root.Url ?? string.Empty;
-            ThumbnailsUrl = fullPath.Root.ThumbnailsUrl ?? string.Empty;
-            //ThumbnailsUrl = fullPath.Root.ThumbnailsUrl ?? fullPath.Root.Url + "/.tmb/";
+            Url = fullPath.RootVolume.Url ?? string.Empty;
+            ThumbnailsUrl = fullPath.RootVolume.ThumbnailUrl ?? string.Empty;
+            //ThumbnailsUrl = fullPath.Root.ThumbnailUrl ?? fullPath.Root.Url + "/.tmb/";
         }
 
         [JsonProperty("archivers")]

@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace elFinder.NetCore.Models.Commands
 {
-    internal class DimResponseModel
+    public class DimResponseModel
     {
         public DimResponseModel(string dimension)
         {

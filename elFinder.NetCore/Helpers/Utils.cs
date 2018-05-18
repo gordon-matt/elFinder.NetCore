@@ -22,11 +22,11 @@ namespace elFinder.NetCore.Helpers
 
         public static string GetDuplicatedName(FileInfo file)
         {
-            var parentPath = file.DirectoryName;
-            var name = Path.GetFileNameWithoutExtension(file.Name);
-            var extension = file.Extension;
+            string parentPath = file.DirectoryName;
+            string name = Path.GetFileNameWithoutExtension(file.Name);
+            string extension = file.Extension;
 
-            var newName = string.Format(@"{0}\{1} copy{2}", parentPath, name, extension);
+            string newName = $"{parentPath}/{name} copy{extension}";
             if (!File.Exists(newName))
             {
                 return newName;
@@ -36,7 +36,7 @@ namespace elFinder.NetCore.Helpers
                 bool found = false;
                 for (int i = 1; i < 10 && !found; i++)
                 {
-                    newName = string.Format(@"{0}\{1} copy {2}{3}", parentPath, name, i, extension);
+                    newName = $"{parentPath}/{name} copy {i}{extension}";
                     if (!File.Exists(newName))
                     {
                         found = true;
@@ -44,7 +44,7 @@ namespace elFinder.NetCore.Helpers
                 }
                 if (!found)
                 {
-                    newName = string.Format(@"{0}\{1} copy {2}{3}", parentPath, name, Guid.NewGuid(), extension);
+                    newName = $"{parentPath}/{name} copy {Guid.NewGuid()}{extension}";
                 }
             }
 
@@ -79,10 +79,11 @@ namespace elFinder.NetCore.Helpers
 
         public static string GetMimeType(string ext)
         {
-            if (ext.Contains("."))
+            if (ext.StartsWith("."))
             {
-                return Mime.GetMimeType(ext.Replace(".", string.Empty));
+                return Mime.GetMimeType(ext.Substring(1));
             }
+
             return Mime.GetMimeType(ext);
         }
     }

@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace elFinder.NetCore.Models.Commands
 {
-    internal class AddResponseModel
+    public class AddResponseModel
     {
         public AddResponseModel(FileInfo newFile, Root root)
         {

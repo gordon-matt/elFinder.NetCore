@@ -2,7 +2,7 @@
 
 namespace elFinder.NetCore.Models.Commands
 {
-    internal class DebugResponseModel
+    public class DebugResponseModel
     {
         [JsonProperty("connector")]
         public string Connector => ".net";

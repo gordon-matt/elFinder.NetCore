@@ -47,7 +47,7 @@ namespace elFinder.NetCore
             // https://github.com/EvgenNoskov/Elfinder.NET/blob/fb19f17a3682ed81cadcfea978dcce575806eebd/docs/Documentation.md
             if (!string.IsNullOrEmpty(thumbnailsUrl))
             {
-                ThumbnailsUrl = thumbnailsUrl;
+                ThumbnailUrl = thumbnailsUrl;
             }
 
             thumbnailsDirectory = new DirectoryInfo(Path.Combine(directoryInfo.FullName, ".tmb"));
@@ -197,7 +197,7 @@ namespace elFinder.NetCore
         /// <summary>
         /// Get ot sets thumbnals url
         /// </summary>
-        public string ThumbnailsUrl
+        public string ThumbnailUrl
         {
             get { return thumbnailsUrl; }
             set
@@ -239,7 +239,7 @@ namespace elFinder.NetCore
 
         internal bool CanCreateThumbnail(FileInfo input)
         {
-            return ThumbnailsUrl != null && PicturesEditor.CanProcessFile(input.Extension);
+            return ThumbnailUrl != null && PicturesEditor.CanProcessFile(input.Extension);
         }
 
         internal string GenerateThumbHash(FileInfo originalImage)

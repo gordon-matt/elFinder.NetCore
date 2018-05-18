@@ -9,7 +9,7 @@ using elFinder.NetCore.Models.Commands;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace elFinder.NetCore
+namespace elFinder.NetCore.Drivers.FileSystem
 {
     /// <summary>
     /// Represents a driver for local file system
@@ -72,7 +72,7 @@ namespace elFinder.NetCore
         {
             if (path.Directory != null)
             {
-                string thumbPath = path.Root.GetExistingThumbPath(path.Directory);
+                string thumbPath = path.RootVolume.GetExistingThumbPath(path.Directory);
                 if (thumbPath != null)
                 {
                     Directory.Delete(thumbPath, true);
@@ -80,7 +80,7 @@ namespace elFinder.NetCore
             }
             else
             {
-                string thumbPath = path.Root.GetExistingThumbPath(path.File);
+                string thumbPath = path.RootVolume.GetExistingThumbPath(path.File);
                 if (thumbPath != null)
                 {
                     File.Delete(thumbPath);
@@ -151,19 +151,19 @@ namespace elFinder.NetCore
         public async Task<JsonResult> OpenAsync(string target, bool tree)
         {
             var fullPath = ParsePath(target);
-            var response = new OpenResponse(BaseModel.Create(fullPath.Directory, fullPath.Root), fullPath);
+            var response = new OpenResponse(BaseModel.Create(fullPath.Directory, fullPath.RootVolume), fullPath);
             foreach (var item in fullPath.Directory.GetFiles())
             {
                 if ((item.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden)
                 {
-                    response.Files.Add(BaseModel.Create(item, fullPath.Root));
+                    response.Files.Add(BaseModel.Create(item, fullPath.RootVolume));
                 }
             }
             foreach (var item in fullPath.Directory.GetDirectories())
             {
                 if ((item.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden)
                 {
-                    response.Files.Add(BaseModel.Create(item, fullPath.Root));
+                    response.Files.Add(BaseModel.Create(item, fullPath.RootVolume));
                 }
             }
             return await Json(response);
@@ -186,39 +186,39 @@ namespace elFinder.NetCore
             {
                 fullPath = ParsePath(target);
             }
-            var response = new InitResponseModel(BaseModel.Create(fullPath.Directory, fullPath.Root), new Options(fullPath));
+            var response = new InitResponseModel(BaseModel.Create(fullPath.Directory, fullPath.RootVolume), new Options(fullPath));
 
             foreach (var item in fullPath.Directory.GetFiles())
             {
                 if ((item.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden)
                 {
-                    response.Files.Add(BaseModel.Create(item, fullPath.Root));
+                    response.Files.Add(BaseModel.Create(item, fullPath.RootVolume));
                 }
             }
             foreach (var item in fullPath.Directory.GetDirectories())
             {
                 if ((item.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden)
                 {
-                    response.Files.Add(BaseModel.Create(item, fullPath.Root));
+                    response.Files.Add(BaseModel.Create(item, fullPath.RootVolume));
                 }
             }
             foreach (var item in _roots)
             {
                 response.Files.Add(BaseModel.Create(item.Directory, item));
             }
-            if (fullPath.Root.Directory.FullName != fullPath.Directory.FullName)
+            if (fullPath.RootVolume.Directory.FullName != fullPath.Directory.FullName)
             {
-                foreach (var item in fullPath.Root.Directory.GetDirectories())
+                foreach (var item in fullPath.RootVolume.Directory.GetDirectories())
                 {
                     if ((item.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden)
                     {
-                        response.Files.Add(BaseModel.Create(item, fullPath.Root));
+                        response.Files.Add(BaseModel.Create(item, fullPath.RootVolume));
                     }
                 }
             }
-            if (fullPath.Root.MaxUploadSize.HasValue)
+            if (fullPath.RootVolume.MaxUploadSize.HasValue)
             {
-                response.UploadMaxSize = fullPath.Root.MaxUploadSizeInKb.Value + "K";
+                response.UploadMaxSize = fullPath.RootVolume.MaxUploadSizeInKb.Value + "K";
             }
             return await Json(response);
         }
@@ -236,7 +236,7 @@ namespace elFinder.NetCore
             {
                 result = new NotFoundResult();
             }
-            if (fullPath.Root.IsShowOnly)
+            if (fullPath.RootVolume.IsShowOnly)
             {
                 result = new ForbidResult();
             }
@@ -251,21 +251,21 @@ namespace elFinder.NetCore
         {
             var fullPath = ParsePath(target);
             var response = new TreeResponseModel();
-            if (fullPath.Directory.FullName == fullPath.Root.Directory.FullName)
+            if (fullPath.Directory.FullName == fullPath.RootVolume.Directory.FullName)
             {
-                response.Tree.Add(BaseModel.Create(fullPath.Directory, fullPath.Root));
+                response.Tree.Add(BaseModel.Create(fullPath.Directory, fullPath.RootVolume));
             }
             else
             {
                 var parent = fullPath.Directory;
                 foreach (var item in parent.Parent.GetDirectories())
                 {
-                    response.Tree.Add(BaseModel.Create(item, fullPath.Root));
+                    response.Tree.Add(BaseModel.Create(item, fullPath.RootVolume));
                 }
-                while (parent.FullName != fullPath.Root.Directory.FullName)
+                while (parent.FullName != fullPath.RootVolume.Directory.FullName)
                 {
                     parent = parent.Parent;
-                    response.Tree.Add(BaseModel.Create(parent, fullPath.Root));
+                    response.Tree.Add(BaseModel.Create(parent, fullPath.RootVolume));
                 }
             }
             return await Json(response);
@@ -279,7 +279,7 @@ namespace elFinder.NetCore
             {
                 if ((item.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden)
                 {
-                    response.Tree.Add(BaseModel.Create(item, fullPath.Root));
+                    response.Tree.Add(BaseModel.Create(item, fullPath.RootVolume));
                 }
             }
             return await Json(response);
@@ -300,7 +300,7 @@ namespace elFinder.NetCore
         {
             var fullPath = ParsePath(target);
             var newDir = Directory.CreateDirectory(Path.Combine(fullPath.Directory.FullName, name));
-            return await Json(new AddResponseModel(newDir, fullPath.Root));
+            return await Json(new AddResponseModel(newDir, fullPath.RootVolume));
         }
 
         public async Task<JsonResult> MakeFileAsync(string target, string name)
@@ -309,7 +309,7 @@ namespace elFinder.NetCore
             var newFile = new FileInfo(Path.Combine(fullPath.Directory.FullName, name));
             //newFile.Create().Close();
             newFile.Create();
-            return await Json(new AddResponseModel(newFile, fullPath.Root));
+            return await Json(new AddResponseModel(newFile, fullPath.RootVolume));
         }
 
         public async Task<JsonResult> RenameAsync(string target, string name)
@@ -322,13 +322,13 @@ namespace elFinder.NetCore
             {
                 string newPath = Path.Combine(fullPath.Directory.Parent.FullName, name);
                 Directory.Move(fullPath.Directory.FullName, newPath);
-                response.Added.Add(BaseModel.Create(new DirectoryInfo(newPath), fullPath.Root));
+                response.Added.Add(BaseModel.Create(new DirectoryInfo(newPath), fullPath.RootVolume));
             }
             else
             {
                 string newPath = Path.Combine(fullPath.File.DirectoryName, name);
                 File.Move(fullPath.File.FullName, newPath);
-                response.Added.Add(BaseModel.Create(new FileInfo(newPath), fullPath.Root));
+                response.Added.Add(BaseModel.Create(new FileInfo(newPath), fullPath.RootVolume));
             }
             return await Json(response);
         }
@@ -373,7 +373,7 @@ namespace elFinder.NetCore
             {
                 writer.Write(content);
             }
-            response.Changed.Add((FileModel)BaseModel.Create(fullPath.File, fullPath.Root));
+            response.Changed.Add((FileModel)BaseModel.Create(fullPath.File, fullPath.RootVolume));
             return await Json(response);
         }
 
@@ -401,7 +401,7 @@ namespace elFinder.NetCore
                     {
                         DirectoryCopy(src.Directory, newDir.FullName, true);
                     }
-                    response.Added.Add(BaseModel.Create(newDir, destPath.Root));
+                    response.Added.Add(BaseModel.Create(newDir, destPath.RootVolume));
                 }
                 else
                 {
@@ -418,7 +418,7 @@ namespace elFinder.NetCore
                     {
                         File.Copy(src.File.FullName, newFilePath);
                     }
-                    response.Added.Add(BaseModel.Create(new FileInfo(newFilePath), destPath.Root));
+                    response.Added.Add(BaseModel.Create(new FileInfo(newFilePath), destPath.RootVolume));
                 }
             }
             return await Json(response);
@@ -430,12 +430,12 @@ namespace elFinder.NetCore
 
             var dest = ParsePath(target);
             var response = new AddResponseModel();
-            if (dest.Root.MaxUploadSize.HasValue)
+            if (dest.RootVolume.MaxUploadSize.HasValue)
             {
                 for (int i = 0; i < fileCount; i++)
                 {
                     IFormFile file = targets.ElementAt(i);
-                    if (file.Length > dest.Root.MaxUploadSize.Value)
+                    if (file.Length > dest.RootVolume.MaxUploadSize.Value)
                     {
                         return Error.MaxUploadFileSize();
                     }
@@ -448,7 +448,7 @@ namespace elFinder.NetCore
 
                 if (path.Exists)
                 {
-                    if (dest.Root.UploadOverwrite)
+                    if (dest.RootVolume.UploadOverwrite)
                     {
                         //if file already exist we rename the current file,
                         //and if upload is succesfully delete temp file, in otherwise we restore old file
@@ -492,7 +492,7 @@ namespace elFinder.NetCore
                         await file.CopyToAsync(fileStream);
                     }
                 }
-                response.Added.Add((FileModel)BaseModel.Create(new FileInfo(path.FullName), dest.Root));
+                response.Added.Add((FileModel)BaseModel.Create(new FileInfo(path.FullName), dest.RootVolume));
             }
             return await Json(response);
         }
@@ -524,7 +524,7 @@ namespace elFinder.NetCore
                             }
                         }
                     }
-                    response.Added.Add(BaseModel.Create(new DirectoryInfo(newName), fullPath.Root));
+                    response.Added.Add(BaseModel.Create(new DirectoryInfo(newName), fullPath.RootVolume));
                 }
                 else
                 {
@@ -550,7 +550,7 @@ namespace elFinder.NetCore
                             }
                         }
                     }
-                    response.Added.Add(BaseModel.Create(new FileInfo(newName), fullPath.Root));
+                    response.Added.Add(BaseModel.Create(new FileInfo(newName), fullPath.RootVolume));
                 }
             }
             return await Json(response);
@@ -562,7 +562,7 @@ namespace elFinder.NetCore
             foreach (string target in targets)
             {
                 var path = ParsePath(target);
-                response.Images.Add(target, path.Root.GenerateThumbHash(path.File));
+                response.Images.Add(target, path.RootVolume.GenerateThumbHash(path.File));
                 //response.Images.Add(target, path.Root.GenerateThumbHash(path.File) + path.File.Extension); // 2018.02.23: Fix
             }
             return await Json(response);
@@ -571,7 +571,7 @@ namespace elFinder.NetCore
         public async Task<JsonResult> DimAsync(string target)
         {
             var path = ParsePath(target);
-            var response = new DimResponseModel(path.Root.GetImageDimension(path.File));
+            var response = new DimResponseModel(path.RootVolume.GetImageDimension(path.File));
             return await Json(response);
         }
 
@@ -579,9 +579,9 @@ namespace elFinder.NetCore
         {
             var path = ParsePath(target);
             RemoveThumbs(path);
-            path.Root.PicturesEditor.Resize(path.File.FullName, width, height);
+            path.RootVolume.PicturesEditor.Resize(path.File.FullName, width, height);
             var output = new ChangedResponseModel();
-            output.Changed.Add((FileModel)BaseModel.Create(path.File, path.Root));
+            output.Changed.Add((FileModel)BaseModel.Create(path.File, path.RootVolume));
             return await Json(output);
         }
 
@@ -589,9 +589,9 @@ namespace elFinder.NetCore
         {
             var path = ParsePath(target);
             RemoveThumbs(path);
-            path.Root.PicturesEditor.Crop(path.File.FullName, x, y, width, height);
+            path.RootVolume.PicturesEditor.Crop(path.File.FullName, x, y, width, height);
             var output = new ChangedResponseModel();
-            output.Changed.Add((FileModel)BaseModel.Create(path.File, path.Root));
+            output.Changed.Add((FileModel)BaseModel.Create(path.File, path.RootVolume));
             return await Json(output);
         }
 
@@ -599,9 +599,9 @@ namespace elFinder.NetCore
         {
             var path = ParsePath(target);
             RemoveThumbs(path);
-            path.Root.PicturesEditor.Rotate(path.File.FullName, degree);
+            path.RootVolume.PicturesEditor.Rotate(path.File.FullName, degree);
             var output = new ChangedResponseModel();
-            output.Changed.Add((FileModel)BaseModel.Create(path.File, path.Root));
+            output.Changed.Add((FileModel)BaseModel.Create(path.File, path.RootVolume));
             return await Json(output);
         }
 

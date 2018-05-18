@@ -9,13 +9,11 @@ namespace elFinder.NetCore.Drawing
     /// <summary>
     /// Represents default pictures editor
     /// </summary>
-    internal class DefaultPictureEditor : IPictureEditor
+    public class DefaultPictureEditor : IPictureEditor
     {
-        private Color backgroundColor;
-
         public DefaultPictureEditor(Color backgroundColor)
         {
-            this.backgroundColor = backgroundColor;
+            BackgroundColor = backgroundColor;
         }
 
         public DefaultPictureEditor()
@@ -23,11 +21,7 @@ namespace elFinder.NetCore.Drawing
         {
         }
 
-        public Color BackgroundColor
-        {
-            get { return backgroundColor; }
-            set { backgroundColor = value; }
-        }
+        public Color BackgroundColor { get; set; }
 
         public bool CanProcessFile(string fileExtension)
         {
@@ -186,7 +180,7 @@ namespace elFinder.NetCore.Drawing
             {
                 using (var g = Graphics.FromImage(rotatedBmp))
                 {
-                    g.Clear(backgroundColor);
+                    g.Clear(BackgroundColor);
                     Point[] points;
                     if (lockedTheta >= 0.0 && lockedTheta < halfPi)
                     {

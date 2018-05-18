@@ -2,7 +2,7 @@
 
 namespace elFinder.NetCore.Helpers
 {
-    internal static class Error
+    public static class Error
     {
         public static JsonResult AccessDenied()
         {

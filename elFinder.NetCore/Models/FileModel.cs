@@ -2,7 +2,7 @@
 
 namespace elFinder.NetCore.Models
 {
-    internal class FileModel : BaseModel
+    public class FileModel : BaseModel
     {
         /// <summary>
         ///  Hash of parent directory. Required except roots dirs.

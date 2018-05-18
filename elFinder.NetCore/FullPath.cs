@@ -57,6 +57,6 @@ namespace elFinder.NetCore
 
         public string RelativePath => relativePath;
 
-        public Root Root => root;
+        public Root RootVolume => root;
     }
 }
