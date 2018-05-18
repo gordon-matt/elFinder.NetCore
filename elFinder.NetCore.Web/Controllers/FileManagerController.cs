@@ -2,16 +2,10 @@
 
 namespace elFinder.NetCore.Web.Controllers
 {
-    public class HomeController : Controller
+    [Route("file-manager")]
+    public class FileManagerController : Controller
     {
-        [Route("")]
         public IActionResult Index()
-        {
-            return View();
-        }
-
-        [Route("error")]
-        public IActionResult Error()
         {
             return View();
         }

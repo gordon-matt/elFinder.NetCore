@@ -58,28 +58,28 @@ namespace elFinder.NetCore.Models
         [JsonProperty("locked")]
         public byte Locked { get; protected set; }
 
-        public static BaseModel Create(FileInfo info, RootVolume root)
+        public static BaseModel Create(FileInfo info, RootVolume volume)
         {
             if (info == null)
             {
                 throw new ArgumentNullException("info");
             }
 
-            if (root == null)
+            if (volume == null)
             {
-                throw new ArgumentNullException("root");
+                throw new ArgumentNullException("volume");
             }
 
-            string parentPath = info.Directory.FullName.Substring(root.Directory.FullName.Length);
-            string relativePath = info.FullName.Substring(root.Directory.FullName.Length);
+            string parentPath = info.Directory.FullName.Substring(volume.Directory.FullName.Length);
+            string relativePath = info.FullName.Substring(volume.Directory.FullName.Length);
 
             FileModel response;
-            if (root.CanCreateThumbnail(info))
+            if (volume.CanCreateThumbnail(info))
             {
-                var dim = root.GetImageDimension(info);
+                var dim = volume.GetImageDimension(info);
                 response = new ImageModel
                 {
-                    Thumbnail = root.GetExistingThumbHash(info) ?? (object)1,
+                    Thumbnail = volume.GetExistingThumbHash(info) ?? (object)1,
                     Dimension = string.Format("{0}x{1}", dim.Width, dim.Height)
                 };
             }
@@ -89,33 +89,33 @@ namespace elFinder.NetCore.Models
             }
 
             response.Read = 1;
-            response.Write = root.IsReadOnly ? (byte)0 : (byte)1;
-            response.Locked = ((root.LockedFolders != null && root.LockedFolders.Any(f => f == info.Directory.Name)) || root.IsLocked) ? (byte)1 : (byte)0;
+            response.Write = volume.IsReadOnly ? (byte)0 : (byte)1;
+            response.Locked = ((volume.LockedFolders != null && volume.LockedFolders.Any(f => f == info.Directory.Name)) || volume.IsLocked) ? (byte)1 : (byte)0;
             response.Name = info.Name;
             response.Size = info.Length;
             response.UnixTimeStamp = (long)(info.LastWriteTimeUtc - _unixOrigin).TotalSeconds;
             response.Mime = Utils.GetMimeType(info);
-            response.Hash = root.VolumeId + Utils.EncodePath(relativePath);
-            response.ParentHash = root.VolumeId + Utils.EncodePath(parentPath.Length > 0 ? parentPath : info.Directory.Name);
+            response.Hash = volume.VolumeId + Utils.EncodePath(relativePath);
+            response.ParentHash = volume.VolumeId + Utils.EncodePath(parentPath.Length > 0 ? parentPath : info.Directory.Name);
             return response;
         }
 
-        public static BaseModel Create(DirectoryInfo directory, RootVolume root)
+        public static BaseModel Create(DirectoryInfo directory, RootVolume volume)
         {
             if (directory == null)
             {
                 throw new ArgumentNullException("directory");
             }
 
-            if (root == null)
+            if (volume == null)
             {
-                throw new ArgumentNullException("root");
+                throw new ArgumentNullException("volume");
             }
 
-            if (root.Directory.FullName == directory.FullName)
+            if (volume.Directory.FullName == directory.FullName)
             {
                 bool hasSubdirs = false;
-                DirectoryInfo[] subdirs = directory.GetDirectories();
+                var subdirs = directory.GetDirectories();
                 foreach (var item in subdirs)
                 {
                     if ((item.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden)
@@ -128,32 +128,32 @@ namespace elFinder.NetCore.Models
                 {
                     Mime = "directory",
                     Dirs = hasSubdirs ? (byte)1 : (byte)0,
-                    Hash = root.VolumeId + Utils.EncodePath(directory.Name),
+                    Hash = volume.VolumeId + Utils.EncodePath(directory.Name),
                     Read = 1,
-                    Write = root.IsReadOnly ? (byte)0 : (byte)1,
-                    Locked = root.IsLocked ? (byte)1 : (byte)0,
-                    Name = root.Alias,
+                    Write = volume.IsReadOnly ? (byte)0 : (byte)1,
+                    Locked = volume.IsLocked ? (byte)1 : (byte)0,
+                    Name = volume.Alias,
                     Size = 0,
                     UnixTimeStamp = (long)(directory.LastWriteTimeUtc - _unixOrigin).TotalSeconds,
-                    VolumeId = root.VolumeId
+                    VolumeId = volume.VolumeId
                 };
                 return response;
             }
             else
             {
-                string parentPath = directory.Parent.FullName.Substring(root.Directory.FullName.Length);
+                string parentPath = directory.Parent.FullName.Substring(volume.Directory.FullName.Length);
                 var response = new DirectoryModel
                 {
                     Mime = "directory",
                     ContainsChildDirs = directory.GetDirectories().Length > 0 ? (byte)1 : (byte)0,
-                    Hash = root.VolumeId + Utils.EncodePath(directory.FullName.Substring(root.Directory.FullName.Length)),
+                    Hash = volume.VolumeId + Utils.EncodePath(directory.FullName.Substring(volume.Directory.FullName.Length)),
                     Read = 1,
-                    Write = root.IsReadOnly ? (byte)0 : (byte)1,
-                    Locked = ((root.LockedFolders != null && root.LockedFolders.Any(f => f == directory.Name)) || root.IsLocked) ? (byte)1 : (byte)0,
+                    Write = volume.IsReadOnly ? (byte)0 : (byte)1,
+                    Locked = ((volume.LockedFolders != null && volume.LockedFolders.Any(f => f == directory.Name)) || volume.IsLocked) ? (byte)1 : (byte)0,
                     Size = 0,
                     Name = directory.Name,
                     UnixTimeStamp = (long)(directory.LastWriteTimeUtc - _unixOrigin).TotalSeconds,
-                    ParentHash = root.VolumeId + Utils.EncodePath(parentPath.Length > 0 ? parentPath : directory.Parent.Name)
+                    ParentHash = volume.VolumeId + Utils.EncodePath(parentPath.Length > 0 ? parentPath : directory.Parent.Name)
                 };
                 return response;
             }
