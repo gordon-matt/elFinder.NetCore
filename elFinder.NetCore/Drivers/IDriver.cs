@@ -3,50 +3,50 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace elFinder.NetCore.Drivers
+namespace elFinder.NetCore
 {
     public interface IDriver
     {
-        Task<JsonResult> OpenAsync(string target, bool tree);
+        Task<FullPath> GetFullPathAsync(string target);
 
-        Task<JsonResult> InitAsync(string target);
+        Task<JsonResult> OpenAsync(FullPath path, bool tree);
 
-        Task<JsonResult> ParentsAsync(string target);
+        Task<JsonResult> InitAsync(FullPath path);
 
-        Task<JsonResult> TreeAsync(string target);
+        Task<JsonResult> ParentsAsync(FullPath path);
 
-        Task<JsonResult> ListAsync(string target);
+        Task<JsonResult> TreeAsync(FullPath path);
 
-        Task<JsonResult> MakeDirAsync(string target, string name);
+        Task<JsonResult> ListAsync(FullPath path);
 
-        Task<JsonResult> MakeFileAsync(string target, string name);
+        Task<JsonResult> MakeDirAsync(FullPath path, string name);
 
-        Task<JsonResult> RenameAsync(string target, string name);
+        Task<JsonResult> MakeFileAsync(FullPath path, string name);
 
-        Task<JsonResult> RemoveAsync(IEnumerable<string> targets);
+        Task<JsonResult> RenameAsync(FullPath path, string name);
 
-        Task<JsonResult> DuplicateAsync(IEnumerable<string> targets);
+        Task<JsonResult> RemoveAsync(IEnumerable<FullPath> paths);
 
-        Task<JsonResult> GetAsync(string target);
+        Task<JsonResult> DuplicateAsync(IEnumerable<FullPath> paths);
 
-        Task<JsonResult> PutAsync(string target, string content);
+        Task<JsonResult> GetAsync(FullPath path);
 
-        Task<JsonResult> PasteAsync(string dest, IEnumerable<string> targets, bool isCut);
+        Task<JsonResult> PutAsync(FullPath path, string content);
 
-        Task<JsonResult> UploadAsync(string target, IEnumerable<IFormFile> targets);
+        Task<JsonResult> PasteAsync(FullPath dest, IEnumerable<FullPath> paths, bool isCut);
 
-        Task<JsonResult> ThumbsAsync(IEnumerable<string> targets);
+        Task<JsonResult> UploadAsync(FullPath path, IEnumerable<IFormFile> files);
 
-        Task<JsonResult> DimAsync(string target);
+        Task<JsonResult> ThumbsAsync(IEnumerable<FullPath> paths);
 
-        Task<JsonResult> ResizeAsync(string target, int width, int height);
+        Task<JsonResult> DimAsync(FullPath path);
 
-        Task<JsonResult> CropAsync(string target, int x, int y, int width, int height);
+        Task<JsonResult> ResizeAsync(FullPath path, int width, int height);
 
-        Task<JsonResult> RotateAsync(string target, int degree);
+        Task<JsonResult> CropAsync(FullPath path, int x, int y, int width, int height);
 
-        Task<IActionResult> FileAsync(string target, bool download);
+        Task<JsonResult> RotateAsync(FullPath path, int degree);
 
-        FullPath ParsePath(string target);
+        Task<IActionResult> FileAsync(FullPath path, bool download);
     }
 }

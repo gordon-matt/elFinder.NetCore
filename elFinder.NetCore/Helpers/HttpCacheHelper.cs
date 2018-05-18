@@ -1,5 +1,6 @@
 ﻿using System;
-using System.IO;
+using System.Threading.Tasks;
+using elFinder.NetCore.Drivers;
 using Microsoft.AspNetCore.Http;
 
 namespace elFinder.NetCore.Helpers
@@ -7,9 +8,9 @@ namespace elFinder.NetCore.Helpers
     internal static class HttpCacheHelper
     {
         // TODO: Needs testing due to porting over to .NET Core
-        public static bool IsFileFromCache(FileInfo info, HttpRequest request, HttpResponse response)
+        public static async Task<bool> IsFileFromCache(IFile info, HttpRequest request, HttpResponse response)
         {
-            DateTime updated = info.LastWriteTimeUtc;
+            DateTime updated = await info.LastWriteTimeUtcAsync;
             string filename = info.Name;
 
             if (!DateTime.TryParse(request.Headers["If-Modified-Since"], out DateTime modifyDate))
