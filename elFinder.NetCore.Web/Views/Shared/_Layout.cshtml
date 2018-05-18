@@ -16,7 +16,7 @@
         <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
     </environment>
 
-    <link rel="stylesheet" href="~/css/themes/base/all.css" />
+    <link rel="stylesheet" href="~/lib/jquery-ui/themes/base/all.css" />
     <link rel="stylesheet" href="~/css/elfinder/css/elfinder.full.css" />
     <link rel="stylesheet" href="~/css/elfinder/css/theme.css" /> @* <-- NOTE: This file is new and some of the themes may not look quite right if this is used. *@
     <link rel="stylesheet" href="~/css/elfinder/themes/material/css/theme-gray.css" id="elfinder-theme" />
@@ -65,10 +65,8 @@
         </footer>
     </div>
 
-    <script src="~/js/jquery-1.12.4.js"></script>
-
     <environment names="Development">
-        @*<script src="~/lib/jquery/dist/jquery.js"></script>*@
+        <script src="~/lib/jquery/dist/jquery.js"></script>
         <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
         <script src="~/js/site.js" asp-append-version="true"></script>
     </environment>
@@ -84,7 +82,7 @@
         <script src="~/js/site.min.js" asp-append-version="true"></script>
     </environment>
 
-    <script src="~/js/jquery-ui-1.12.0.min.js"></script>
+    <script src="~/lib/jquery-ui/jquery-ui.min.js"></script>
     <script src="~/js/elfinder/elfinder.full.js"></script>
 
     <script type="text/javascript">
