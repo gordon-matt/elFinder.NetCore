@@ -39,8 +39,8 @@ namespace elFinder.NetCore.Web
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
                 app.UseBrowserLink();
+                app.UseDeveloperExceptionPage();
             }
             else
             {

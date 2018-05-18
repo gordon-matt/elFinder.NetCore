@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace elFinder.NetCore.Web.Controllers
 {
     [Route("file")]
-    public partial class FileController : Controller
+    public partial class FilesController : Controller
     {
         [Route("connector")]
         public virtual async Task<IActionResult> Index()
