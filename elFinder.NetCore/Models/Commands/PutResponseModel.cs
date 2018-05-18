@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace elFinder.NetCore.Models.Commands
 {
-    internal class PutResponseModel
+    public class PutResponseModel
     {
         public PutResponseModel()
         {

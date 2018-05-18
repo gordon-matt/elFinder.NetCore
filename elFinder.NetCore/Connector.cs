@@ -260,16 +260,16 @@ namespace elFinder.NetCore
             if (hash != null)
             {
                 var path = driver.ParsePath(hash);
-                if (!path.IsDirectory && path.Root.CanCreateThumbnail(path.File))
+                if (!path.IsDirectory && path.RootVolume.CanCreateThumbnail(path.File))
                 {
                     if (!HttpCacheHelper.IsFileFromCache(path.File, request, response))
                     {
-                        var thumb = path.Root.GenerateThumbnail(path);
+                        var thumb = path.RootVolume.GenerateThumbnail(path);
                         return new FileStreamResult(thumb.ImageStream, thumb.MimeType);
                     }
                     else
                     {
-                        response.ContentType = Utils.GetMimeType(path.Root.PicturesEditor.ConvertThumbnailExtension(path.File.Extension));
+                        response.ContentType = Utils.GetMimeType(path.RootVolume.PicturesEditor.ConvertThumbnailExtension(path.File.Extension));
                         //response.End();
                     }
                 }

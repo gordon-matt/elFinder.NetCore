@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace elFinder.NetCore.Models.Commands
 {
-    internal class InitResponseModel : BaseOpenResponseModel
+    public class InitResponseModel : BaseOpenResponseModel
     {
         private static string[] empty = new string[0];
 

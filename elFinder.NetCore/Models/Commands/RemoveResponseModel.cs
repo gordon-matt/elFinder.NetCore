@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace elFinder.NetCore.Models.Commands
 {
-    internal class RemoveResponseModel
+    public class RemoveResponseModel
     {
         public RemoveResponseModel()
         {

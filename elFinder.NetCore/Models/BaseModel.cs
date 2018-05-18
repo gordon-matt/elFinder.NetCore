@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 
 namespace elFinder.NetCore.Models
 {
-    internal abstract class BaseModel
+    public abstract class BaseModel
     {
         protected static readonly DateTime _unixOrigin = new DateTime(1970, 1, 1, 0, 0, 0);
 
