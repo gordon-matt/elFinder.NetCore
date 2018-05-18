@@ -1,6 +1,8 @@
 ﻿<textarea></textarea>
 
+@*<script src="~/lib/tinymce/jquery.tinymce.min.js"></script>*@
 <script src="~/lib/tinymce-dist/tinymce.min.js"></script>
+
 <script type="text/javascript">
     tinymce.init({
         selector: "textarea", theme: "modern", height: 300,
@@ -18,7 +20,7 @@
     // https://github.com/Studio-42/elFinder/wiki/Integration-with-TinyMCE-4.x
     function elFinderBrowser(callback, value, meta) {
         tinymce.activeEditor.windowManager.open({
-            file: '/tiny-mce/browse',// use an absolute path!
+            file: '/tiny-mce/browse',
             title: 'File Manager',
             width: 900,
             height: 450,

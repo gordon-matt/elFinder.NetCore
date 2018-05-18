@@ -14,7 +14,7 @@
             mimeTypes = new Dictionary<string, string>();
             var assembly = typeof(Mime).GetTypeInfo().Assembly;
 
-            using (var stream = assembly.GetManifestResourceStream("elFinder.NetCore.mimeTypes.txt"))
+            using (var stream = assembly.GetManifestResourceStream("elFinder.NetCore.MimeTypes.txt"))
             using (var reader = new StreamReader(stream))
             {
                 while (!reader.EndOfStream)
