@@ -19,7 +19,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
         #region Private
 
         private const string _volumePrefix = "v";
-        private List<Root> _roots;
+        private List<RootVolume> _roots;
 
         private Task<JsonResult> Json(object data)
         {
@@ -126,14 +126,14 @@ namespace elFinder.NetCore.Drivers.FileSystem
         /// </summary>
         public FileSystemDriver()
         {
-            _roots = new List<Root>();
+            _roots = new List<RootVolume>();
         }
 
         /// <summary>
         /// Adds an object to the end of the roots.
         /// </summary>
         /// <param name="item"></param>
-        public void AddRoot(Root item)
+        public void AddRoot(RootVolume item)
         {
             _roots.Add(item);
             item.VolumeId = _volumePrefix + _roots.Count + "_";
@@ -142,7 +142,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
         /// <summary>
         /// Gets collection of roots
         /// </summary>
-        public IEnumerable<Root> Roots => _roots;
+        public IEnumerable<RootVolume> Roots => _roots;
 
         #endregion Public
 

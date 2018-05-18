@@ -31,7 +31,7 @@ namespace elFinder.NetCore.Web.Controllers
             string absoluteUrl = UriHelper.BuildAbsolute(Request.Scheme, Request.Host);
             var uri = new Uri(absoluteUrl);
 
-            var root = new Root(
+            var root = new RootVolume(
                 new DirectoryInfo(Startup.MapPath("~/Files")),
                 string.Format("http://{0}/Files/", uri.Authority),
                 string.Format("http://{0}/file/thumb/", uri.Authority))

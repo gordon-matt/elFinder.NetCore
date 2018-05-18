@@ -6,12 +6,12 @@ namespace elFinder.NetCore.Models.Commands
 {
     public class AddResponseModel
     {
-        public AddResponseModel(FileInfo newFile, Root root)
+        public AddResponseModel(FileInfo newFile, RootVolume root)
         {
             Added = new List<BaseModel>() { BaseModel.Create(newFile, root) };
         }
 
-        public AddResponseModel(DirectoryInfo newDir, Root root)
+        public AddResponseModel(DirectoryInfo newDir, RootVolume root)
         {
             Added = new List<BaseModel>() { BaseModel.Create(newDir, root) };
         }

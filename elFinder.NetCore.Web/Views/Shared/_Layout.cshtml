@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="~/css/elfinder/themes/material/css/theme-gray.css" id="elfinder-theme" />
 </head>
 <body>
-    <div class="navbar navbar-inverse navbar-fixed-top">
+    <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="container">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -37,9 +37,9 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li>@Html.ActionLink("Home", "Index", "Home")</li>
-                    <li>@Html.ActionLink("Files", "Files", "Home")</li>
-                    <li>@Html.ActionLink("TinyMCE", "TinyMCE", "Home")</li>
+                    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+                    <li><a asp-area="" asp-controller="Home" asp-action="Files">Files</a></li>
+                    <li><a asp-area="" asp-controller="TinyMCE" asp-action="Index">TinyMCE</a></li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <li class="dropdown">
@@ -56,12 +56,12 @@
                 </ul>
             </div>
         </div>
-    </div>
+    </nav>
     <div class="container body-content">
         @RenderBody()
         <hr />
         <footer>
-            <p>&copy; 2017 - elFinder.NetCore.Web</p>
+            <p>&copy; @DateTime.Now.Year - elFinder.NetCore.Web</p>
         </footer>
     </div>
 

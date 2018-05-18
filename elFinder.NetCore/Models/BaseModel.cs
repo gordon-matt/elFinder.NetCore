@@ -58,7 +58,7 @@ namespace elFinder.NetCore.Models
         [JsonProperty("locked")]
         public byte Locked { get; protected set; }
 
-        public static BaseModel Create(FileInfo info, Root root)
+        public static BaseModel Create(FileInfo info, RootVolume root)
         {
             if (info == null)
             {
@@ -100,7 +100,7 @@ namespace elFinder.NetCore.Models
             return response;
         }
 
-        public static BaseModel Create(DirectoryInfo directory, Root root)
+        public static BaseModel Create(DirectoryInfo directory, RootVolume root)
         {
             if (directory == null)
             {
