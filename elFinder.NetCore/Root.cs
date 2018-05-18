@@ -14,7 +14,7 @@ namespace elFinder.NetCore
     {
         private DirectoryInfo directoryInfo;
         private int? maxUploadSize;
-        private IPicturesEditor picturesEditor;
+        private IPictureEditor picturesEditor;
         private DirectoryInfo startPath;
         private DirectoryInfo thumbnailsDirectory;
         private int thumbnailSize;
@@ -149,13 +149,13 @@ namespace elFinder.NetCore
         /// <summary>
         /// Get or sets pictures editor. The object responsible for generating thumnails and .
         /// </summary>
-        public IPicturesEditor PicturesEditor
+        public IPictureEditor PicturesEditor
         {
             get
             {
                 if (picturesEditor == null)
                 {
-                    picturesEditor = new DefaultPicturesEditor();
+                    picturesEditor = new DefaultPictureEditor();
                 }
                 return picturesEditor;
             }

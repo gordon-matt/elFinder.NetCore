@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
-namespace elFinder.NetCore.Models.Response
+namespace elFinder.NetCore.Models.Commands
 {
-    [DataContract]
     internal class ChangedResponseModel
     {
         public ChangedResponseModel()
@@ -11,7 +10,7 @@ namespace elFinder.NetCore.Models.Response
             Changed = new List<FileModel>();
         }
 
-        [DataMember(Name = "changed")]
+        [JsonProperty("changed")]
         public List<FileModel> Changed { get; private set; }
     }
 }

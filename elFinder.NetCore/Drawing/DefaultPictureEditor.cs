@@ -9,16 +9,16 @@ namespace elFinder.NetCore.Drawing
     /// <summary>
     /// Represents default pictures editor
     /// </summary>
-    internal class DefaultPicturesEditor : IPicturesEditor
+    internal class DefaultPictureEditor : IPictureEditor
     {
         private Color backgroundColor;
 
-        public DefaultPicturesEditor(Color backgroundColor)
+        public DefaultPictureEditor(Color backgroundColor)
         {
             this.backgroundColor = backgroundColor;
         }
 
-        public DefaultPicturesEditor()
+        public DefaultPictureEditor()
             : this(Color.Transparent)
         {
         }
@@ -49,7 +49,7 @@ namespace elFinder.NetCore.Drawing
             }
             else
             {
-                throw new ArgumentException(typeof(DefaultPicturesEditor).FullName + " does not support thumbnails for '" + originalImageExtension + "' files.");
+                throw new ArgumentException(typeof(DefaultPictureEditor).FullName + " does not support thumbnails for '" + originalImageExtension + "' files.");
             }
         }
 

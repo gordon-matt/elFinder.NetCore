@@ -1,12 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using elFinder.NetCore.Helpers;
+using Newtonsoft.Json;
 
 namespace elFinder.NetCore.Models
 {
-    [DataContract]
     internal abstract class BaseModel
     {
         protected static readonly DateTime _unixOrigin = new DateTime(1970, 1, 1, 0, 0, 0);
@@ -14,49 +13,49 @@ namespace elFinder.NetCore.Models
         /// <summary>
         ///  Name of file/dir. Required
         /// </summary>
-        [DataMember(Name = "name")]
+        [JsonProperty("name")]
         public string Name { get; protected set; }
 
         /// <summary>
         ///  Hash of current file/dir path, first symbol must be letter, symbols before _underline_ - volume id, Required.
         /// </summary>
-        [DataMember(Name = "hash")]
+        [JsonProperty("hash")]
         public string Hash { get; protected set; }
 
         /// <summary>
         ///  mime type. Required.
         /// </summary>
-        [DataMember(Name = "mime")]
+        [JsonProperty("mime")]
         public string Mime { get; protected set; }
 
         /// <summary>
         /// file modification time in unix timestamp. Required.
         /// </summary>
-        [DataMember(Name = "ts")]
+        [JsonProperty("ts")]
         public long UnixTimeStamp { get; protected set; }
 
         /// <summary>
         ///  file size in bytes
         /// </summary>
-        [DataMember(Name = "size")]
+        [JsonProperty("size")]
         public long Size { get; protected set; }
 
         /// <summary>
         ///  is readable
         /// </summary>
-        [DataMember(Name = "read")]
+        [JsonProperty("read")]
         public byte Read { get; protected set; }
 
         /// <summary>
         /// is writable
         /// </summary>
-        [DataMember(Name = "write")]
+        [JsonProperty("write")]
         public byte Write { get; protected set; }
 
         /// <summary>
         ///  is file locked. If locked that object cannot be deleted and renamed
         /// </summary>
-        [DataMember(Name = "locked")]
+        [JsonProperty("locked")]
         public byte Locked { get; protected set; }
 
         public static BaseModel Create(FileInfo info, Root root)

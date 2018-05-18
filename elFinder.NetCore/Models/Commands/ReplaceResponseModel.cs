@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
-namespace elFinder.NetCore.Models.Response
+namespace elFinder.NetCore.Models.Commands
 {
-    [DataContract]
     internal class ReplaceResponseModel
     {
         public ReplaceResponseModel()
@@ -12,10 +11,10 @@ namespace elFinder.NetCore.Models.Response
             Removed = new List<string>();
         }
 
-        [DataMember(Name = "added")]
+        [JsonProperty("added")]
         public List<BaseModel> Added { get; private set; }
 
-        [DataMember(Name = "removed")]
+        [JsonProperty("removed")]
         public List<string> Removed { get; private set; }
     }
 }
