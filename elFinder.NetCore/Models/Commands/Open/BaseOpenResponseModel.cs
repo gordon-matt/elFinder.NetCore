@@ -1,34 +1,29 @@
 ﻿using System.Collections.Generic;
-using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
-namespace elFinder.NetCore.Models.Response
+namespace elFinder.NetCore.Models.Commands
 {
-    [DataContract]
     internal class BaseOpenResponseModel
     {
         protected List<BaseModel> files;
         private static DebugResponseModel debug = new DebugResponseModel();
-        private BaseModel currentWorkingDirectory;
 
         public BaseOpenResponseModel(BaseModel currentWorkingDirectory)
         {
             files = new List<BaseModel>();
-            this.currentWorkingDirectory = currentWorkingDirectory;
+            this.CurrentWorkingDirectory = currentWorkingDirectory;
         }
 
-        [DataMember(Name = "cwd")]
-        public BaseModel CurrentWorkingDirectory
-        {
-            get { return currentWorkingDirectory; }
-        }
+        [JsonProperty("cwd")]
+        public BaseModel CurrentWorkingDirectory { get; }
 
-        [DataMember(Name = "debug")]
+        [JsonProperty("debug")]
         public DebugResponseModel Debug => debug;
 
-        [DataMember(Name = "files")]
+        [JsonProperty("files")]
         public List<BaseModel> Files => files;
 
-        [DataMember(Name = "options")]
+        [JsonProperty("options")]
         public Options Options { get; protected set; }
     }
 }

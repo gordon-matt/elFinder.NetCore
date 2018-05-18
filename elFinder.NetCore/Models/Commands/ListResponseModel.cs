@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
-namespace elFinder.NetCore.Models.Response
+namespace elFinder.NetCore.Models.Commands
 {
-    [DataContract]
     internal class ListResponseModel
     {
         public ListResponseModel()
@@ -11,7 +10,7 @@ namespace elFinder.NetCore.Models.Response
             List = new List<string>();
         }
 
-        [DataMember(Name = "list")]
+        [JsonProperty("list")]
         public List<string> List { get; private set; }
     }
 }

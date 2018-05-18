@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
-namespace elFinder.NetCore.Models.Response
+namespace elFinder.NetCore.Models.Commands
 {
-    [DataContract]
     internal class InitResponseModel : BaseOpenResponseModel
     {
         private static string[] empty = new string[0];
@@ -14,13 +13,13 @@ namespace elFinder.NetCore.Models.Response
             Options = options;
         }
 
-        [DataMember(Name = "api")]
+        [JsonProperty("api")]
         public string Api => "2.0";
 
-        [DataMember(Name = "netDrivers")]
+        [JsonProperty("netDrivers")]
         public IEnumerable<string> NetDrivers => empty;
 
-        [DataMember(Name = "uplMaxSize")]
+        [JsonProperty("uplMaxSize")]
         public string UploadMaxSize { get; set; }
     }
 }

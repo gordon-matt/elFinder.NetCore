@@ -1,21 +1,19 @@
 ﻿using System.Collections.Generic;
-using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
-namespace elFinder.NetCore.Models.Response
+namespace elFinder.NetCore.Models.Commands
 {
-    [DataContract]
     internal class Archive
     {
         private static string[] empty = new string[0];
 
-        [DataMember(Name = "create")]
+        [JsonProperty("create")]
         public IEnumerable<string> Create => empty;
 
-        [DataMember(Name = "extract")]
+        [JsonProperty("extract")]
         public IEnumerable<string> Extract => empty;
     }
 
-    [DataContract]
     internal class Options
     {
         private static string[] disabled = new string[] { "extract", "create" };
@@ -34,25 +32,25 @@ namespace elFinder.NetCore.Models.Response
             //ThumbnailsUrl = fullPath.Root.ThumbnailsUrl ?? fullPath.Root.Url + "/.tmb/";
         }
 
-        [DataMember(Name = "archivers")]
+        [JsonProperty("archivers")]
         public Archive Archivers => emptyArchives;
 
-        [DataMember(Name = "disabled")]
+        [JsonProperty("disabled")]
         public IEnumerable<string> Disabled => disabled;
 
-        [DataMember(Name = "copyOverwrite")]
+        [JsonProperty("copyOverwrite")]
         public byte IsCopyOverwrite => 1;
 
-        [DataMember(Name = "path")]
+        [JsonProperty("path")]
         public string Path { get; set; }
 
-        [DataMember(Name = "separator")]
+        [JsonProperty("separator")]
         public char Separator => '/';
 
-        [DataMember(Name = "tmbUrl")]
+        [JsonProperty("tmbUrl")]
         public string ThumbnailsUrl { get; set; }
 
-        [DataMember(Name = "url")]
+        [JsonProperty("url")]
         public string Url { get; set; }
     }
 }

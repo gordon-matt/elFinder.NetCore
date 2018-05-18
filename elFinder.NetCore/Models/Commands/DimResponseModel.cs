@@ -1,9 +1,8 @@
 ﻿using System.DrawingCore;
-using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
-namespace elFinder.NetCore.Models.Response
+namespace elFinder.NetCore.Models.Commands
 {
-    [DataContract]
     internal class DimResponseModel
     {
         public DimResponseModel(string dimension)
@@ -16,7 +15,7 @@ namespace elFinder.NetCore.Models.Response
             Dimension = string.Format("{0}x{1}", size.Width, size.Height);
         }
 
-        [DataMember(Name = "dim")]
+        [JsonProperty("dim")]
         public string Dimension { get; set; }
     }
 }

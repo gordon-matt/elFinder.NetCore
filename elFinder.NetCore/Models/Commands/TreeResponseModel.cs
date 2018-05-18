@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
-namespace elFinder.NetCore.Models.Response
+namespace elFinder.NetCore.Models.Commands
 {
-    [DataContract]
     internal class TreeResponseModel
     {
         public TreeResponseModel()
@@ -11,7 +10,7 @@ namespace elFinder.NetCore.Models.Response
             Tree = new List<BaseModel>();
         }
 
-        [DataMember(Name = "tree")]
+        [JsonProperty("tree")]
         public List<BaseModel> Tree { get; private set; }
     }
 }

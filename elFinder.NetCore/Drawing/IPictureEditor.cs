@@ -6,7 +6,7 @@ namespace elFinder.NetCore.Drawing
     /// <summary>
     /// Represents a picture editor
     /// </summary>
-    public interface IPicturesEditor
+    public interface IPictureEditor
     {
         /// <summary>
         /// Get or sets background color, which going be used in rotating operations
