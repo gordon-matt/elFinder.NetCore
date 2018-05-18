@@ -11,9 +11,8 @@ namespace elFinder.NetCore.Helpers
         {
             DateTime updated = info.LastWriteTimeUtc;
             string filename = info.Name;
-            DateTime modifyDate;
 
-            if (!DateTime.TryParse(request.Headers["If-Modified-Since"], out modifyDate))
+            if (!DateTime.TryParse(request.Headers["If-Modified-Since"], out DateTime modifyDate))
             {
                 modifyDate = DateTime.UtcNow;
             }
@@ -45,11 +44,10 @@ namespace elFinder.NetCore.Helpers
 
         private static bool IsFileModified(DateTime modifyDate, string eTag, HttpRequest request)
         {
-            DateTime modifiedSince;
             bool fileDateModified = true;
 
             //Check If-Modified-Since request header, if it exists
-            if (!string.IsNullOrEmpty(request.Headers["If-Modified-Since"]) && DateTime.TryParse(request.Headers["If-Modified-Since"], out modifiedSince))
+            if (!string.IsNullOrEmpty(request.Headers["If-Modified-Since"]) && DateTime.TryParse(request.Headers["If-Modified-Since"], out DateTime modifiedSince))
             {
                 fileDateModified = false;
                 if (modifyDate > modifiedSince)

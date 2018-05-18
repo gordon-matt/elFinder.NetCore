@@ -8,9 +8,9 @@ namespace elFinder.NetCore
         private FileSystemInfo fileSystemInfo;
         private bool isDirectory;
         private string relativePath;
-        private Root root;
+        private RootVolume root;
 
-        public FullPath(Root root, FileSystemInfo fileSystemInfo)
+        public FullPath(RootVolume root, FileSystemInfo fileSystemInfo)
         {
             if (root == null)
             {
@@ -57,6 +57,6 @@ namespace elFinder.NetCore
 
         public string RelativePath => relativePath;
 
-        public Root RootVolume => root;
+        public RootVolume RootVolume => root;
     }
 }

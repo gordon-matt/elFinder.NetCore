@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace elFinder.NetCore
+namespace elFinder.NetCore.Drivers
 {
     public interface IDriver
     {
