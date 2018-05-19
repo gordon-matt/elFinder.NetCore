@@ -114,7 +114,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             foreach (var file in items.Where(i => i is CloudFile))
             {
                 var f = new AzureStorageFile(file as CloudFile);
-                if (!(await f.AttributesAsync).HasFlag(FileAttributes.Hidden))
+                if (!f.Attributes.HasFlag(FileAttributes.Hidden))
                 {
                     response.Files.Add(await BaseModel.Create(this, f, path.RootVolume));
                 }
@@ -124,7 +124,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             foreach (var dir in items.Where(i => i is CloudFileDirectory))
             {
                 var d = new AzureStorageDirectory(dir as CloudFileDirectory);
-                if (!(await d.AttributesAsync).HasFlag(FileAttributes.Hidden))
+                if (!d.Attributes.HasFlag(FileAttributes.Hidden))
                 {
                     response.Files.Add(await BaseModel.Create(this, d, path.RootVolume));
                 }
@@ -173,7 +173,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             foreach (var file in items.Where(i => i is CloudFile))
             {
                 var f = new AzureStorageFile(file as CloudFile);
-                if (!(await f.AttributesAsync).HasFlag(FileAttributes.Hidden))
+                if (!f.Attributes.HasFlag(FileAttributes.Hidden))
                 {
                     response.Files.Add(await BaseModel.Create(this, f, path.RootVolume));
                 }
@@ -183,7 +183,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             foreach (var dir in items.Where(i => i is CloudFileDirectory))
             {
                 var d = new AzureStorageDirectory(dir as CloudFileDirectory);
-                if (!(await d.AttributesAsync).HasFlag(FileAttributes.Hidden))
+                if (!d.Attributes.HasFlag(FileAttributes.Hidden))
                 {
                     response.Files.Add(await BaseModel.Create(this, d, path.RootVolume));
                 }
@@ -204,7 +204,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 foreach (var dir in entries.Where(i => i is CloudFileDirectory))
                 {
                     var d = new AzureStorageDirectory(dir as CloudFileDirectory);
-                    if (!(await d.AttributesAsync).HasFlag(FileAttributes.Hidden))
+                    if (!d.Attributes.HasFlag(FileAttributes.Hidden))
                     {
                         response.Files.Add(await BaseModel.Create(this, d, path.RootVolume));
                     }
@@ -283,7 +283,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                     foreach (var dir in items.Where(i => i is CloudFileDirectory && ((CloudFileDirectory)i).Name != path.Directory.Name))
                     {
                         var d = new AzureStorageDirectory(dir as CloudFileDirectory);
-                        if (!(await d.AttributesAsync).HasFlag(FileAttributes.Hidden))
+                        if (!d.Attributes.HasFlag(FileAttributes.Hidden))
                             response.Tree.Add(await BaseModel.Create(this, d, path.RootVolume));
                     }
                 }
@@ -301,7 +301,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             foreach (var dir in items.Where(i => i is CloudFileDirectory))
             {
                 var d = new AzureStorageDirectory(dir as CloudFileDirectory);
-                if (!(await d.AttributesAsync).HasFlag(FileAttributes.Hidden))
+                if (!d.Attributes.HasFlag(FileAttributes.Hidden))
                 {
                     response.Tree.Add(await BaseModel.Create(this, d, path.RootVolume));
                 }
@@ -321,7 +321,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             foreach (var file in items.Where(i => i is CloudFile))
             {
                 var f = new AzureStorageFile(file as CloudFile);
-                if (!(await f.AttributesAsync).HasFlag(FileAttributes.Hidden))
+                if (!f.Attributes.HasFlag(FileAttributes.Hidden))
                 {
                     response.List.Add(f.Name);
                 }
@@ -331,7 +331,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             foreach (var dir in items.Where(i => i is CloudFileDirectory))
             {
                 var d = new AzureStorageDirectory(dir as CloudFileDirectory);
-                if (!(await d.AttributesAsync).HasFlag(FileAttributes.Hidden))
+                if (!d.Attributes.HasFlag(FileAttributes.Hidden))
                 {
                     response.List.Add(d.Name);
                 }
