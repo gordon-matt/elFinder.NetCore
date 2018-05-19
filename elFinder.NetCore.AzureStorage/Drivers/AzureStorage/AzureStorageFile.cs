@@ -9,6 +9,8 @@ namespace elFinder.NetCore.Drivers.AzureStorage
     {
         public static readonly char PathSeparator = '/';
 
+        #region Constructors
+
         public AzureStorageFile(string fileName)
         {
             FullName = fileName;
@@ -19,26 +21,17 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             FullName = file.Uri.LocalPath.Substring(1); // Remove starting '/'
         }
 
-        public string FullName { get; }
+        #endregion Constructors
 
-        public string Name
+        #region IFile Members
+
+        public FileAttributes Attributes
         {
-            get
-            {
-                int length = FullName.Length;
-                int startIndex = length;
-
-                while (--startIndex >= 0)
-                {
-                    char ch = FullName[startIndex];
-                    if (ch == PathSeparator)
-                    {
-                        return FullName.Substring(startIndex + 1);
-                    }
-                }
-                return FullName;
-            }
+            get => Name.StartsWith(".") ? FileAttributes.Hidden : FileAttributes.Normal;
+            set => value = FileAttributes.Normal; // Azure Storage doesn't support setting attributes
         }
+
+        public IDirectory Directory => new AzureStorageDirectory(DirectoryName);
 
         public string DirectoryName
         {
@@ -59,7 +52,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             }
         }
 
-        public IDirectory Directory => new AzureStorageDirectory(DirectoryName);
+        public Task<bool> ExistsAsync => AzureStorageAPI.FileExists(FullName);
 
         public string Extension
         {
@@ -79,17 +72,30 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             }
         }
 
-        public Task<bool> ExistsAsync => AzureStorageAPI.FileExists(FullName);
-
-        public Task<long> LengthAsync => AzureStorageAPI.FileLength(FullName);
+        public string FullName { get; }
 
         public Task<DateTime> LastWriteTimeUtcAsync => AzureStorageAPI.FileLastModifiedTimeUtc(FullName);
 
-		public FileAttributes Attributes
-		{
-			get => Name.StartsWith(".") ? FileAttributes.Hidden : FileAttributes.Normal;
-			set => value = FileAttributes.Normal; // Azure Storage doesn't support setting attributes
-		}
+        public Task<long> LengthAsync => AzureStorageAPI.FileLength(FullName);
+
+        public string Name
+        {
+            get
+            {
+                int length = FullName.Length;
+                int startIndex = length;
+
+                while (--startIndex >= 0)
+                {
+                    char ch = FullName[startIndex];
+                    if (ch == PathSeparator)
+                    {
+                        return FullName.Substring(startIndex + 1);
+                    }
+                }
+                return FullName;
+            }
+        }
 
         public IFile Clone(string path) => new AzureStorageFile(path);
 
@@ -99,12 +105,14 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return await AzureStorageAPI.FileStream(FullName);
         }
 
+        public Task DeleteAsync() => AzureStorageAPI.DeleteFile(FullName);
+
         public Task<Stream> OpenReadAsync() => AzureStorageAPI.FileStream(FullName);
 
         public Task PutAsync(string content) => AzureStorageAPI.Put(FullName, content);
 
         public Task PutAsync(Stream stream) => AzureStorageAPI.Put(FullName, stream);
 
-        public Task DeleteAsync() => AzureStorageAPI.DeleteFile(FullName);
+        #endregion IFile Members
     }
 }

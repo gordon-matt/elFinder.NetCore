@@ -17,70 +17,9 @@ namespace elFinder.NetCore.Drivers.FileSystem
     /// </summary>
     public class FileSystemDriver : BaseDriver, IDriver
     {
-        #region Private
-
         private const string _volumePrefix = "v";
-
-        private void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)
-        {
-            DirectoryInfo sourceDir = new DirectoryInfo(sourceDirName);
-            DirectoryInfo[] dirs = sourceDir.GetDirectories();
-
-            // If the source directory does not exist, throw an exception.
-            if (!sourceDir.Exists)
-            {
-                throw new DirectoryNotFoundException("Source directory does not exist or could not be found: " + sourceDir.FullName);
-            }
-
-            // If the destination directory does not exist, create it.
-            if (!Directory.Exists(destDirName))
-            {
-                Directory.CreateDirectory(destDirName);
-            }
-
-            // Get the file contents of the directory to copy.
-            FileInfo[] files = sourceDir.GetFiles();
-
-            foreach (FileInfo file in files)
-            {
-                // Create the path to the new copy of the file.
-                string temppath = Path.Combine(destDirName, file.Name);
-
-                // Copy the file.
-                file.CopyTo(temppath, false);
-            }
-
-            // If copySubDirs is true, copy the subdirectories.
-            if (copySubDirs)
-            {
-                foreach (DirectoryInfo subdir in dirs)
-                {
-                    // Create the subdirectory.
-                    string temppath = Path.Combine(destDirName, subdir.Name);
-
-                    // Copy the subdirectories.
-                    DirectoryCopy(subdir.FullName, temppath, copySubDirs);
-                }
-            }
-        }
-
-        private async Task RemoveThumbs(FullPath path)
-        {
-            if (path.IsDirectory)
-            {
-                if (await path.Directory.ExistsAsync)
-                    await path.Directory.DeleteAsync();
-            }
-            else
-            {
-                if (await path.File.ExistsAsync)
-                    await path.File.DeleteAsync();
-            }
-        }
-
-        #endregion Private
-
-        #region Public
+        
+        #region Constructor
 
         /// <summary>
         /// Initialize new instance of class ElFinder.FileSystemDriver
@@ -91,9 +30,9 @@ namespace elFinder.NetCore.Drivers.FileSystem
             Roots = new List<RootVolume>();
         }
 
-        #endregion Public
+        #endregion Constructor
 
-        #region IDriver
+        #region IDriver Members
 
         public async Task<FullPath> GetFullPathAsync(string target)
         {
@@ -127,43 +66,122 @@ namespace elFinder.NetCore.Drivers.FileSystem
             }
         }
 
-        public async Task<JsonResult> OpenAsync(FullPath path, bool tree)
+        public async Task<JsonResult> CropAsync(FullPath path, int x, int y, int width, int height)
         {
-            var response = new OpenResponse(await BaseModel.Create(this, path.Directory, path.RootVolume), path);
-            foreach (var item in await path.Directory.GetFilesAsync())
+            await RemoveThumbs(path);
+
+            // Crop Image
+            ImageWithMimeType image;
+            using (var stream = new FileStream(path.File.FullName, FileMode.Open))
             {
-                if (!item.Attributes.HasFlag(FileAttributes.Hidden))
-                {
-                    response.Files.Add(await BaseModel.Create(this, item, path.RootVolume));
-                }
-            }
-            foreach (var item in await path.Directory.GetDirectoriesAsync())
-            {
-                if (!item.Attributes.HasFlag(FileAttributes.Hidden))
-                {
-                    response.Files.Add(await BaseModel.Create(this, item, path.RootVolume));
-                }
+                image = path.RootVolume.PictureEditor.Crop(stream, x, y, width, height);
             }
 
-            // Add parents
-            if (tree)
+            using (var fileStream = File.Create(path.File.FullName))
             {
-                var parent = path.Directory;
+                await image.ImageStream.CopyToAsync(fileStream);
+            }
 
-                var rootDirectory = new DirectoryInfo(path.RootVolume.RootDirectory);
-                while (parent != null && parent.Name != rootDirectory.Name)
+            var output = new ChangedResponseModel();
+            output.Changed.Add((FileModel)await BaseModel.Create(this, path.File, path.RootVolume));
+            return await Json(output);
+        }
+
+        public async Task<JsonResult> DimAsync(FullPath path)
+        {
+            using (var stream = new FileStream(path.File.FullName, FileMode.Open))
+            {
+                var response = new DimResponseModel(path.RootVolume.PictureEditor.ImageSize(stream));
+                return await Json(response);
+            }
+        }
+
+        public async Task<JsonResult> DuplicateAsync(IEnumerable<FullPath> paths)
+        {
+            var response = new AddResponseModel();
+            foreach (var path in paths)
+            {
+                if (path.IsDirectory)
                 {
-                    // Update parent
-                    parent = parent.Parent;
-
-                    // Ensure it's a child of the root
-                    if (parent != null && path.RootVolume.RootDirectory.Contains(parent.Name))
+                    var parentPath = path.Directory.Parent.FullName;
+                    var name = path.Directory.Name;
+                    string newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy";
+                    if (!Directory.Exists(newName))
                     {
-                        response.Files.Insert(0, await BaseModel.Create(this, parent, path.RootVolume));
+                        DirectoryCopy(path.Directory.FullName, newName, true);
                     }
+                    else
+                    {
+                        for (int i = 1; i < 100; i++)
+                        {
+                            newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy {i}";
+                            if (!Directory.Exists(newName))
+                            {
+                                DirectoryCopy(path.Directory.FullName, newName, true);
+                                break;
+                            }
+                        }
+                    }
+                    response.Added.Add(await BaseModel.Create(this, new FileSystemDirectory(newName), path.RootVolume));
+                }
+                else
+                {
+                    var parentPath = path.File.Directory.FullName;
+                    var name = path.File.Name.Substring(0, path.File.Name.Length - path.File.Extension.Length);
+                    var ext = path.File.Extension;
+
+                    string newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy{ext}";
+
+                    if (!File.Exists(newName))
+                        File.Copy(path.File.FullName, newName);
+                    else
+                    {
+                        for (int i = 1; i < 100; i++)
+                        {
+                            newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy {i}{ext}";
+                            if (!File.Exists(newName))
+                            {
+                                File.Copy(path.File.FullName, newName);
+                                break;
+                            }
+                        }
+                    }
+                    response.Added.Add(await BaseModel.Create(this, new FileSystemFile(newName), path.RootVolume));
                 }
             }
+            return await Json(response);
+        }
 
+        public async Task<IActionResult> FileAsync(FullPath path, bool download)
+        {
+            IActionResult result;
+
+            if (path.IsDirectory)
+            {
+                result = new ForbidResult();
+            }
+            if (!await path.File.ExistsAsync)
+            {
+                result = new NotFoundResult();
+            }
+            if (path.RootVolume.IsShowOnly)
+            {
+                result = new ForbidResult();
+            }
+            //result = new DownloadFileResult(fullPath.File, download);
+            string contentType = download ? "application/octet-stream" : Utils.GetMimeType(path.File);
+            result = new PhysicalFileResult(path.File.FullName, contentType);
+
+            return await Task.FromResult(result);
+        }
+
+        public async Task<JsonResult> GetAsync(FullPath path)
+        {
+            var response = new GetResponseModel();
+            using (var reader = new StreamReader(await path.File.OpenReadAsync()))
+            {
+                response.Content = reader.ReadToEnd();
+            }
             return await Json(response);
         }
 
@@ -222,65 +240,6 @@ namespace elFinder.NetCore.Drivers.FileSystem
             return await Json(response);
         }
 
-        public async Task<IActionResult> FileAsync(FullPath path, bool download)
-        {
-            IActionResult result;
-
-            if (path.IsDirectory)
-            {
-                result = new ForbidResult();
-            }
-            if (!await path.File.ExistsAsync)
-            {
-                result = new NotFoundResult();
-            }
-            if (path.RootVolume.IsShowOnly)
-            {
-                result = new ForbidResult();
-            }
-            //result = new DownloadFileResult(fullPath.File, download);
-            string contentType = download ? "application/octet-stream" : Utils.GetMimeType(path.File);
-            result = new PhysicalFileResult(path.File.FullName, contentType);
-
-            return await Task.FromResult(result);
-        }
-
-        public async Task<JsonResult> ParentsAsync(FullPath path)
-        {
-            var response = new TreeResponseModel();
-            if (path.Directory.FullName == path.RootVolume.RootDirectory)
-            {
-                response.Tree.Add(await BaseModel.Create(this, path.Directory, path.RootVolume));
-            }
-            else
-            {
-                var parent = path.Directory;
-                foreach (var item in await parent.Parent.GetDirectoriesAsync())
-                {
-                    response.Tree.Add(await BaseModel.Create(this, item, path.RootVolume));
-                }
-                while (parent.FullName != path.RootVolume.RootDirectory)
-                {
-                    parent = parent.Parent;
-                    response.Tree.Add(await BaseModel.Create(this, parent, path.RootVolume));
-                }
-            }
-            return await Json(response);
-        }
-
-        public async Task<JsonResult> TreeAsync(FullPath path)
-        {
-            var response = new TreeResponseModel();
-            foreach (var item in await path.Directory.GetDirectoriesAsync())
-            {
-                if (!item.Attributes.HasFlag(FileAttributes.Hidden))
-                {
-                    response.Tree.Add(await BaseModel.Create(this, item, path.RootVolume));
-                }
-            }
-            return await Json(response);
-        }
-
         public async Task<JsonResult> ListAsync(FullPath path)
         {
             var response = new ListResponseModel();
@@ -322,64 +281,66 @@ namespace elFinder.NetCore.Drivers.FileSystem
             return await Json(response);
         }
 
-        public async Task<JsonResult> RenameAsync(FullPath path, string name)
+        public async Task<JsonResult> OpenAsync(FullPath path, bool tree)
         {
-            var response = new ReplaceResponseModel();
-            response.Removed.Add(path.HashedTarget);
-            await RemoveThumbs(path);
-            if (path.IsDirectory)
+            var response = new OpenResponse(await BaseModel.Create(this, path.Directory, path.RootVolume), path);
+            foreach (var item in await path.Directory.GetFilesAsync())
             {
-                var newPath = new FileSystemDirectory(Path.Combine(path.Directory.Parent.FullName, name));
-                Directory.Move(path.Directory.FullName, newPath.FullName);
-                response.Added.Add(await BaseModel.Create(this, newPath, path.RootVolume));
+                if (!item.Attributes.HasFlag(FileAttributes.Hidden))
+                {
+                    response.Files.Add(await BaseModel.Create(this, item, path.RootVolume));
+                }
+            }
+            foreach (var item in await path.Directory.GetDirectoriesAsync())
+            {
+                if (!item.Attributes.HasFlag(FileAttributes.Hidden))
+                {
+                    response.Files.Add(await BaseModel.Create(this, item, path.RootVolume));
+                }
+            }
+
+            // Add parents
+            if (tree)
+            {
+                var parent = path.Directory;
+
+                var rootDirectory = new DirectoryInfo(path.RootVolume.RootDirectory);
+                while (parent != null && parent.Name != rootDirectory.Name)
+                {
+                    // Update parent
+                    parent = parent.Parent;
+
+                    // Ensure it's a child of the root
+                    if (parent != null && path.RootVolume.RootDirectory.Contains(parent.Name))
+                    {
+                        response.Files.Insert(0, await BaseModel.Create(this, parent, path.RootVolume));
+                    }
+                }
+            }
+
+            return await Json(response);
+        }
+
+        public async Task<JsonResult> ParentsAsync(FullPath path)
+        {
+            var response = new TreeResponseModel();
+            if (path.Directory.FullName == path.RootVolume.RootDirectory)
+            {
+                response.Tree.Add(await BaseModel.Create(this, path.Directory, path.RootVolume));
             }
             else
             {
-                var newPath = new FileSystemFile(Path.Combine(path.File.DirectoryName, name));
-                File.Move(path.File.FullName, newPath.FullName);
-                response.Added.Add(await BaseModel.Create(this, newPath, path.RootVolume));
-            }
-            return await Json(response);
-        }
-
-        public async Task<JsonResult> RemoveAsync(IEnumerable<FullPath> paths)
-        {
-            var response = new RemoveResponseModel();
-            foreach (var path in paths)
-            {
-                await RemoveThumbs(path);
-                if (path.IsDirectory)
+                var parent = path.Directory;
+                foreach (var item in await parent.Parent.GetDirectoriesAsync())
                 {
-                    Directory.Delete(path.Directory.FullName, true);
+                    response.Tree.Add(await BaseModel.Create(this, item, path.RootVolume));
                 }
-                else
+                while (parent.FullName != path.RootVolume.RootDirectory)
                 {
-                    File.Delete(path.File.FullName);
+                    parent = parent.Parent;
+                    response.Tree.Add(await BaseModel.Create(this, parent, path.RootVolume));
                 }
-                response.Removed.Add(path.HashedTarget);
             }
-            return await Json(response);
-        }
-
-        public async Task<JsonResult> GetAsync(FullPath path)
-        {
-            var response = new GetResponseModel();
-            using (var reader = new StreamReader(await path.File.OpenReadAsync()))
-            {
-                response.Content = reader.ReadToEnd();
-            }
-            return await Json(response);
-        }
-
-        public async Task<JsonResult> PutAsync(FullPath path, string content)
-        {
-            var response = new ChangedResponseModel();
-            using (var fileStream = new FileStream(path.File.FullName, FileMode.Create))
-            using (var writer = new StreamWriter(fileStream))
-            {
-                writer.Write(content);
-            }
-            response.Changed.Add((FileModel)await BaseModel.Create(this, path.File, path.RootVolume));
             return await Json(response);
         }
 
@@ -422,6 +383,123 @@ namespace elFinder.NetCore.Drivers.FileSystem
                         File.Copy(src.File.FullName, newFile.FullName);
                     }
                     response.Added.Add(await BaseModel.Create(this, newFile, dest.RootVolume));
+                }
+            }
+            return await Json(response);
+        }
+
+        public async Task<JsonResult> PutAsync(FullPath path, string content)
+        {
+            var response = new ChangedResponseModel();
+            using (var fileStream = new FileStream(path.File.FullName, FileMode.Create))
+            using (var writer = new StreamWriter(fileStream))
+            {
+                writer.Write(content);
+            }
+            response.Changed.Add((FileModel)await BaseModel.Create(this, path.File, path.RootVolume));
+            return await Json(response);
+        }
+
+        public async Task<JsonResult> RemoveAsync(IEnumerable<FullPath> paths)
+        {
+            var response = new RemoveResponseModel();
+            foreach (var path in paths)
+            {
+                await RemoveThumbs(path);
+                if (path.IsDirectory)
+                {
+                    Directory.Delete(path.Directory.FullName, true);
+                }
+                else
+                {
+                    File.Delete(path.File.FullName);
+                }
+                response.Removed.Add(path.HashedTarget);
+            }
+            return await Json(response);
+        }
+
+        public async Task<JsonResult> RenameAsync(FullPath path, string name)
+        {
+            var response = new ReplaceResponseModel();
+            response.Removed.Add(path.HashedTarget);
+            await RemoveThumbs(path);
+            if (path.IsDirectory)
+            {
+                var newPath = new FileSystemDirectory(Path.Combine(path.Directory.Parent.FullName, name));
+                Directory.Move(path.Directory.FullName, newPath.FullName);
+                response.Added.Add(await BaseModel.Create(this, newPath, path.RootVolume));
+            }
+            else
+            {
+                var newPath = new FileSystemFile(Path.Combine(path.File.DirectoryName, name));
+                File.Move(path.File.FullName, newPath.FullName);
+                response.Added.Add(await BaseModel.Create(this, newPath, path.RootVolume));
+            }
+            return await Json(response);
+        }
+
+        public async Task<JsonResult> ResizeAsync(FullPath path, int width, int height)
+        {
+            await RemoveThumbs(path);
+
+            // Resize Image
+            ImageWithMimeType image;
+            using (var stream = new FileStream(path.File.FullName, FileMode.Open))
+            {
+                image = path.RootVolume.PictureEditor.Resize(stream, width, height);
+            }
+
+            using (var fileStream = File.Create(path.File.FullName))
+            {
+                await image.ImageStream.CopyToAsync(fileStream);
+            }
+
+            var output = new ChangedResponseModel();
+            output.Changed.Add((FileModel)await BaseModel.Create(this, path.File, path.RootVolume));
+            return await Json(output);
+        }
+
+        public async Task<JsonResult> RotateAsync(FullPath path, int degree)
+        {
+            await RemoveThumbs(path);
+
+            // Rotate Image
+            ImageWithMimeType image;
+            using (var stream = new FileStream(path.File.FullName, FileMode.Open))
+            {
+                image = path.RootVolume.PictureEditor.Rotate(stream, degree);
+            }
+
+            using (var fileStream = File.Create(path.File.FullName))
+            {
+                await image.ImageStream.CopyToAsync(fileStream);
+            }
+
+            var output = new ChangedResponseModel();
+            output.Changed.Add((FileModel)await BaseModel.Create(this, path.File, path.RootVolume));
+            return await Json(output);
+        }
+
+        public async Task<JsonResult> ThumbsAsync(IEnumerable<FullPath> paths)
+        {
+            var response = new ThumbsResponseModel();
+            foreach (var path in paths)
+            {
+                response.Images.Add(path.HashedTarget, await path.RootVolume.GenerateThumbHash(path.File));
+                //response.Images.Add(target, path.Root.GenerateThumbHash(path.File) + path.File.Extension); // 2018.02.23: Fix
+            }
+            return await Json(response);
+        }
+
+        public async Task<JsonResult> TreeAsync(FullPath path)
+        {
+            var response = new TreeResponseModel();
+            foreach (var item in await path.Directory.GetDirectoriesAsync())
+            {
+                if (!item.Attributes.HasFlag(FileAttributes.Hidden))
+                {
+                    response.Tree.Add(await BaseModel.Create(this, item, path.RootVolume));
                 }
             }
             return await Json(response);
@@ -498,145 +576,63 @@ namespace elFinder.NetCore.Drivers.FileSystem
             return await Json(response);
         }
 
-        public async Task<JsonResult> DuplicateAsync(IEnumerable<FullPath> paths)
+        #endregion IDriver Members
+
+        private void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)
         {
-            var response = new AddResponseModel();
-            foreach (var path in paths)
+            DirectoryInfo sourceDir = new DirectoryInfo(sourceDirName);
+            DirectoryInfo[] dirs = sourceDir.GetDirectories();
+
+            // If the source directory does not exist, throw an exception.
+            if (!sourceDir.Exists)
             {
-                if (path.IsDirectory)
-                {
-                    var parentPath = path.Directory.Parent.FullName;
-                    var name = path.Directory.Name;
-                    string newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy";
-                    if (!Directory.Exists(newName))
-                    {
-                        DirectoryCopy(path.Directory.FullName, newName, true);
-                    }
-                    else
-                    {
-                        for (int i = 1; i < 100; i++)
-                        {
-                            newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy {i}";
-                            if (!Directory.Exists(newName))
-                            {
-                                DirectoryCopy(path.Directory.FullName, newName, true);
-                                break;
-                            }
-                        }
-                    }
-                    response.Added.Add(await BaseModel.Create(this, new FileSystemDirectory(newName), path.RootVolume));
-                }
-                else
-                {
-                    var parentPath = path.File.Directory.FullName;
-                    var name = path.File.Name.Substring(0, path.File.Name.Length - path.File.Extension.Length);
-                    var ext = path.File.Extension;
+                throw new DirectoryNotFoundException("Source directory does not exist or could not be found: " + sourceDir.FullName);
+            }
 
-                    string newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy{ext}";
+            // If the destination directory does not exist, create it.
+            if (!Directory.Exists(destDirName))
+            {
+                Directory.CreateDirectory(destDirName);
+            }
 
-                    if (!File.Exists(newName))
-                        File.Copy(path.File.FullName, newName);
-                    else
-                    {
-                        for (int i = 1; i < 100; i++)
-                        {
-                            newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy {i}{ext}";
-                            if (!File.Exists(newName))
-                            {
-                                File.Copy(path.File.FullName, newName);
-                                break;
-                            }
-                        }
-                    }
-                    response.Added.Add(await BaseModel.Create(this, new FileSystemFile(newName), path.RootVolume));
+            // Get the file contents of the directory to copy.
+            FileInfo[] files = sourceDir.GetFiles();
+
+            foreach (FileInfo file in files)
+            {
+                // Create the path to the new copy of the file.
+                string temppath = Path.Combine(destDirName, file.Name);
+
+                // Copy the file.
+                file.CopyTo(temppath, false);
+            }
+
+            // If copySubDirs is true, copy the subdirectories.
+            if (copySubDirs)
+            {
+                foreach (DirectoryInfo subdir in dirs)
+                {
+                    // Create the subdirectory.
+                    string temppath = Path.Combine(destDirName, subdir.Name);
+
+                    // Copy the subdirectories.
+                    DirectoryCopy(subdir.FullName, temppath, copySubDirs);
                 }
             }
-            return await Json(response);
         }
 
-        public async Task<JsonResult> ThumbsAsync(IEnumerable<FullPath> paths)
+        private async Task RemoveThumbs(FullPath path)
         {
-            var response = new ThumbsResponseModel();
-            foreach (var path in paths)
+            if (path.IsDirectory)
             {
-                response.Images.Add(path.HashedTarget, await path.RootVolume.GenerateThumbHash(path.File));
-                //response.Images.Add(target, path.Root.GenerateThumbHash(path.File) + path.File.Extension); // 2018.02.23: Fix
+                if (await path.Directory.ExistsAsync)
+                    await path.Directory.DeleteAsync();
             }
-            return await Json(response);
-        }
-
-        public async Task<JsonResult> DimAsync(FullPath path)
-        {
-            using (var stream = new FileStream(path.File.FullName, FileMode.Open))
+            else
             {
-                var response = new DimResponseModel(path.RootVolume.PictureEditor.ImageSize(stream));
-                return await Json(response);
+                if (await path.File.ExistsAsync)
+                    await path.File.DeleteAsync();
             }
         }
-
-        public async Task<JsonResult> ResizeAsync(FullPath path, int width, int height)
-        {
-            await RemoveThumbs(path);
-
-            // Resize Image
-            ImageWithMimeType image;
-            using (var stream = new FileStream(path.File.FullName, FileMode.Open))
-            {
-                image = path.RootVolume.PictureEditor.Resize(stream, width, height);
-            }
-
-            using (var fileStream = File.Create(path.File.FullName))
-            {
-                await image.ImageStream.CopyToAsync(fileStream);
-            }
-
-            var output = new ChangedResponseModel();
-            output.Changed.Add((FileModel)await BaseModel.Create(this, path.File, path.RootVolume));
-            return await Json(output);
-        }
-
-        public async Task<JsonResult> CropAsync(FullPath path, int x, int y, int width, int height)
-        {
-            await RemoveThumbs(path);
-
-            // Crop Image
-            ImageWithMimeType image;
-            using (var stream = new FileStream(path.File.FullName, FileMode.Open))
-            {
-                image = path.RootVolume.PictureEditor.Crop(stream, x, y, width, height);
-            }
-
-            using (var fileStream = File.Create(path.File.FullName))
-            {
-                await image.ImageStream.CopyToAsync(fileStream);
-            }
-
-            var output = new ChangedResponseModel();
-            output.Changed.Add((FileModel)await BaseModel.Create(this, path.File, path.RootVolume));
-            return await Json(output);
-        }
-
-        public async Task<JsonResult> RotateAsync(FullPath path, int degree)
-        {
-            await RemoveThumbs(path);
-
-            // Rotate Image
-            ImageWithMimeType image;
-            using (var stream = new FileStream(path.File.FullName, FileMode.Open))
-            {
-                image = path.RootVolume.PictureEditor.Rotate(stream, degree);
-            }
-
-            using (var fileStream = File.Create(path.File.FullName))
-            {
-                await image.ImageStream.CopyToAsync(fileStream);
-            }
-
-            var output = new ChangedResponseModel();
-            output.Changed.Add((FileModel)await BaseModel.Create(this, path.File, path.RootVolume));
-            return await Json(output);
-        }
-
-        #endregion IDriver
     }
 }

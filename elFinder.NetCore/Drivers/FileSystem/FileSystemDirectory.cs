@@ -10,6 +10,8 @@ namespace elFinder.NetCore.Drivers.FileSystem
     {
         private DirectoryInfo directoryInfo;
 
+        #region Constructors
+
         public FileSystemDirectory(string dirName)
         {
             directoryInfo = new DirectoryInfo(dirName);
@@ -20,23 +22,27 @@ namespace elFinder.NetCore.Drivers.FileSystem
             this.directoryInfo = directoryInfo;
         }
 
-        public string Name => directoryInfo.Name;
+        #endregion Constructors
 
-        public string FullName => directoryInfo.FullName;
+        #region IDirectory Members
 
-        public IDirectory Parent => new FileSystemDirectory(directoryInfo.Parent);
+        public FileAttributes Attributes
+        {
+            get => directoryInfo.Attributes;
+            set => directoryInfo.Attributes = value;
+        }
 
         public Task<bool> ExistsAsync => Task.FromResult(directoryInfo.Exists);
 
-		public FileAttributes Attributes
-		{
-			get => directoryInfo.Attributes;
-			set => directoryInfo.Attributes = value;
-		}
+        public string FullName => directoryInfo.FullName;
 
-		public Task<DateTime> LastWriteTimeUtcAsync => Task.FromResult(directoryInfo.LastWriteTimeUtc);
+        public Task<DateTime> LastWriteTimeUtcAsync => Task.FromResult(directoryInfo.LastWriteTimeUtc);
 
-		public Task CreateAsync()
+        public string Name => directoryInfo.Name;
+
+        public IDirectory Parent => new FileSystemDirectory(directoryInfo.Parent);
+
+        public Task CreateAsync()
         {
             directoryInfo.Create();
             return Task.FromResult(0);
@@ -48,16 +54,18 @@ namespace elFinder.NetCore.Drivers.FileSystem
             return Task.FromResult(0);
         }
 
+        public Task<IEnumerable<IDirectory>> GetDirectoriesAsync()
+        {
+            var dirs = directoryInfo.GetDirectories().Select(d => new FileSystemDirectory(d) as IDirectory);
+            return Task.FromResult(dirs);
+        }
+
         public Task<IEnumerable<IFile>> GetFilesAsync()
         {
             var files = directoryInfo.GetFiles().Select(f => new FileSystemFile(f) as IFile);
             return Task.FromResult(files);
         }
 
-        public Task<IEnumerable<IDirectory>> GetDirectoriesAsync()
-        {
-            var dirs = directoryInfo.GetDirectories().Select(d => new FileSystemDirectory(d) as IDirectory);
-            return Task.FromResult(dirs);
-        }
+        #endregion IDirectory Members
     }
 }

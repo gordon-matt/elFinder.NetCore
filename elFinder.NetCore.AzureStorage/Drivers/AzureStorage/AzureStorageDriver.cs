@@ -18,42 +18,9 @@ namespace elFinder.NetCore.Drivers.AzureStorage
     /// </summary>
     public class AzureStorageDriver : BaseDriver, IDriver
     {
-        #region Private
-
         private const string _volumePrefix = "a";
 
-        private async void RemoveThumbs(FullPath path)
-        {
-            if (path.IsDirectory)
-            {
-                var thumbPath = path.RootVolume.GenerateThumbPath(path.Directory);
-                if (thumbPath == null) return;
-
-                var thumbDir = new AzureStorageDirectory(thumbPath);
-                if (await thumbDir.ExistsAsync)
-                {
-                    await thumbDir.DeleteAsync();
-                }
-            }
-            else
-            {
-                var thumbPath = await path.RootVolume.GenerateThumbPath(path.File);
-                if (thumbPath == null)
-                {
-                    return;
-                }
-
-                var thumbFile = new AzureStorageFile(thumbPath);
-                if (await thumbFile.ExistsAsync)
-                {
-                    await thumbFile.DeleteAsync();
-                }
-            }
-        }
-
-        #endregion Private
-
-        #region Public
+        #region Constructor
 
         /// <summary>
         /// Initialize new instance of class ElFinder.AzureStorageDriver
@@ -64,9 +31,9 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             Roots = new List<RootVolume>();
         }
 
-        #endregion Public
+        #endregion Constructor
 
-        #region IDriver
+        #region IDriver Members
 
         public async Task<FullPath> GetFullPathAsync(string target)
         {
@@ -740,6 +707,35 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return await Json(output);
         }
 
-        #endregion IDriver
+        #endregion IDriver Members
+
+        private async void RemoveThumbs(FullPath path)
+        {
+            if (path.IsDirectory)
+            {
+                var thumbPath = path.RootVolume.GenerateThumbPath(path.Directory);
+                if (thumbPath == null) return;
+
+                var thumbDir = new AzureStorageDirectory(thumbPath);
+                if (await thumbDir.ExistsAsync)
+                {
+                    await thumbDir.DeleteAsync();
+                }
+            }
+            else
+            {
+                var thumbPath = await path.RootVolume.GenerateThumbPath(path.File);
+                if (thumbPath == null)
+                {
+                    return;
+                }
+
+                var thumbFile = new AzureStorageFile(thumbPath);
+                if (await thumbFile.ExistsAsync)
+                {
+                    await thumbFile.DeleteAsync();
+                }
+            }
+        }
     }
 }

@@ -11,6 +11,8 @@ namespace elFinder.NetCore.Drivers.AzureStorage
     {
         public static readonly char PathSeparator = '/';
 
+        #region Constructors
+
         public AzureStorageDirectory(string dirName)
         {
             FullName = dirName;
@@ -21,7 +23,21 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             FullName = dir.Uri.LocalPath.Substring(1); // Remove starting '/'
         }
 
+        #endregion Constructors
+
+        #region IDirectory Members
+
+        public FileAttributes Attributes
+        {
+            get => Name.StartsWith(".") ? FileAttributes.Hidden : FileAttributes.Directory;
+            set => value = FileAttributes.Directory; // Azure Storage doesn't support setting attributes
+        }
+
+        public Task<bool> ExistsAsync => AzureStorageAPI.DirectoryExists(FullName);
+
         public string FullName { get; }
+
+        public Task<DateTime> LastWriteTimeUtcAsync => AzureStorageAPI.DirectoryLastModifiedTimeUtc(FullName);
 
         public string Name
         {
@@ -39,10 +55,6 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             }
         }
 
-        public Task<bool> ExistsAsync => AzureStorageAPI.DirectoryExists(FullName);
-
-        public Task<DateTime> LastWriteTimeUtcAsync => AzureStorageAPI.DirectoryLastModifiedTimeUtc(FullName);
-
         public IDirectory Parent
         {
             get
@@ -58,12 +70,6 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 return null;
             }
         }
-
-        public FileAttributes Attributes
-		{
-			get => Name.StartsWith(".") ? FileAttributes.Hidden : FileAttributes.Directory;
-			set => value = FileAttributes.Directory; // Azure Storage doesn't support setting attributes
-		}
 
         public Task CreateAsync() => AzureStorageAPI.CreateDirectory(FullName);
 
@@ -88,5 +94,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
             return result;
         }
+
+        #endregion IDirectory Members
     }
 }

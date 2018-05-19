@@ -9,19 +9,7 @@ namespace elFinder.NetCore
 {
     public class FullPath
     {
-        public string HashedTarget { get; set; }
-
-        public IFile File { get; protected set; }
-
-        public IDirectory Directory { get; protected set; }
-
-        public bool IsDirectory { get; protected set; }
-
-        public bool IsRoot { get; protected set; }
-
-        public string RelativePath { get; protected set; }
-
-        public RootVolume RootVolume { get; protected set; }
+        #region Constructors
 
         public FullPath(RootVolume root, IFile file, string hashedTarget) : this(root, file.FullName, hashedTarget, false)
         {
@@ -52,6 +40,22 @@ namespace elFinder.NetCore
             }
         }
 
+        #endregion Constructors
+
+        public IDirectory Directory { get; protected set; }
+
+        public IFile File { get; protected set; }
+
+        public string HashedTarget { get; set; }
+
+        public bool IsDirectory { get; protected set; }
+
+        public bool IsRoot { get; protected set; }
+
+        public string RelativePath { get; protected set; }
+
+        public RootVolume RootVolume { get; protected set; }
+
         public async Task<ImageWithMimeType> GenerateThumbnail()
         {
             string name = File.FullName;
@@ -80,11 +84,11 @@ namespace elFinder.NetCore
 
                 if (!await thumbFile.ExistsAsync)
                 {
-					var thumbDir = thumbFile.Directory;
+                    var thumbDir = thumbFile.Directory;
                     if (!await thumbDir.ExistsAsync)
                     {
                         await thumbDir.CreateAsync();
-						thumbDir.Attributes = FileAttributes.Hidden;
+                        thumbDir.Attributes = FileAttributes.Hidden;
                     }
 
                     using (var original = await File.Clone(fullPath).OpenReadAsync())

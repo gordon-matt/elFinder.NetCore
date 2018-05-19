@@ -9,20 +9,9 @@ namespace elFinder.NetCore.Drivers
     /// </summary>
     public abstract class BaseDriver
     {
-        #region Protected
-
-        protected Task<JsonResult> Json(object data)
-        {
-            return Task.FromResult(new JsonResult(data) { ContentType = "text/html" });
-        }
-
-        #endregion Protected
-
-        #region Public
+        public ICollection<RootVolume> Roots { get; protected set; }
 
         public string VolumePrefix { get; protected set; }
-
-        public ICollection<RootVolume> Roots { get; protected set; }
 
         /// <summary>
         /// Adds an object to the end of the roots.
@@ -34,6 +23,9 @@ namespace elFinder.NetCore.Drivers
             item.VolumeId = VolumePrefix + Roots.Count + "_";
         }
 
-        #endregion Public
+        protected Task<JsonResult> Json(object data)
+        {
+            return Task.FromResult(new JsonResult(data) { ContentType = "text/html" });
+        }
     }
 }
