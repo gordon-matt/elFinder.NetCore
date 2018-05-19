@@ -12,83 +12,52 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 {
     public static class AzureStorageAPI
     {
-        public static string AccountName { get; set; }
         public static string AccountKey { get; set; }
 
-        public static async Task<IEnumerable<IListFileItem>> ListFilesAndDirectories(string dir)
-        {
-            var rootDir = GetRootDirectoryReference(dir);
-            var sampleDir = IsRoot(dir) ? rootDir : rootDir.GetDirectoryReference(RelativePath(dir));
+        public static string AccountName { get; set; }
 
-            var results = new List<IListFileItem>();
-            FileContinuationToken token = null;
-            try
+        public static async Task CopyDirectory(string source, string destination)
+        {
+            var rootDir = GetRootDirectoryReference(source);
+
+            foreach (var item in await ListFilesAndDirectories(source))
             {
-                do
+                var src = RelativePath(item.Uri.LocalPath);
+                var dest = UrlCombine(destination, Path.GetFileName(item.Uri.LocalPath));
+                if (item is CloudFileDirectory)
                 {
-                    var resultSegment = await sampleDir.ListFilesAndDirectoriesSegmentedAsync(token);
-                    results.AddRange(resultSegment.Results);
-                    token = resultSegment.ContinuationToken;
+                    await CopyDirectory(src, dest);
                 }
-                while (token != null);
-            }
-            catch (Exception)
-            {
-                return new IListFileItem[0];
-            }
-
-            return results;
-        }
-
-        public static async Task<bool> RootDirectoryExists(string root)
-        {
-            try
-            {
-                var rootDir = GetRootDirectoryReference(root);
-                return await rootDir.ExistsAsync();
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
-
-        public static async Task<bool> DirectoryExists(string dir)
-        {
-            try
-            {
-                var rootDir = GetRootDirectoryReference(dir);
-
-                if (IsRoot(dir))
+                else if (item is CloudFile)
                 {
-                    return await rootDir.ExistsAsync();
+                    await CopyFile(src, dest);
                 }
-
-                // Get a reference to the directory we created previously.
-                var sampleDir = rootDir.GetDirectoryReference(RelativePath(dir));
-
-                return await sampleDir.ExistsAsync();
-            }
-            catch (Exception)
-            {
-                return false;
             }
         }
 
-        public static async Task<bool> FileExists(string file)
+        public static async Task CopyFile(string source, string destination)
         {
-            try
+            var rootDir = GetRootDirectoryReference(source);
+
+            // Get a reference to the directory we created previously.
+            var sourceFile = rootDir.GetFileReference(RelativePath(source));
+
+            // Get a reference to the directory we created previously.
+            var destFile = rootDir.GetFileReference(RelativePath(destination));
+
+            // Create directory
+            await destFile.Parent.CreateIfNotExistsAsync();
+
+            // Copy file
+            var result = await destFile.StartCopyAsync(sourceFile);
+            while (destFile.CopyState.Status == CopyStatus.Pending)
             {
-                var rootDir = GetRootDirectoryReference(file);
-
-                // Get a reference to the directory we created previously.
-                var sampleFile = rootDir.GetFileReference(RelativePath(file));
-
-                return await sampleFile.ExistsAsync();
+                Thread.Sleep(500);
             }
-            catch (Exception)
+
+            if (destFile.CopyState.Status != CopyStatus.Success)
             {
-                return false;
+                throw new Exception("Copy failed: " + destFile.CopyState.Status);
             }
         }
 
@@ -106,6 +75,22 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 subdir = UrlCombine(subdir, path);
                 var sampleDir = rootDir.GetDirectoryReference(subdir);
                 await sampleDir.CreateIfNotExistsAsync();
+            }
+        }
+
+        public static async Task<bool> CreateShare(string share)
+        {
+            try
+            {
+                var storageAccount = new CloudStorageAccount(new Microsoft.WindowsAzure.Storage.Auth.StorageCredentials(AccountName, AccountKey), true);
+                var fileClient = storageAccount.CreateCloudFileClient();
+                var fileshare = fileClient.GetShareReference(share);
+                await fileshare.CreateIfNotExistsAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
 
@@ -165,133 +150,36 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             await sampleFile.DeleteIfExistsAsync();
         }
 
-        public static async Task MakeFile(string file)
+        public static async Task<bool> DirectoryExists(string dir)
         {
-            var rootDir = GetRootDirectoryReference(file);
-
-            // Get a reference to the directory we created previously.
-            var sampleFile = rootDir.GetFileReference(RelativePath(file));
-
-            // Create directory
-            await sampleFile.CreateAsync(0);
-        }
-
-        public static async Task Get(string file, Stream stream)
-        {
-            var rootDir = GetRootDirectoryReference(file);
-
-            // Get a reference to the directory we created previously.
-            var sampleFile = rootDir.GetFileReference(RelativePath(file));
-
-            // Create directory
-            await sampleFile.DownloadToStreamAsync(stream);
-        }
-
-        public static async Task CopyFile(string source, string destination)
-        {
-            var rootDir = GetRootDirectoryReference(source);
-
-            // Get a reference to the directory we created previously.
-            var sourceFile = rootDir.GetFileReference(RelativePath(source));
-
-            // Get a reference to the directory we created previously.
-            var destFile = rootDir.GetFileReference(RelativePath(destination));
-
-            // Create directory
-            await destFile.Parent.CreateIfNotExistsAsync();
-
-            // Copy file
-            var result = await destFile.StartCopyAsync(sourceFile);
-            while (destFile.CopyState.Status == CopyStatus.Pending)
+            try
             {
-                Thread.Sleep(500);
-            }
+                var rootDir = GetRootDirectoryReference(dir);
 
-            if (destFile.CopyState.Status != CopyStatus.Success)
-            {
-                throw new Exception("Copy failed: " + destFile.CopyState.Status);
-            }
-        }
-
-        public static async Task MoveFile(string source, string destination)
-        {
-            await CopyFile(source, destination);
-
-            var rootDir = GetRootDirectoryReference(source);
-            var sourceFile = rootDir.GetFileReference(RelativePath(source));
-
-            await sourceFile.DeleteAsync();
-        }
-
-        public static async Task CopyDirectory(string source, string destination)
-        {
-            var rootDir = GetRootDirectoryReference(source);
-
-            foreach (var item in await ListFilesAndDirectories(source))
-            {
-                var src = RelativePath(item.Uri.LocalPath);
-                var dest = UrlCombine(destination, Path.GetFileName(item.Uri.LocalPath));
-                if (item is CloudFileDirectory)
+                if (IsRoot(dir))
                 {
-                    await CopyDirectory(src, dest);
+                    return await rootDir.ExistsAsync();
                 }
-                else if (item is CloudFile)
-                {
-                    await CopyFile(src, dest);
-                }
+
+                // Get a reference to the directory we created previously.
+                var sampleDir = rootDir.GetDirectoryReference(RelativePath(dir));
+
+                return await sampleDir.ExistsAsync();
             }
-        }
-
-        public static async Task MoveDirectory(string source, string destination)
-        {
-            await CopyDirectory(source, destination);
-
-            var rootDir = GetRootDirectoryReference(source);
-            var sourceDir = rootDir.GetDirectoryReference(RelativePath(source));
-
-            await sourceDir.DeleteAsync();
-        }
-
-        public static async Task Put(string file, string content)
-        {
-            var rootDir = GetRootDirectoryReference(file);
-
-            var sampleFile = rootDir.GetFileReference(RelativePath(file));
-
-            await sampleFile.UploadTextAsync(content);
-        }
-
-        public static async Task Put(string file, Stream stream)
-        {
-            var rootDir = GetRootDirectoryReference(file);
-
-            var sampleFile = rootDir.GetFileReference(RelativePath(file));
-
-            await sampleFile.UploadFromStreamAsync(stream);
-        }
-
-        public static async Task Upload(IFormFile file, string path)
-        {
-            var rootDir = GetRootDirectoryReference(path);
-
-            var sampleFile = rootDir.GetFileReference(RelativePath(path));
-
-            using (var dest = await sampleFile.OpenWriteAsync(file.Length))
+            catch (Exception)
             {
-                using (var s = file.OpenReadStream())
-                {
-                    s.CopyTo(dest);
-                }
+                return false;
             }
         }
 
-        public static async Task<Stream> FileStream(string file)
+        public static async Task<DateTime> DirectoryLastModifiedTimeUtc(string dir)
         {
-            var rootDir = GetRootDirectoryReference(file);
+            var rootDir = GetRootDirectoryReference(dir);
 
-            var sampleFile = rootDir.GetFileReference(RelativePath(file));
+            var sourceDir = rootDir.GetDirectoryReference(RelativePath(dir));
 
-            return await sampleFile.OpenReadAsync();
+            await sourceDir.FetchAttributesAsync();
+            return sourceDir.Properties.LastModified?.DateTime ?? DateTime.UtcNow;
         }
 
         public static async Task<byte[]> FileBytes(string file)
@@ -305,14 +193,21 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return result;
         }
 
-        public static async Task<long> FileLength(string file)
+        public static async Task<bool> FileExists(string file)
         {
-            var rootDir = GetRootDirectoryReference(file);
+            try
+            {
+                var rootDir = GetRootDirectoryReference(file);
 
-            var sampleFile = rootDir.GetFileReference(RelativePath(file));
-            await sampleFile.FetchAttributesAsync();
+                // Get a reference to the directory we created previously.
+                var sampleFile = rootDir.GetFileReference(RelativePath(file));
 
-            return sampleFile.Properties.Length;
+                return await sampleFile.ExistsAsync();
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         public static async Task<DateTime> FileLastModifiedTimeUtc(string file)
@@ -325,91 +220,34 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return sampleFile.Properties.LastModified?.DateTime ?? DateTime.UtcNow;
         }
 
-        public static async Task<DateTime> DirectoryLastModifiedTimeUtc(string dir)
+        public static async Task<long> FileLength(string file)
         {
-            var rootDir = GetRootDirectoryReference(dir);
+            var rootDir = GetRootDirectoryReference(file);
 
-            var sourceDir = rootDir.GetDirectoryReference(RelativePath(dir));
+            var sampleFile = rootDir.GetFileReference(RelativePath(file));
+            await sampleFile.FetchAttributesAsync();
 
-            await sourceDir.FetchAttributesAsync();
-            return sourceDir.Properties.LastModified?.DateTime ?? DateTime.UtcNow;
+            return sampleFile.Properties.Length;
         }
 
-        public static CloudFileDirectory GetRootDirectoryReference(string path)
+        public static async Task<Stream> FileStream(string file)
         {
-            var storageAccount = new CloudStorageAccount(new Microsoft.WindowsAzure.Storage.Auth.StorageCredentials(AccountName, AccountKey), true);
+            var rootDir = GetRootDirectoryReference(file);
 
-            // Create a CloudFileClient object for credentialed access to File storage.
-            var fileClient = storageAccount.CreateCloudFileClient();
+            var sampleFile = rootDir.GetFileReference(RelativePath(file));
 
-            // Get a reference to the file share we created previously.
-
-            var fileshare = fileClient.GetShareReference(GetRoot(path));
-
-            // Get a reference to the root directory for the share.
-            return fileshare.GetRootDirectoryReference();
+            return await sampleFile.OpenReadAsync();
         }
 
-        public static async Task<bool> CreateShare(string share)
+        public static async Task Get(string file, Stream stream)
         {
-            try
-            {
-                var storageAccount = new CloudStorageAccount(new Microsoft.WindowsAzure.Storage.Auth.StorageCredentials(AccountName, AccountKey), true);
-                var fileClient = storageAccount.CreateCloudFileClient();
-                var fileshare = fileClient.GetShareReference(share);
-                await fileshare.CreateIfNotExistsAsync();
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
+            var rootDir = GetRootDirectoryReference(file);
 
-        private static string GetRoot(string path)
-        {
-            if (string.IsNullOrEmpty(path)) throw new ArgumentNullException("path");
+            // Get a reference to the directory we created previously.
+            var sampleFile = rootDir.GetFileReference(RelativePath(file));
 
-            int length = 0;
-            while (length < path.Length)
-            {
-                char ch = path[length];
-                if (ch == '/')
-                {
-                    return path.Substring(0, length);
-                }
-                length++;
-            }
-            return path;
-        }
-
-        private static bool IsRoot(string path)
-        {
-            if (string.IsNullOrEmpty(path)) return false;
-
-            return !path.Contains("/");
-        }
-
-        public static string RelativePath(string path)
-        {
-            int length = 0;
-            while (length < path.Length)
-            {
-                char ch = path[length];
-                if (ch == '/')
-                {
-                    return path.Substring(length + 1);
-                }
-                length++;
-            }
-            return string.Empty;
-        }
-
-        public static string UrlCombine(string path1, string path2)
-        {
-            // Force forward slash as path separator
-            var result = Path.Combine(path1, path2);
-            return Path.DirectorySeparatorChar == '/' ? result : result.Replace(Path.DirectorySeparatorChar, '/');
+            // Create directory
+            await sampleFile.DownloadToStreamAsync(stream);
         }
 
         /// <summary>
@@ -444,6 +282,169 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             }
 
             return newName;
+        }
+
+        public static CloudFileDirectory GetRootDirectoryReference(string path)
+        {
+            var storageAccount = new CloudStorageAccount(new Microsoft.WindowsAzure.Storage.Auth.StorageCredentials(AccountName, AccountKey), true);
+
+            // Create a CloudFileClient object for credentialed access to File storage.
+            var fileClient = storageAccount.CreateCloudFileClient();
+
+            // Get a reference to the file share we created previously.
+
+            var fileshare = fileClient.GetShareReference(GetRoot(path));
+
+            // Get a reference to the root directory for the share.
+            return fileshare.GetRootDirectoryReference();
+        }
+
+        public static async Task<IEnumerable<IListFileItem>> ListFilesAndDirectories(string dir)
+        {
+            var rootDir = GetRootDirectoryReference(dir);
+            var sampleDir = IsRoot(dir) ? rootDir : rootDir.GetDirectoryReference(RelativePath(dir));
+
+            var results = new List<IListFileItem>();
+            FileContinuationToken token = null;
+            try
+            {
+                do
+                {
+                    var resultSegment = await sampleDir.ListFilesAndDirectoriesSegmentedAsync(token);
+                    results.AddRange(resultSegment.Results);
+                    token = resultSegment.ContinuationToken;
+                }
+                while (token != null);
+            }
+            catch (Exception)
+            {
+                return new IListFileItem[0];
+            }
+
+            return results;
+        }
+
+        public static async Task MakeFile(string file)
+        {
+            var rootDir = GetRootDirectoryReference(file);
+
+            // Get a reference to the directory we created previously.
+            var sampleFile = rootDir.GetFileReference(RelativePath(file));
+
+            // Create directory
+            await sampleFile.CreateAsync(0);
+        }
+
+        public static async Task MoveDirectory(string source, string destination)
+        {
+            await CopyDirectory(source, destination);
+
+            var rootDir = GetRootDirectoryReference(source);
+            var sourceDir = rootDir.GetDirectoryReference(RelativePath(source));
+
+            await sourceDir.DeleteAsync();
+        }
+
+        public static async Task MoveFile(string source, string destination)
+        {
+            await CopyFile(source, destination);
+
+            var rootDir = GetRootDirectoryReference(source);
+            var sourceFile = rootDir.GetFileReference(RelativePath(source));
+
+            await sourceFile.DeleteAsync();
+        }
+
+        public static async Task Put(string file, string content)
+        {
+            var rootDir = GetRootDirectoryReference(file);
+
+            var sampleFile = rootDir.GetFileReference(RelativePath(file));
+
+            await sampleFile.UploadTextAsync(content);
+        }
+
+        public static async Task Put(string file, Stream stream)
+        {
+            var rootDir = GetRootDirectoryReference(file);
+
+            var sampleFile = rootDir.GetFileReference(RelativePath(file));
+
+            await sampleFile.UploadFromStreamAsync(stream);
+        }
+
+        public static string RelativePath(string path)
+        {
+            int length = 0;
+            while (length < path.Length)
+            {
+                char ch = path[length];
+                if (ch == '/')
+                {
+                    return path.Substring(length + 1);
+                }
+                length++;
+            }
+            return string.Empty;
+        }
+
+        public static async Task<bool> RootDirectoryExists(string root)
+        {
+            try
+            {
+                var rootDir = GetRootDirectoryReference(root);
+                return await rootDir.ExistsAsync();
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public static async Task Upload(IFormFile file, string path)
+        {
+            var rootDir = GetRootDirectoryReference(path);
+
+            var sampleFile = rootDir.GetFileReference(RelativePath(path));
+
+            using (var dest = await sampleFile.OpenWriteAsync(file.Length))
+            {
+                using (var s = file.OpenReadStream())
+                {
+                    s.CopyTo(dest);
+                }
+            }
+        }
+
+        public static string UrlCombine(string path1, string path2)
+        {
+            // Force forward slash as path separator
+            var result = Path.Combine(path1, path2);
+            return Path.DirectorySeparatorChar == '/' ? result : result.Replace(Path.DirectorySeparatorChar, '/');
+        }
+
+        private static string GetRoot(string path)
+        {
+            if (string.IsNullOrEmpty(path)) throw new ArgumentNullException("path");
+
+            int length = 0;
+            while (length < path.Length)
+            {
+                char ch = path[length];
+                if (ch == '/')
+                {
+                    return path.Substring(0, length);
+                }
+                length++;
+            }
+            return path;
+        }
+
+        private static bool IsRoot(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return false;
+
+            return !path.Contains("/");
         }
     }
 }

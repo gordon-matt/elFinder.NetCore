@@ -7,26 +7,26 @@ namespace elFinder.NetCore.Drivers
 {
     public interface IDirectory
     {
-        // Properties
-        string Name { get; }
-
-        string FullName { get; }
-
-        IDirectory Parent { get; }
+        FileAttributes Attributes { get; set; }
 
         Task<bool> ExistsAsync { get; }
 
-		FileAttributes Attributes { get; set; }
+        string FullName { get; }
 
-		Task<DateTime> LastWriteTimeUtcAsync { get; }
-        
+        Task<DateTime> LastWriteTimeUtcAsync { get; }
+
+        // Properties
+        string Name { get; }
+
+        IDirectory Parent { get; }
+
         // Functions
         Task CreateAsync();
 
         Task DeleteAsync();
 
-        Task<IEnumerable<IFile>> GetFilesAsync();
-
         Task<IEnumerable<IDirectory>> GetDirectoriesAsync();
+
+        Task<IEnumerable<IFile>> GetFilesAsync();
     }
 }

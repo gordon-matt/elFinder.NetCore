@@ -11,6 +11,8 @@ namespace elFinder.NetCore.Drawing
     /// </summary>
     public class DefaultPictureEditor : IPictureEditor
     {
+        #region Constructors
+
         public DefaultPictureEditor(Color backgroundColor)
         {
             BackgroundColor = backgroundColor;
@@ -20,6 +22,10 @@ namespace elFinder.NetCore.Drawing
             : this(Color.Transparent)
         {
         }
+
+        #endregion Constructors
+
+        #region IPictureEditor Members
 
         public Color BackgroundColor { get; set; }
 
@@ -86,6 +92,14 @@ namespace elFinder.NetCore.Drawing
             }
         }
 
+        public Size ImageSize(Stream input)
+        {
+            using (var image = Image.FromStream(input))
+            {
+                return new Size(image.Width, image.Height);
+            }
+        }
+
         public ImageWithMimeType Resize(Stream input, int width, int height)
         {
             using (var image = Image.FromStream(input))
@@ -102,13 +116,7 @@ namespace elFinder.NetCore.Drawing
             }
         }
 
-        public Size ImageSize(Stream input)
-        {
-            using (var image = Image.FromStream(input))
-            {
-                return new Size(image.Width, image.Height);
-            }
-        }
+        #endregion IPictureEditor Members
 
         /// <summary>
         /// Creates a new Image containing the same image, only rotated

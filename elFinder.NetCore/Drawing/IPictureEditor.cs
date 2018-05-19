@@ -47,6 +47,12 @@ namespace elFinder.NetCore.Drawing
         ImageWithMimeType GenerateThumbnail(Stream input, int size, bool keepAspectRatio);
 
         /// <summary>
+        /// Get Width and Height of the image
+        /// </summary>
+        /// <param name="input">Input stream of image</param>
+        Size ImageSize(Stream input);
+
+        /// <summary>
         /// Resize image
         /// </summary>
         /// <param name="input">Input stream of image</param>
@@ -60,11 +66,5 @@ namespace elFinder.NetCore.Drawing
         /// <param name="input">Input stream of image</param>
         /// <param name="degrees">Angle of rotation in degrees</param>
         ImageWithMimeType Rotate(Stream input, int degrees);
-
-        /// <summary>
-        /// Get Width and Height of the image
-        /// </summary>
-        /// <param name="input">Input stream of image</param>
-        Size ImageSize(Stream input);
     }
 }

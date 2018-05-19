@@ -6,36 +6,36 @@ namespace elFinder.NetCore.Drivers
 {
     public interface IFile
     {
-        // Properties
-        string Name { get; }
-
-        string FullName { get; }
-
-        string DirectoryName { get; }
+        FileAttributes Attributes { get; set; }
 
         IDirectory Directory { get; }
 
-        string Extension { get; }
+        string DirectoryName { get; }
 
         Task<bool> ExistsAsync { get; }
 
+        string Extension { get; }
+
+        string FullName { get; }
+
+        Task<DateTime> LastWriteTimeUtcAsync { get; }
+
         Task<long> LengthAsync { get; }
 
-		FileAttributes Attributes { get; set; }
-
-		Task<DateTime> LastWriteTimeUtcAsync { get; }
+        // Properties
+        string Name { get; }
 
         // Functions
         IFile Clone(string path);
 
         Task<Stream> CreateAsync();
 
+        Task DeleteAsync();
+
         Task<Stream> OpenReadAsync();
 
         Task PutAsync(string content);
 
         Task PutAsync(Stream stream);
-
-        Task DeleteAsync();
     }
 }

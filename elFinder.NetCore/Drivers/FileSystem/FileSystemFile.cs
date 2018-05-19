@@ -8,6 +8,8 @@ namespace elFinder.NetCore.Drivers.FileSystem
     {
         private FileInfo fileInfo;
 
+        #region Constructors
+
         public FileSystemFile(string fileName)
         {
             fileInfo = new FileInfo(fileName);
@@ -18,25 +20,29 @@ namespace elFinder.NetCore.Drivers.FileSystem
             this.fileInfo = fileInfo;
         }
 
-        public string Name => fileInfo.Name;
+        #endregion Constructors
 
-        public string FullName => fileInfo.FullName;
+        #region IFile Members
 
-        public string DirectoryName => fileInfo.DirectoryName;
+        public FileAttributes Attributes { get => fileInfo.Attributes; set => fileInfo.Attributes = value; }
 
         public IDirectory Directory => new FileSystemDirectory(fileInfo.Directory);
 
-        public string Extension => fileInfo.Extension;
+        public string DirectoryName => fileInfo.DirectoryName;
 
         public Task<bool> ExistsAsync => Task.FromResult(fileInfo.Exists);
 
+        public string Extension => fileInfo.Extension;
+
+        public string FullName => fileInfo.FullName;
+
+        public Task<DateTime> LastWriteTimeUtcAsync => Task.FromResult(fileInfo.LastWriteTimeUtc);
+
         public Task<long> LengthAsync => Task.FromResult(fileInfo.Length);
 
-		public FileAttributes Attributes { get => fileInfo.Attributes; set => fileInfo.Attributes = value; }
+        public string Name => fileInfo.Name;
 
-		public Task<DateTime> LastWriteTimeUtcAsync => Task.FromResult(fileInfo.LastWriteTimeUtc);
-
-		public IFile Clone(string path)
+        public IFile Clone(string path)
         {
             return new FileSystemFile(path);
         }
@@ -44,6 +50,12 @@ namespace elFinder.NetCore.Drivers.FileSystem
         public Task<Stream> CreateAsync()
         {
             return Task.FromResult(fileInfo.Create() as Stream);
+        }
+
+        public Task DeleteAsync()
+        {
+            fileInfo.Delete();
+            return Task.FromResult(0);
         }
 
         public Task<Stream> OpenReadAsync()
@@ -67,10 +79,6 @@ namespace elFinder.NetCore.Drivers.FileSystem
             return Task.FromResult(0);
         }
 
-        public Task DeleteAsync()
-        {
-            fileInfo.Delete();
-            return Task.FromResult(0);
-        }
+        #endregion IFile Members
     }
 }

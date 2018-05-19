@@ -9,13 +9,17 @@ namespace elFinder.NetCore
     {
         Task<FullPath> GetFullPathAsync(string target);
 
-        Task<JsonResult> OpenAsync(FullPath path, bool tree);
+        Task<JsonResult> CropAsync(FullPath path, int x, int y, int width, int height);
+
+        Task<JsonResult> DimAsync(FullPath path);
+
+        Task<JsonResult> DuplicateAsync(IEnumerable<FullPath> paths);
+
+        Task<IActionResult> FileAsync(FullPath path, bool download);
+
+        Task<JsonResult> GetAsync(FullPath path);
 
         Task<JsonResult> InitAsync(FullPath path);
-
-        Task<JsonResult> ParentsAsync(FullPath path);
-
-        Task<JsonResult> TreeAsync(FullPath path);
 
         Task<JsonResult> ListAsync(FullPath path);
 
@@ -23,30 +27,26 @@ namespace elFinder.NetCore
 
         Task<JsonResult> MakeFileAsync(FullPath path, string name);
 
-        Task<JsonResult> RenameAsync(FullPath path, string name);
+        Task<JsonResult> OpenAsync(FullPath path, bool tree);
 
-        Task<JsonResult> RemoveAsync(IEnumerable<FullPath> paths);
-
-        Task<JsonResult> DuplicateAsync(IEnumerable<FullPath> paths);
-
-        Task<JsonResult> GetAsync(FullPath path);
-
-        Task<JsonResult> PutAsync(FullPath path, string content);
+        Task<JsonResult> ParentsAsync(FullPath path);
 
         Task<JsonResult> PasteAsync(FullPath dest, IEnumerable<FullPath> paths, bool isCut);
 
-        Task<JsonResult> UploadAsync(FullPath path, IEnumerable<IFormFile> files);
+        Task<JsonResult> PutAsync(FullPath path, string content);
 
-        Task<JsonResult> ThumbsAsync(IEnumerable<FullPath> paths);
+        Task<JsonResult> RemoveAsync(IEnumerable<FullPath> paths);
 
-        Task<JsonResult> DimAsync(FullPath path);
+        Task<JsonResult> RenameAsync(FullPath path, string name);
 
         Task<JsonResult> ResizeAsync(FullPath path, int width, int height);
 
-        Task<JsonResult> CropAsync(FullPath path, int x, int y, int width, int height);
-
         Task<JsonResult> RotateAsync(FullPath path, int degree);
 
-        Task<IActionResult> FileAsync(FullPath path, bool download);
+        Task<JsonResult> ThumbsAsync(IEnumerable<FullPath> paths);
+
+        Task<JsonResult> TreeAsync(FullPath path);
+
+        Task<JsonResult> UploadAsync(FullPath path, IEnumerable<IFormFile> files);
     }
 }
