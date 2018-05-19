@@ -132,16 +132,14 @@ namespace elFinder.NetCore.Drivers.FileSystem
             var response = new OpenResponse(await BaseModel.Create(this, path.Directory, path.RootVolume), path);
             foreach (var item in await path.Directory.GetFilesAsync())
             {
-                var attributes = await item.AttributesAsync;
-                if (!attributes.HasFlag(FileAttributes.Hidden))
+                if (!item.Attributes.HasFlag(FileAttributes.Hidden))
                 {
                     response.Files.Add(await BaseModel.Create(this, item, path.RootVolume));
                 }
             }
             foreach (var item in await path.Directory.GetDirectoriesAsync())
             {
-                var attributes = await item.AttributesAsync;
-                if (!attributes.HasFlag(FileAttributes.Hidden))
+                if (!item.Attributes.HasFlag(FileAttributes.Hidden))
                 {
                     response.Files.Add(await BaseModel.Create(this, item, path.RootVolume));
                 }
@@ -186,16 +184,14 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
             foreach (var item in await path.Directory.GetFilesAsync())
             {
-                var attributes = await item.AttributesAsync;
-                if (!attributes.HasFlag(FileAttributes.Hidden))
+                if (!item.Attributes.HasFlag(FileAttributes.Hidden))
                 {
                     response.Files.Add(await BaseModel.Create(this, item, path.RootVolume));
                 }
             }
             foreach (var item in await path.Directory.GetDirectoriesAsync())
             {
-                var attributes = await item.AttributesAsync;
-                if (!attributes.HasFlag(FileAttributes.Hidden))
+                if (!item.Attributes.HasFlag(FileAttributes.Hidden))
                 {
                     response.Files.Add(await BaseModel.Create(this, item, path.RootVolume));
                 }
@@ -277,8 +273,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
             var response = new TreeResponseModel();
             foreach (var item in await path.Directory.GetDirectoriesAsync())
             {
-                var attributes = await item.AttributesAsync;
-                if (!attributes.HasFlag(FileAttributes.Hidden))
+                if (!item.Attributes.HasFlag(FileAttributes.Hidden))
                 {
                     response.Tree.Add(await BaseModel.Create(this, item, path.RootVolume));
                 }
@@ -292,16 +287,14 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
             foreach (var item in await path.Directory.GetFilesAsync())
             {
-                var attributes = await item.AttributesAsync;
-                if (!attributes.HasFlag(FileAttributes.Hidden))
+                if (!item.Attributes.HasFlag(FileAttributes.Hidden))
                 {
                     response.List.Add(item.Name);
                 }
             }
             foreach (var item in await path.Directory.GetDirectoriesAsync())
             {
-                var attributes = await item.AttributesAsync;
-                if (!attributes.HasFlag(FileAttributes.Hidden))
+                if (!item.Attributes.HasFlag(FileAttributes.Hidden))
                 {
                     response.List.Add(item.Name);
                 }

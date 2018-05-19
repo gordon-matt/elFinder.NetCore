@@ -16,10 +16,10 @@ namespace elFinder.NetCore.Drivers
 
         Task<bool> ExistsAsync { get; }
 
-        Task<DateTime> LastWriteTimeUtcAsync { get; }
+		FileAttributes Attributes { get; set; }
 
-        Task<FileAttributes> AttributesAsync { get; }
-
+		Task<DateTime> LastWriteTimeUtcAsync { get; }
+        
         // Functions
         Task CreateAsync();
 

@@ -116,8 +116,7 @@ namespace elFinder.NetCore.Models
                 var subdirs = await directory.GetDirectoriesAsync();
                 foreach (var item in subdirs)
                 {
-                    var attributes = await item.AttributesAsync;
-                    if (!attributes.HasFlag(FileAttributes.Hidden))
+                    if (!item.Attributes.HasFlag(FileAttributes.Hidden))
                     {
                         hasSubdirs = true;
                         break;

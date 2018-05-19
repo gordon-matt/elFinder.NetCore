@@ -85,7 +85,11 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
         public Task<DateTime> LastWriteTimeUtcAsync => AzureStorageAPI.FileLastModifiedTimeUtc(FullName);
 
-        public Task<FileAttributes> AttributesAsync => Task.FromResult(FileAttributes.Normal);
+		public FileAttributes Attributes
+		{
+			get => Name.StartsWith(".") ? FileAttributes.Hidden : FileAttributes.Normal;
+			set => value = FileAttributes.Normal; // Azure Storage doesn't support setting attributes
+		}
 
         public IFile Clone(string path) => new AzureStorageFile(path);
 

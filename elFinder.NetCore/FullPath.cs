@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using elFinder.NetCore.Drawing;
 using elFinder.NetCore.Drivers;
@@ -79,9 +80,11 @@ namespace elFinder.NetCore
 
                 if (!await thumbFile.ExistsAsync)
                 {
-                    if (!await thumbFile.Directory.ExistsAsync)
+					var thumbDir = thumbFile.Directory;
+                    if (!await thumbDir.ExistsAsync)
                     {
-                        await thumbFile.Directory.CreateAsync();
+                        await thumbDir.CreateAsync();
+						thumbDir.Attributes = FileAttributes.Hidden;
                     }
 
                     using (var original = await File.Clone(fullPath).OpenReadAsync())

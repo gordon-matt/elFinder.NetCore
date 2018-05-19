@@ -28,11 +28,15 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
         public Task<bool> ExistsAsync => Task.FromResult(directoryInfo.Exists);
 
-        public Task<DateTime> LastWriteTimeUtcAsync => Task.FromResult(directoryInfo.LastWriteTimeUtc);
+		public FileAttributes Attributes
+		{
+			get => directoryInfo.Attributes;
+			set => directoryInfo.Attributes = value;
+		}
 
-        public Task<FileAttributes> AttributesAsync => Task.FromResult(directoryInfo.Attributes);
+		public Task<DateTime> LastWriteTimeUtcAsync => Task.FromResult(directoryInfo.LastWriteTimeUtc);
 
-        public Task CreateAsync()
+		public Task CreateAsync()
         {
             directoryInfo.Create();
             return Task.FromResult(0);

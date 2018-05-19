@@ -59,9 +59,11 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             }
         }
 
-        public Task<FileAttributes> AttributesAsync => Task.FromResult(Name.StartsWith(".")
-            ? FileAttributes.Hidden
-            : FileAttributes.Normal);
+        public FileAttributes Attributes
+		{
+			get => Name.StartsWith(".") ? FileAttributes.Hidden : FileAttributes.Directory;
+			set => value = FileAttributes.Directory; // Azure Storage doesn't support setting attributes
+		}
 
         public Task CreateAsync() => AzureStorageAPI.CreateDirectory(FullName);
 
