@@ -21,9 +21,9 @@ namespace elFinder.NetCore.Drivers
 
         Task<long> LengthAsync { get; }
 
-        Task<DateTime> LastWriteTimeUtcAsync { get; }
+		FileAttributes Attributes { get; set; }
 
-        Task<FileAttributes> AttributesAsync { get; }
+		Task<DateTime> LastWriteTimeUtcAsync { get; }
 
         // Functions
         IFile Clone(string path);

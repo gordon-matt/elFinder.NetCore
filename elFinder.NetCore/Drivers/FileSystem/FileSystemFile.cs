@@ -32,11 +32,11 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
         public Task<long> LengthAsync => Task.FromResult(fileInfo.Length);
 
-        public Task<DateTime> LastWriteTimeUtcAsync => Task.FromResult(fileInfo.LastWriteTimeUtc);
+		public FileAttributes Attributes { get => fileInfo.Attributes; set => fileInfo.Attributes = value; }
 
-        public Task<FileAttributes> AttributesAsync => Task.FromResult(fileInfo.Attributes);
+		public Task<DateTime> LastWriteTimeUtcAsync => Task.FromResult(fileInfo.LastWriteTimeUtc);
 
-        public IFile Clone(string path)
+		public IFile Clone(string path)
         {
             return new FileSystemFile(path);
         }
