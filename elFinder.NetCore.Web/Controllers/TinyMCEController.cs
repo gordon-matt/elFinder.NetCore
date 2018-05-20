@@ -2,16 +2,16 @@
 
 namespace elFinder.NetCore.Web.Controllers
 {
-    public class HomeController : Controller
+    [Route("tiny-mce")]
+    public class TinyMCEController : Controller
     {
-        [Route("")]
         public IActionResult Index()
         {
             return View();
         }
 
-        [Route("error")]
-        public IActionResult Error()
+        [Route("browse")]
+        public IActionResult Browse()
         {
             return View();
         }

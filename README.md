@@ -11,3 +11,5 @@ As simple as that!
 ## Credits
 
 **elFinder.NetCore** is based on my [fork](https://github.com/gordon-matt/elFinder.Net) of [elFinder.Net](https://github.com/leniel/elFinder.Net) by Leniel Macaferi which itself was based on an [older version](https://github.com/EvgenNoskov/Elfinder.NET) by Yevhen Noskov, which as far as I can tell is the original.
+
+Many thanks also to [Flavio Smirne](https://github.com/fsmirne) for the excellent contribution of an Azure Storage driver and the work done to allow such extensibility.

@@ -1,0 +1,47 @@
+﻿@{
+    ViewBag.Title = "File Manager";
+}
+
+<div id="elfinder"></div>
+
+@section scripts {
+    <script type="text/javascript">
+		// Documentation for client options:
+		// https://github.com/Studio-42/elFinder/wiki/Client-configuration-options
+        $(document).ready(function () {
+            var myCommands = elFinder.prototype._options.commands;
+            var disabled = ['extract', 'archive', 'resize', 'help', 'select']; // Not yet implemented commands in ElFinder.Net
+
+            $.each(disabled, function (i, cmd) {
+                (idx = $.inArray(cmd, myCommands)) !== -1 && myCommands.splice(idx, 1);
+            });
+            
+            var options = {
+                url: '/el-finder/file-system/connector', // Default (Local File System)
+                //url: '/el-finder/azure-storage/connector', // Microsoft Azure Connector
+                @*//customData: { folder: '@Model.Folder', subFolder: '@Model.SubFolder' }, // customData passed in every request to the connector as query strings. These values are used in FileController's Index method.*@
+                rememberLastDir: false, // Prevent elFinder saving in the Browser LocalStorage the last visited directory
+                commands: myCommands,
+                //lang: 'pt_BR', // elFinder supports UI and messages localization. Check the folder Content\elfinder\js\i18n for all available languages. Be sure to include the corresponding .js file(s) in the JavaScript bundle.
+                uiOptions: { // UI buttons available to the user
+                    toolbar: [
+                        ['back', 'forward'],
+                        ['reload'],
+                        ['home', 'up'],
+                        ['mkdir', 'mkfile', 'upload'],
+                        ['open', 'download'],
+                        ['info'],
+                        ['quicklook'],
+                        ['copy', 'cut', 'paste'],
+                        ['rm'],
+                        ['duplicate', 'rename', 'edit'],
+                        ['view', 'sort']
+                    ]
+                },
+
+                //lang: 'vi', // Change language
+            };
+            $('#elfinder').elfinder(options).elfinder('instance');
+        });
+    </script>
+}

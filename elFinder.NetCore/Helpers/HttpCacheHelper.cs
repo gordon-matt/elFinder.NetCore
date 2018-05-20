@@ -1,5 +1,6 @@
 ﻿using System;
-using System.IO;
+using System.Threading.Tasks;
+using elFinder.NetCore.Drivers;
 using Microsoft.AspNetCore.Http;
 
 namespace elFinder.NetCore.Helpers
@@ -7,13 +8,12 @@ namespace elFinder.NetCore.Helpers
     internal static class HttpCacheHelper
     {
         // TODO: Needs testing due to porting over to .NET Core
-        public static bool IsFileFromCache(FileInfo info, HttpRequest request, HttpResponse response)
+        public static async Task<bool> IsFileFromCache(IFile info, HttpRequest request, HttpResponse response)
         {
-            DateTime updated = info.LastWriteTimeUtc;
+            DateTime updated = await info.LastWriteTimeUtcAsync;
             string filename = info.Name;
-            DateTime modifyDate;
 
-            if (!DateTime.TryParse(request.Headers["If-Modified-Since"], out modifyDate))
+            if (!DateTime.TryParse(request.Headers["If-Modified-Since"], out DateTime modifyDate))
             {
                 modifyDate = DateTime.UtcNow;
             }
@@ -45,11 +45,10 @@ namespace elFinder.NetCore.Helpers
 
         private static bool IsFileModified(DateTime modifyDate, string eTag, HttpRequest request)
         {
-            DateTime modifiedSince;
             bool fileDateModified = true;
 
             //Check If-Modified-Since request header, if it exists
-            if (!string.IsNullOrEmpty(request.Headers["If-Modified-Since"]) && DateTime.TryParse(request.Headers["If-Modified-Since"], out modifiedSince))
+            if (!string.IsNullOrEmpty(request.Headers["If-Modified-Since"]) && DateTime.TryParse(request.Headers["If-Modified-Since"], out DateTime modifiedSince))
             {
                 fileDateModified = false;
                 if (modifyDate > modifiedSince)

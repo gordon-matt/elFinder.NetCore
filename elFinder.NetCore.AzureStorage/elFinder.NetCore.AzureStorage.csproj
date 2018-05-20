@@ -5,23 +5,18 @@
     <Authors>Yevhen Noskov, Leniel Macaferi, Matt Gordon, Flavio Smirne</Authors>
     <Company>N/A</Company>
     <NeutralLanguage>en-US</NeutralLanguage>
-	<Description>elFinder ASP.NET Core backend</Description>
     <PackageProjectUrl>https://github.com/gordon-matt/elFinder.NetCore</PackageProjectUrl>
-    <Version>1.0.3</Version>
+    <Description>Microsoft Azure Storage driver for elFinder.NetCore</Description>
     <PackageLicenseUrl></PackageLicenseUrl>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="MimeTypes.txt" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="2.0.3" />
+    <PackageReference Include="WindowsAzure.Storage" Version="9.1.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="MimeTypes.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.4" />
-    <PackageReference Include="ZKWeb.System.Drawing" Version="4.0.1" />
+    <ProjectReference Include="..\elFinder.NetCore\elFinder.NetCore.csproj" />
   </ItemGroup>
 
 </Project>

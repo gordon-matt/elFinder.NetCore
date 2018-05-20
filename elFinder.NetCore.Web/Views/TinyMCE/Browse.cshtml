@@ -1,0 +1,67 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Browser</title>
+    <link rel="stylesheet" type="text/css" href="~/lib/jquery-ui/themes/base/all.css" />
+    <link rel="stylesheet" type="text/css" href="~/css/elfinder/css/elfinder.min.css" />
+    <link rel="stylesheet" href="~/css/elfinder/css/theme.css" />
+    <link rel="stylesheet" href="~/css/elfinder/themes/material/css/theme-gray.css" />
+
+</head>
+<body>
+    <div id="elfinder"></div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-ui/jquery-ui.min.js"></script>
+    <script src="~/js/elfinder/elfinder.min.js"></script>
+
+    <script type="text/javascript">
+
+        $(function () {
+            var myCommands = elFinder.prototype._options.commands;
+
+            var disabled = ['extract', 'archive', 'resize', 'help', 'select']; // Not yet implemented commands in ElFinder.Net
+
+            $.each(disabled, function (i, cmd) {
+                (idx = $.inArray(cmd, myCommands)) !== -1 && myCommands.splice(idx, 1);
+            });
+
+            var options = {
+                url: '/el-finder/file-system/connector',
+                rememberLastDir: false, // Prevent elFinder saving in the Browser LocalStorage the last visited directory
+                commands: myCommands,
+                //lang: 'pt_BR', // elFinder supports UI and messages localization. Check the folder Content\elfinder\js\i18n for all available languages. Be sure to include the corresponding .js file(s) in the JavaScript bundle.
+                uiOptions: { // UI buttons available to the user
+                    toolbar: [
+                        ['back', 'forward'],
+                        ['reload'],
+                        ['home', 'up'],
+                        ['mkdir', 'mkfile', 'upload'],
+                        ['open', 'download'],
+                        ['info'],
+                        ['quicklook'],
+                        ['copy', 'cut', 'paste'],
+                        ['rm'],
+                        ['duplicate', 'rename', 'edit'],
+                        ['view', 'sort']
+                    ]
+                },
+                getFileCallback: function (file, fm) { // editor callback (see: https://github.com/Studio-42/elFinder/wiki/Integration-with-TinyMCE-4.x)
+                    // pass selected file data to TinyMCE
+                    parent.tinymce.activeEditor.windowManager.getParams().oninsert(file, fm);
+                    // close popup window
+                    parent.tinymce.activeEditor.windowManager.close();
+                }
+            };
+            $('#elfinder').elfinder(options).elfinder('instance');
+        });
+    </script>
+
+</body>
+</html>
