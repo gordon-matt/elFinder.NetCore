@@ -8,17 +8,22 @@
 
 As simple as that!
 
-## Azure Connector
+## Azure Storage Connector
 
-1. In order to use the Azure Connector, modify your Startup.cs file and replace [Name] and [Key] with the appropriate values from your Azure account.
-   AzureStorageAPI.AccountName = "[Name]";
-   AzureStorageAPI.AccountKey = "[Key]";
+In order to use the Azure Storage Connector
 
-2. Change the root directory in your AzureStorage Controller to the name of your Azure File share.
+1. Open your **Startup.cs** file and look for the following lines:
 
-3. Change your FileManager view to point to the AzureStorage Controller.
+```
+AzureStorageAPI.AccountName = "[Name]";
+AzureStorageAPI.AccountKey = "[Key]";
+```
 
-Start using your Azure Storage account transparently.
+> Replace `[Name]` and `[Key]` with the appropriate values for your Azure account.
+
+2. Change the **root directory** in the `AzureStorageController` from `test` to the name of your Azure file share.
+
+3. Change the `url` parameter in **/Views/FileManager/Index.cshtml** to point to the `AzureStorageController`.
 
 ## Credits
 
