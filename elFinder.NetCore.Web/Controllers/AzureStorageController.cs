@@ -1,12 +1,14 @@
-﻿using System;
-using System.Threading.Tasks;
-using elFinder.NetCore.Drivers.AzureStorage;
+﻿using elFinder.NetCore.Drivers.AzureStorage;
+using elFinder.NetCore.Helpers;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace elFinder.NetCore.Web.Controllers
 {
-    [Route("el-finder/azure-storage")]
+	[Route("el-finder/azure-storage")]
     public class AzureStorageController : Controller
     {
         [Route("connector")]
@@ -23,6 +25,14 @@ namespace elFinder.NetCore.Web.Controllers
             return await connector.GetThumbnail(HttpContext.Request, HttpContext.Response, id);
         }
 
+		[Route("files/{*path}")]
+		public async Task<IActionResult> Files(string path)
+		{
+			var driver = new AzureStorageDriver();
+			var file = await AzureStorageAPI.FileStream(path);
+			return new FileStreamResult(file, Mime.GetMimeType(Path.GetExtension(path).Substring(1)));
+		}
+
         private Connector GetConnector()
         {
             var driver = new AzureStorageDriver();
@@ -32,7 +42,7 @@ namespace elFinder.NetCore.Web.Controllers
 
             var root = new RootVolume(
                 "test",
-                $"http://{uri.Authority}/Files/",
+                $"http://{uri.Authority}/el-finder/azure-storage/files/test/",
                 $"http://{uri.Authority}/el-finder/azure-storage/thumb/")
             {
                 //IsReadOnly = !User.IsInRole("Administrators")
