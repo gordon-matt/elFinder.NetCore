@@ -1,14 +1,13 @@
-﻿using System.Runtime.Serialization;
+﻿using Newtonsoft.Json;
 
 namespace elFinder.NetCore.Models
 {
-    [DataContract]
-    internal class FileModel : BaseModel
+    public class FileModel : BaseModel
     {
         /// <summary>
         ///  Hash of parent directory. Required except roots dirs.
         /// </summary>
-        [DataMember(Name = "phash")]
+        [JsonProperty("phash")]
         public string ParentHash { get; set; }
     }
 }

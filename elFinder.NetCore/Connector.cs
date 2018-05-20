@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using elFinder.NetCore.Drawing;
+using elFinder.NetCore.Drivers;
 using elFinder.NetCore.Extensions;
 using elFinder.NetCore.Helpers;
 using Microsoft.AspNetCore.Http;
@@ -24,222 +24,139 @@ namespace elFinder.NetCore
 
         public async Task<IActionResult> Process(HttpRequest request)
         {
-            IDictionary<string, string> parameters = request.Query.Count > 0
-                ? request.Query.ToDictionary(k => k.Key, v => string.Join(";", v.Value))
-                : request.Form.ToDictionary(k => k.Key, v => string.Join(";", v.Value));
+            var parameters = request.Query.Any()
+                ? request.Query.ToDictionary(k => k.Key, v => v.Value)
+                : request.Form.ToDictionary(k => k.Key, v => v.Value);
 
-            string cmd = parameters["cmd"];
+            string cmd = parameters.GetValueOrDefault("cmd");
             if (string.IsNullOrEmpty(cmd))
             {
                 return Error.CommandNotFound();
             }
 
-            string target = parameters.GetValueOrDefault("target");
-            if (target != null && target.ToLower() == "null")
-            {
-                target = null;
-            }
-
             switch (cmd)
             {
                 case "open":
-                    if (parameters.GetValueOrDefault("init") == "1")
                     {
-                        return await driver.InitAsync(target);
-                    }
-                    else
-                    {
-                        if (string.IsNullOrEmpty(target))
+                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+
+                        if (parameters.GetValueOrDefault("init") == "1")
                         {
-                            return Error.MissedParameter(cmd);
+                            return await driver.InitAsync(path);
                         }
-                        return await driver.OpenAsync(target, parameters.GetValueOrDefault("tree") == "1");
+                        else
+                        {
+                            return await driver.OpenAsync(path, parameters.GetValueOrDefault("tree") == "1");
+                        }
                     }
                 case "file":
-                    if (string.IsNullOrEmpty(target))
                     {
-                        return Error.MissedParameter(cmd);
+                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        return await driver.FileAsync(path, parameters.GetValueOrDefault("download") == "1");
                     }
-                    return await driver.FileAsync(target, parameters.GetValueOrDefault("download") == "1");
-
                 case "tree":
-                    if (string.IsNullOrEmpty(target))
                     {
-                        return Error.MissedParameter(cmd);
+                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        return await driver.TreeAsync(path);
                     }
-                    return await driver.TreeAsync(target);
-
                 case "parents":
-                    if (string.IsNullOrEmpty(target))
                     {
-                        return Error.MissedParameter(cmd);
+                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        return await driver.ParentsAsync(path);
                     }
-                    return await driver.ParentsAsync(target);
 
                 case "mkdir":
                     {
-                        if (string.IsNullOrEmpty(target))
-                        {
-                            return Error.MissedParameter(cmd);
-                        }
+                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        var name = parameters.GetValueOrDefault("name");
+                        var dirs = parameters.GetValueOrDefault("dirs[]");
 
-                        string name = parameters.GetValueOrDefault("name");
-                        if (string.IsNullOrEmpty(name))
-                        {
-                            return Error.MissedParameter("name");
-                        }
-
-                        return await driver.MakeDirAsync(target, name);
+                        return await driver.MakeDirAsync(path, name);
                     }
                 case "mkfile":
                     {
-                        if (string.IsNullOrEmpty(target))
-                        {
-                            return Error.MissedParameter(cmd);
-                        }
-
-                        string name = parameters.GetValueOrDefault("name");
-                        if (string.IsNullOrEmpty(name))
-                        {
-                            return Error.MissedParameter("name");
-                        }
-
-                        return await driver.MakeFileAsync(target, name);
+                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        var name = parameters.GetValueOrDefault("name");
+                        return await driver.MakeFileAsync(path, name);
                     }
                 case "rename":
                     {
-                        if (string.IsNullOrEmpty(target))
-                        {
-                            return Error.MissedParameter(cmd);
-                        }
-
-                        string name = parameters.GetValueOrDefault("name");
-                        if (string.IsNullOrEmpty(name))
-                        {
-                            return Error.MissedParameter("name");
-                        }
-
-                        return await driver.RenameAsync(target, name);
+                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        var name = parameters.GetValueOrDefault("name");
+                        return await driver.RenameAsync(path, name);
                     }
                 case "rm":
                     {
-                        IEnumerable<string> targets = GetTargetsArray(request);
-                        if (targets == null)
-                        {
-                            return Error.MissedParameter("targets");
-                        }
-                        return await driver.RemoveAsync(targets);
+                        var paths = await GetFullPathArray(parameters.GetValueOrDefault("targets[]"));
+                        return await driver.RemoveAsync(paths);
                     }
                 case "ls":
-                    if (string.IsNullOrEmpty(target))
                     {
-                        return Error.MissedParameter(cmd);
+                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        return await driver.ListAsync(path);
                     }
-                    return await driver.ListAsync(target);
-
                 case "get":
-                    if (string.IsNullOrEmpty(target))
                     {
-                        return Error.MissedParameter(cmd);
+                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        return await driver.GetAsync(path);
                     }
-                    return await driver.GetAsync(target);
-
                 case "put":
-                    if (string.IsNullOrEmpty(target))
                     {
-                        return Error.MissedParameter(cmd);
+                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        var content = parameters.GetValueOrDefault("content");
+                        return await driver.PutAsync(path, content);
                     }
-
-                    string content = parameters.GetValueOrDefault("content");
-                    if (string.IsNullOrEmpty(target))
-                    {
-                        return Error.MissedParameter("content");
-                    }
-
-                    return await driver.PutAsync(target, content);
-
                 case "paste":
                     {
-                        IEnumerable<string> targets = GetTargetsArray(request);
-                        if (targets == null)
-                        {
-                            Error.MissedParameter("targets");
-                        }
-                        
+                        var paths = await GetFullPathArray(parameters.GetValueOrDefault("targets[]"));
                         string dst = parameters.GetValueOrDefault("dst");
-                        if (string.IsNullOrEmpty(dst))
-                        {
-                            return Error.MissedParameter("dst");
-                        }
-
-                        return await driver.PasteAsync(dst, targets, parameters.GetValueOrDefault("cut") == "1");
+                        return await driver.PasteAsync(await driver.GetFullPathAsync(dst), paths, parameters.GetValueOrDefault("cut") == "1");
                     }
                 case "upload":
-                    if (string.IsNullOrEmpty(target))
                     {
-                        return Error.MissedParameter(cmd);
+                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        return await driver.UploadAsync(path, request.Form.Files);
                     }
-                    return await driver.UploadAsync(target, request.Form.Files);
-
                 case "duplicate":
                     {
-                        IEnumerable<string> targets = GetTargetsArray(request);
-                        if (targets == null)
-                        {
-                            Error.MissedParameter("targets");
-                        }
+                        var targets = await GetFullPathArray(parameters.GetValueOrDefault("targets[]"));
                         return await driver.DuplicateAsync(targets);
                     }
                 case "tmb":
                     {
-                        IEnumerable<string> targets = GetTargetsArray(request);
-                        if (targets == null)
-                        {
-                            Error.MissedParameter("targets");
-                        }
+                        var targets = await GetFullPathArray(parameters.GetValueOrDefault("targets[]"));
                         return await driver.ThumbsAsync(targets);
                     }
                 case "dim":
                     {
-                        if (string.IsNullOrEmpty(target))
-                        {
-                            return Error.MissedParameter(cmd);
-                        }
-                        return await driver.DimAsync(target);
+                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        return await driver.DimAsync(path);
                     }
                 case "resize":
                     {
-                        if (string.IsNullOrEmpty(target))
-                        {
-                            return Error.MissedParameter(cmd);
-                        }
+                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
                         switch (parameters.GetValueOrDefault("mode"))
                         {
                             case "resize":
-                                {
-                                    return await driver.ResizeAsync(
-                                        target,
-                                        int.Parse(parameters.GetValueOrDefault("width")),
-                                        int.Parse(parameters.GetValueOrDefault("height")));
-                                }
+                                return await driver.ResizeAsync(
+                                    path,
+                                    int.Parse(parameters.GetValueOrDefault("width")),
+                                    int.Parse(parameters.GetValueOrDefault("height")));
+
                             case "crop":
-                                {
-                                    return await driver.CropAsync(
-                                        target,
-                                        int.Parse(parameters.GetValueOrDefault("x")),
-                                        int.Parse(parameters.GetValueOrDefault("y")),
-                                        int.Parse(parameters.GetValueOrDefault("width")),
-                                        int.Parse(parameters.GetValueOrDefault("height")));
-                                }
+                                return await driver.CropAsync(
+                                    path,
+                                    int.Parse(parameters.GetValueOrDefault("x")),
+                                    int.Parse(parameters.GetValueOrDefault("y")),
+                                    int.Parse(parameters.GetValueOrDefault("width")),
+                                    int.Parse(parameters.GetValueOrDefault("height")));
+
                             case "rotate":
-                                {
-                                    return await driver.RotateAsync(
-                                        target,
-                                        int.Parse(parameters.GetValueOrDefault("degree")));
-                                }
-                            default: break;
+                                return await driver.RotateAsync(path, int.Parse(parameters.GetValueOrDefault("degree")));
+
+                            default:
+                                return Error.CommandNotFound();
                         }
-                        return Error.CommandNotFound();
                     }
                 default: return Error.CommandNotFound();
             }
@@ -249,61 +166,44 @@ namespace elFinder.NetCore
         /// Get actual filesystem path by hash
         /// </summary>
         /// <param name="hash">Hash of file or directory</param>
-        public FileSystemInfo GetFileByHash(string hash)
+        public async Task<IFile> GetFileByHash(string hash)
         {
-            var path = driver.ParsePath(hash);
-            return !path.IsDirectory ? (FileSystemInfo)path.File : (FileSystemInfo)path.Directory;
+            var path = await driver.GetFullPathAsync(hash);
+            return !path.IsDirectory ? path.File : null;
         }
 
-        public IActionResult GetThumbnail(HttpRequest request, HttpResponse response, string hash)
+        public async Task<IActionResult> GetThumbnail(HttpRequest request, HttpResponse response, string hash)
         {
             if (hash != null)
             {
-                var path = driver.ParsePath(hash);
-                if (!path.IsDirectory && path.Root.CanCreateThumbnail(path.File))
+                var path = await driver.GetFullPathAsync(hash);
+                if (!path.IsDirectory && CanCreateThumbnail(path, path.RootVolume.PictureEditor))
                 {
-                    if (!HttpCacheHelper.IsFileFromCache(path.File, request, response))
-                    {
-                        var thumb = path.Root.GenerateThumbnail(path);
-                        return new FileStreamResult(thumb.ImageStream, thumb.MimeType);
-                    }
-                    else
-                    {
-                        response.ContentType = Utils.GetMimeType(path.Root.PicturesEditor.ConvertThumbnailExtension(path.File.Extension));
-                        //response.End();
-                    }
+                    //if (!await HttpCacheHelper.IsFileFromCache(path.File, request, response))
+                    //{
+                    var thumb = await path.GenerateThumbnail();
+                    return new FileStreamResult(thumb.ImageStream, thumb.MimeType);
+                    //}
+                    //else
+                    //{
+                    //	response.ContentType = Utils.GetMimeType(path.RootVolume.PictureEditor.ConvertThumbnailExtension(path.File.Extension));
+                    //response.End();
+                    //}
                 }
             }
             return new EmptyResult();
         }
 
-        private IEnumerable<string> GetTargetsArray(HttpRequest request)
+        private bool CanCreateThumbnail(FullPath path, IPictureEditor pictureEditor)
         {
-            IEnumerable<string> targets = null;
-            // At the moment, request.Form is throwing an InvalidOperationException...
-            //if (request.Form.ContainsKey("targets"))
-            //{
-            //    targets = request.Form["targets"];
-            //}
+            return !string.IsNullOrEmpty(path.RootVolume.ThumbnailUrl) && pictureEditor.CanProcessFile(path.File.Extension);
+        }
 
-            IDictionary<string, string> parameters = request.Query.Count > 0
-                ? request.Query.ToDictionary(k => k.Key, v => string.Join(";", v.Value))
-                : request.Form.ToDictionary(k => k.Key, v => string.Join(";", v.Value));
-
-            if (targets == null)
-            {
-                string t = parameters.GetValueOrDefault("targets[]");
-                if (string.IsNullOrEmpty(t))
-                {
-                    t = parameters.GetValueOrDefault("targets");
-                }
-                if (string.IsNullOrEmpty(t))
-                {
-                    return null;
-                }
-                targets = t.Split(';'); // 2018.02.23: Bug Fix Issue #3
-            }
-            return targets;
+        private async Task<IEnumerable<FullPath>> GetFullPathArray(string target)
+        {
+            var targets = target.Split(',');
+            var tasks = targets.Select(async t => await driver.GetFullPathAsync(t));
+            return await Task.WhenAll(tasks);
         }
     }
 }

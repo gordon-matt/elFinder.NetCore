@@ -1,14 +1,13 @@
-﻿using System.Runtime.Serialization;
+﻿using Newtonsoft.Json;
 
 namespace elFinder.NetCore.Models
 {
-    [DataContract]
     internal class ImageModel : FileModel
     {
-        [DataMember(Name = "tmb")]
+        [JsonProperty("tmb")]
         public object Thumbnail { get; set; }
 
-        [DataMember(Name = "dim")]
+        [JsonProperty("dim")]
         public string Dimension { get; set; }
     }
 }

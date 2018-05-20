@@ -1,0 +1,56 @@
+﻿<textarea></textarea>
+
+@*<script src="~/lib/tinymce/jquery.tinymce.min.js"></script>*@
+<script src="~/lib/tinymce-dist/tinymce.min.js"></script>
+
+<script type="text/javascript">
+    tinymce.init({
+        selector: "textarea", theme: "modern", height: 300,
+        plugins: [
+                "advlist autolink link image lists charmap print preview hr anchor pagebreak",
+                "searchreplace wordcount visualblocks visualchars insertdatetime media nonbreaking",
+                "table contextmenu directionality emoticons paste textcolor"
+        ],
+        toolbar1: "undo redo | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | styleselect",
+        toolbar2: "| link unlink anchor | image media | forecolor backcolor  | print preview code ",
+        image_advtab: true,
+        file_picker_callback: elFinderBrowser
+    });
+
+    // https://github.com/Studio-42/elFinder/wiki/Integration-with-TinyMCE-4.x
+    function elFinderBrowser(callback, value, meta) {
+        tinymce.activeEditor.windowManager.open({
+            file: '/tiny-mce/browse',
+            title: 'File Manager',
+            width: 900,
+            height: 450,
+            resizable: 'yes'
+        }, {
+        oninsert: function (file, fm) {
+            var url, reg, info;
+
+            // URL normalization
+            url = fm.convAbsUrl(file.url);
+
+            // Make file info
+            info = file.name + ' (' + fm.formatSize(file.size) + ')';
+
+            // Provide file and text for the link dialog
+            if (meta.filetype == 'file') {
+                callback(url, { text: info, title: info });
+            }
+
+            // Provide image and alt text for the image dialog
+            if (meta.filetype == 'image') {
+                callback(url, { alt: info });
+            }
+
+            // Provide alternative source and posted for the media dialog
+            if (meta.filetype == 'media') {
+                callback(url);
+            }
+        }
+        });
+        return false;
+    }
+</script>

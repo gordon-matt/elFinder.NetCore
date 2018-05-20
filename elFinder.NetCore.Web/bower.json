@@ -6,6 +6,7 @@
     "jquery": "2.2.0",
     "jquery-validation": "1.14.0",
     "jquery-validation-unobtrusive": "3.2.6",
-    "tinymce-dist": "4.7.7"
+    "tinymce-dist": "4.7.7",
+    "jquery-ui": "1.12.1"
   }
 }

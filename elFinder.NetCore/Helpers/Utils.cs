@@ -2,6 +2,8 @@
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
+using elFinder.NetCore.Drivers;
 
 namespace elFinder.NetCore.Helpers
 {
@@ -22,11 +24,11 @@ namespace elFinder.NetCore.Helpers
 
         public static string GetDuplicatedName(FileInfo file)
         {
-            var parentPath = file.DirectoryName;
-            var name = Path.GetFileNameWithoutExtension(file.Name);
-            var extension = file.Extension;
+            string parentPath = file.DirectoryName;
+            string name = Path.GetFileNameWithoutExtension(file.Name);
+            string extension = file.Extension;
 
-            var newName = string.Format(@"{0}\{1} copy{2}", parentPath, name, extension);
+            string newName = $"{parentPath}/{name} copy{extension}";
             if (!File.Exists(newName))
             {
                 return newName;
@@ -36,7 +38,7 @@ namespace elFinder.NetCore.Helpers
                 bool found = false;
                 for (int i = 1; i < 10 && !found; i++)
                 {
-                    newName = string.Format(@"{0}\{1} copy {2}{3}", parentPath, name, i, extension);
+                    newName = $"{parentPath}/{name} copy {i}{extension}";
                     if (!File.Exists(newName))
                     {
                         found = true;
@@ -44,16 +46,16 @@ namespace elFinder.NetCore.Helpers
                 }
                 if (!found)
                 {
-                    newName = string.Format(@"{0}\{1} copy {2}{3}", parentPath, name, Guid.NewGuid(), extension);
+                    newName = $"{parentPath}/{name} copy {Guid.NewGuid()}{extension}";
                 }
             }
 
             return newName;
         }
 
-        public static string GetFileMd5(FileInfo info)
+        public static async Task<string> GetFileMd5(IFile info)
         {
-            return GetFileMd5(info.Name, info.LastWriteTimeUtc);
+            return GetFileMd5(info.Name, await info.LastWriteTimeUtcAsync);
         }
 
         public static string GetFileMd5(string fileName, DateTime modified)
@@ -65,7 +67,7 @@ namespace elFinder.NetCore.Helpers
             return BitConverter.ToString(md5.ComputeHash(buffer)).Replace("-", string.Empty);
         }
 
-        public static string GetMimeType(FileInfo file)
+        public static string GetMimeType(IFile file)
         {
             if (file.Extension.Length > 1)
             {
@@ -79,10 +81,11 @@ namespace elFinder.NetCore.Helpers
 
         public static string GetMimeType(string ext)
         {
-            if (ext.Contains("."))
+            if (ext.StartsWith("."))
             {
-                return Mime.GetMimeType(ext.Replace(".", string.Empty));
+                return Mime.GetMimeType(ext.Substring(1));
             }
+
             return Mime.GetMimeType(ext);
         }
     }
