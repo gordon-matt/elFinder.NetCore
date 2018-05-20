@@ -33,7 +33,8 @@
             });
 
             var options = {
-                url: '/el-finder/file-system/connector',
+				url: '/el-finder/file-system/connector', // Default (Local File System)
+				//url: '/el-finder/azure-storage/connector', // Microsoft Azure Connector
                 rememberLastDir: false, // Prevent elFinder saving in the Browser LocalStorage the last visited directory
                 commands: myCommands,
                 //lang: 'pt_BR', // elFinder supports UI and messages localization. Check the folder Content\elfinder\js\i18n for all available languages. Be sure to include the corresponding .js file(s) in the JavaScript bundle.
