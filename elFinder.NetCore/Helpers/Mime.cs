@@ -5,7 +5,7 @@
     using System.IO;
     using System.Reflection;
 
-    internal static class Mime
+    public static class Mime
     {
         private static Dictionary<string, string> mimeTypes;
 
