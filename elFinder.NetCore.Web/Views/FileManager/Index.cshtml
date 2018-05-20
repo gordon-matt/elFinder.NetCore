@@ -15,7 +15,7 @@
             $.each(disabled, function (i, cmd) {
                 (idx = $.inArray(cmd, myCommands)) !== -1 && myCommands.splice(idx, 1);
             });
-            
+
             var options = {
                 url: '/el-finder/file-system/connector', // Default (Local File System)
                 //url: '/el-finder/azure-storage/connector', // Microsoft Azure Connector
