@@ -370,7 +370,9 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 {
                     var newFile = new FileSystemFile(Path.Combine(dest.Directory.FullName, src.File.Name));
                     if (await newFile.ExistsAsync)
+                    {
                         await newFile.DeleteAsync();
+                    }
 
                     if (isCut)
                     {

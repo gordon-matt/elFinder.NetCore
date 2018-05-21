@@ -7,11 +7,12 @@
     <NeutralLanguage>en-US</NeutralLanguage>
 	<Description>elFinder ASP.NET Core backend</Description>
     <PackageProjectUrl>https://github.com/gordon-matt/elFinder.NetCore</PackageProjectUrl>
-    <Version>1.0.3</Version>
+    <Version>1.0.5</Version>
     <PackageLicenseUrl></PackageLicenseUrl>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Helpers\Mime.cs~RF300871a6.TMP" />
     <None Remove="MimeTypes.txt" />
   </ItemGroup>
 
