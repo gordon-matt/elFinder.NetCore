@@ -49,36 +49,48 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
         public Task<Stream> CreateAsync()
         {
+            EnsureGarbageCollectorCalled();
             return Task.FromResult(fileInfo.Create() as Stream);
         }
 
         public Task DeleteAsync()
         {
+            EnsureGarbageCollectorCalled();
             fileInfo.Delete();
             return Task.FromResult(0);
         }
 
         public Task<Stream> OpenReadAsync()
         {
+            EnsureGarbageCollectorCalled();
             return Task.FromResult(fileInfo.OpenRead() as Stream);
         }
 
         public Task PutAsync(string content)
         {
+            EnsureGarbageCollectorCalled();
             File.WriteAllText(FullName, content);
             return Task.FromResult(0);
         }
 
         public Task PutAsync(Stream stream)
         {
-            using (var dest = fileInfo.OpenWrite())
+            EnsureGarbageCollectorCalled();
+            using (var destination = fileInfo.OpenWrite())
             {
-                stream.CopyTo(dest);
+                stream.CopyTo(destination);
             }
 
             return Task.FromResult(0);
         }
 
         #endregion IFile Members
+
+        // Bug Fix: https://stackoverflow.com/questions/13262548/delete-a-file-being-used-by-another-process/21137207#21137207
+        private static void EnsureGarbageCollectorCalled()
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
     }
 }
