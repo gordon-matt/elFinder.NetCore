@@ -52,7 +52,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             }
         }
 
-        public Task<bool> ExistsAsync => AzureStorageAPI.FileExists(FullName);
+        public Task<bool> ExistsAsync => AzureStorageAPI.FileExistsAsync(FullName);
 
         public string Extension
         {
@@ -74,9 +74,9 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
         public string FullName { get; }
 
-        public Task<DateTime> LastWriteTimeUtcAsync => AzureStorageAPI.FileLastModifiedTimeUtc(FullName);
+        public Task<DateTime> LastWriteTimeUtcAsync => AzureStorageAPI.FileLastModifiedTimeUtcAsync(FullName);
 
-        public Task<long> LengthAsync => AzureStorageAPI.FileLength(FullName);
+        public Task<long> LengthAsync => AzureStorageAPI.FileLengthAsync(FullName);
 
         public string Name
         {
@@ -101,17 +101,17 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
         public async Task<Stream> CreateAsync()
         {
-            await AzureStorageAPI.MakeFile(FullName);
-            return await AzureStorageAPI.FileStream(FullName);
+            await AzureStorageAPI.MakeFileAsync(FullName);
+            return await AzureStorageAPI.FileStreamAsync(FullName);
         }
 
-        public Task DeleteAsync() => AzureStorageAPI.DeleteFile(FullName);
+        public Task DeleteAsync() => AzureStorageAPI.DeleteFileAsync(FullName);
 
-        public Task<Stream> OpenReadAsync() => AzureStorageAPI.FileStream(FullName);
+        public Task<Stream> OpenReadAsync() => AzureStorageAPI.FileStreamAsync(FullName);
 
-        public Task PutAsync(string content) => AzureStorageAPI.Put(FullName, content);
+        public Task PutAsync(string content) => AzureStorageAPI.PutAsync(FullName, content);
 
-        public Task PutAsync(Stream stream) => AzureStorageAPI.Put(FullName, stream);
+        public Task PutAsync(Stream stream) => AzureStorageAPI.PutAsync(FullName, stream);
 
         #endregion IFile Members
     }

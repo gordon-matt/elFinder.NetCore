@@ -33,7 +33,8 @@ namespace elFinder.NetCore
                 ThumbnailUrl = thumbnailsUrl;
             }
 
-            ThumbnailDirectory = string.Concat(rootDirectory, "/", ".tmb");
+            ThumbnailDirectory = Path.Combine(rootDirectory, ".tmb");
+            //ThumbnailDirectory = string.Concat(rootDirectory, "/", ".tmb");
         }
 
         /// <summary>
@@ -138,23 +139,23 @@ namespace elFinder.NetCore
             return ThumbnailUrl != null && PictureEditor.CanProcessFile(input.Extension);
         }
 
-        public async Task<string> GenerateThumbHash(IFile originalImage)
+        public async Task<string> GenerateThumbHashAsync(IFile originalImage)
         {
             if (ThumbnailDirectory == null)
             {
-                string thumbName = Path.GetFileNameWithoutExtension(originalImage.Name) + "_" + await Utils.GetFileMd5(originalImage) + originalImage.Extension;
+                string thumbName = Path.GetFileNameWithoutExtension(originalImage.Name) + "_" + await Utils.GetFileMd5Async(originalImage) + originalImage.Extension;
                 string relativePath = originalImage.DirectoryName.Substring(RootDirectory.Length);
                 return VolumeId + Utils.EncodePath($"{relativePath}/{thumbName}");
             }
             else
             {
-                string thumbPath = await GenerateThumbPath(originalImage);
+                string thumbPath = await GenerateThumbPathAsync(originalImage);
                 string relativePath = thumbPath.Substring(ThumbnailDirectory.Length);
                 return VolumeId + Utils.EncodePath(relativePath);
             }
         }
 
-        public async Task<string> GenerateThumbPath(IFile originalImage)
+        public async Task<string> GenerateThumbPathAsync(IFile originalImage)
         {
             if (ThumbnailDirectory == null || !CanCreateThumbnail(originalImage))
             {
@@ -162,7 +163,7 @@ namespace elFinder.NetCore
             }
             string relativePath = originalImage.FullName.Substring(RootDirectory.Length);
             string thumbDir = GetDirectoryName(string.Concat(ThumbnailDirectory + relativePath));
-            string thumbName = Path.GetFileNameWithoutExtension(originalImage.Name) + "_" + await Utils.GetFileMd5(originalImage) + originalImage.Extension;
+            string thumbName = Path.GetFileNameWithoutExtension(originalImage.Name) + "_" + await Utils.GetFileMd5Async(originalImage) + originalImage.Extension;
             return string.Concat(thumbDir, "/", thumbName);
         }
 
@@ -184,9 +185,40 @@ namespace elFinder.NetCore
             {
                 char ch = file[startIndex];
                 if (ch == '/' || ch == '\\')
+                {
                     return file.Substring(0, startIndex);
+                }
             }
             return string.Empty;
+        }
+
+        internal async Task<string> GetExistingThumbHashAsync(IFile originalImage)
+        {
+            string thumbPath = await GetExistingThumbPathAsync(originalImage);
+            if (thumbPath == null)
+            {
+                return null;
+            }
+            string relativePath = thumbPath.Substring(ThumbnailDirectory.Length);
+            return VolumeId + Utils.EncodePath(relativePath);
+        }
+
+        internal async Task<string> GetExistingThumbPathAsync(IFile originalImage)
+        {
+            string thumbPath = await GenerateThumbPathAsync(originalImage);
+            return thumbPath;
+        }
+
+        internal string GetExistingThumbPath(IDirectory originalDirectory)
+        {
+            if (ThumbnailDirectory == null)
+            {
+                return null;
+            }
+
+            string relativePath = originalDirectory.FullName.Substring(RootDirectory.Length);
+            string thumbDir = ThumbnailDirectory + relativePath;
+            return thumbDir;
         }
     }
 }

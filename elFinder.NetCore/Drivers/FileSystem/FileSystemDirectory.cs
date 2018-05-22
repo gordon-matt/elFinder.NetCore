@@ -67,5 +67,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
         }
 
         #endregion IDirectory Members
+
+        public void MoveTo(string destDirName)
+        {
+            directoryInfo.MoveTo(destDirName);
+        }
     }
 }

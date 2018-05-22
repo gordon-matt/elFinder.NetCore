@@ -13,14 +13,14 @@ namespace elFinder.NetCore.Web.Controllers
         public async Task<IActionResult> Connector()
         {
             var connector = GetConnector();
-            return await connector.Process(Request);
+            return await connector.ProcessAsync(Request);
         }
 
         [Route("thumb/{hash}")]
         public async Task<IActionResult> Thumbs(string hash)
         {
             var connector = GetConnector();
-            return await connector.GetThumbnail(HttpContext.Request, HttpContext.Response, hash);
+            return await connector.GetThumbnailAsync(HttpContext.Request, HttpContext.Response, hash);
         }
 
         private Connector GetConnector()

@@ -15,21 +15,21 @@ namespace elFinder.NetCore.Web.Controllers
         public async Task<IActionResult> Connector()
         {
             var connector = GetConnector();
-            return await connector.Process(Request);
+            return await connector.ProcessAsync(Request);
         }
 
         [Route("thumb/{id}")]
         public async Task<IActionResult> Thumbs(string id)
         {
             var connector = GetConnector();
-            return await connector.GetThumbnail(HttpContext.Request, HttpContext.Response, id);
+            return await connector.GetThumbnailAsync(HttpContext.Request, HttpContext.Response, id);
         }
 
         [Route("files/{*path}")]
         public async Task<IActionResult> Files(string path)
         {
             var driver = new AzureStorageDriver();
-            var file = await AzureStorageAPI.FileStream(path);
+            var file = await AzureStorageAPI.FileStreamAsync(path);
             return new FileStreamResult(file, Mime.GetMimeType(Path.GetExtension(path).Substring(1)));
         }
 
