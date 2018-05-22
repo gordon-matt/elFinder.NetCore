@@ -7,7 +7,7 @@ namespace elFinder.NetCore
 {
     public interface IDriver
     {
-        Task<FullPath> GetFullPathAsync(string target);
+        Task<FullPath> ParsePathAsync(string target);
 
         Task<JsonResult> CropAsync(FullPath path, int x, int y, int width, int height);
 

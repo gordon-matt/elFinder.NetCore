@@ -8,7 +8,7 @@ namespace elFinder.NetCore.Helpers
     internal static class HttpCacheHelper
     {
         // TODO: Needs testing due to porting over to .NET Core
-        public static async Task<bool> IsFileFromCache(IFile info, HttpRequest request, HttpResponse response)
+        public static async Task<bool> IsFileFromCacheAsync(IFile info, HttpRequest request, HttpResponse response)
         {
             DateTime updated = await info.LastWriteTimeUtcAsync;
             string filename = info.Name;

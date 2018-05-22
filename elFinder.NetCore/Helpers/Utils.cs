@@ -53,7 +53,7 @@ namespace elFinder.NetCore.Helpers
             return newName;
         }
 
-        public static async Task<string> GetFileMd5(IFile info)
+        public static async Task<string> GetFileMd5Async(IFile info)
         {
             return GetFileMd5(info.Name, await info.LastWriteTimeUtcAsync);
         }

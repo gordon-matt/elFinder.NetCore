@@ -56,7 +56,7 @@ namespace elFinder.NetCore
 
         public RootVolume RootVolume { get; protected set; }
 
-        public async Task<ImageWithMimeType> GenerateThumbnail()
+        public async Task<ImageWithMimeType> GenerateThumbnailAsync()
         {
             string name = File.FullName;
             for (int i = name.Length - 1; i >= 0; i--)

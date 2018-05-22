@@ -22,7 +22,7 @@ namespace elFinder.NetCore
             this.driver = driver;
         }
 
-        public async Task<IActionResult> Process(HttpRequest request)
+        public async Task<IActionResult> ProcessAsync(HttpRequest request)
         {
             var parameters = request.Query.Any()
                 ? request.Query.ToDictionary(k => k.Key, v => v.Value)
@@ -38,7 +38,7 @@ namespace elFinder.NetCore
             {
                 case "open":
                     {
-                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
 
                         if (parameters.GetValueOrDefault("init") == "1")
                         {
@@ -51,23 +51,23 @@ namespace elFinder.NetCore
                     }
                 case "file":
                     {
-                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
                         return await driver.FileAsync(path, parameters.GetValueOrDefault("download") == "1");
                     }
                 case "tree":
                     {
-                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
                         return await driver.TreeAsync(path);
                     }
                 case "parents":
                     {
-                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
                         return await driver.ParentsAsync(path);
                     }
 
                 case "mkdir":
                     {
-                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
                         var name = parameters.GetValueOrDefault("name");
                         var dirs = parameters.GetValueOrDefault("dirs[]");
 
@@ -75,66 +75,66 @@ namespace elFinder.NetCore
                     }
                 case "mkfile":
                     {
-                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
                         var name = parameters.GetValueOrDefault("name");
                         return await driver.MakeFileAsync(path, name);
                     }
                 case "rename":
                     {
-                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
                         var name = parameters.GetValueOrDefault("name");
                         return await driver.RenameAsync(path, name);
                     }
                 case "rm":
                     {
-                        var paths = await GetFullPathArray(parameters.GetValueOrDefault("targets[]"));
+                        var paths = await GetFullPathArrayAsync(parameters.GetValueOrDefault("targets[]"));
                         return await driver.RemoveAsync(paths);
                     }
                 case "ls":
                     {
-                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
                         return await driver.ListAsync(path);
                     }
                 case "get":
                     {
-                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
                         return await driver.GetAsync(path);
                     }
                 case "put":
                     {
-                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
                         var content = parameters.GetValueOrDefault("content");
                         return await driver.PutAsync(path, content);
                     }
                 case "paste":
                     {
-                        var paths = await GetFullPathArray(parameters.GetValueOrDefault("targets[]"));
+                        var paths = await GetFullPathArrayAsync(parameters.GetValueOrDefault("targets[]"));
                         string dst = parameters.GetValueOrDefault("dst");
-                        return await driver.PasteAsync(await driver.GetFullPathAsync(dst), paths, parameters.GetValueOrDefault("cut") == "1");
+                        return await driver.PasteAsync(await driver.ParsePathAsync(dst), paths, parameters.GetValueOrDefault("cut") == "1");
                     }
                 case "upload":
                     {
-                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
                         return await driver.UploadAsync(path, request.Form.Files);
                     }
                 case "duplicate":
                     {
-                        var targets = await GetFullPathArray(parameters.GetValueOrDefault("targets[]"));
+                        var targets = await GetFullPathArrayAsync(parameters.GetValueOrDefault("targets[]"));
                         return await driver.DuplicateAsync(targets);
                     }
                 case "tmb":
                     {
-                        var targets = await GetFullPathArray(parameters.GetValueOrDefault("targets[]"));
+                        var targets = await GetFullPathArrayAsync(parameters.GetValueOrDefault("targets[]"));
                         return await driver.ThumbsAsync(targets);
                     }
                 case "dim":
                     {
-                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
                         return await driver.DimAsync(path);
                     }
                 case "resize":
                     {
-                        var path = await driver.GetFullPathAsync(parameters.GetValueOrDefault("target"));
+                        var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
                         switch (parameters.GetValueOrDefault("mode"))
                         {
                             case "resize":
@@ -166,22 +166,22 @@ namespace elFinder.NetCore
         /// Get actual filesystem path by hash
         /// </summary>
         /// <param name="hash">Hash of file or directory</param>
-        public async Task<IFile> GetFileByHash(string hash)
+        public async Task<IFile> GetFileByHashAsync(string hash)
         {
-            var path = await driver.GetFullPathAsync(hash);
+            var path = await driver.ParsePathAsync(hash);
             return !path.IsDirectory ? path.File : null;
         }
 
-        public async Task<IActionResult> GetThumbnail(HttpRequest request, HttpResponse response, string hash)
+        public async Task<IActionResult> GetThumbnailAsync(HttpRequest request, HttpResponse response, string hash)
         {
             if (hash != null)
             {
-                var path = await driver.GetFullPathAsync(hash);
+                var path = await driver.ParsePathAsync(hash);
                 if (!path.IsDirectory && CanCreateThumbnail(path, path.RootVolume.PictureEditor))
                 {
                     //if (!await HttpCacheHelper.IsFileFromCache(path.File, request, response))
                     //{
-                    var thumb = await path.GenerateThumbnail();
+                    var thumb = await path.GenerateThumbnailAsync();
                     return new FileStreamResult(thumb.ImageStream, thumb.MimeType);
                     //}
                     //else
@@ -199,10 +199,10 @@ namespace elFinder.NetCore
             return !string.IsNullOrEmpty(path.RootVolume.ThumbnailUrl) && pictureEditor.CanProcessFile(path.File.Extension);
         }
 
-        private async Task<IEnumerable<FullPath>> GetFullPathArray(string target)
+        private async Task<IEnumerable<FullPath>> GetFullPathArrayAsync(string target)
         {
             var targets = target.Split(',');
-            var tasks = targets.Select(async t => await driver.GetFullPathAsync(t));
+            var tasks = targets.Select(async t => await driver.ParsePathAsync(t));
             return await Task.WhenAll(tasks);
         }
     }
