@@ -16,26 +16,26 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
         public static string AccountName { get; set; }
 
-        public static async Task CopyDirectory(string source, string destination)
+        public static async Task CopyDirectoryAsync(string source, string destination)
         {
             var rootDir = GetRootDirectoryReference(source);
 
-            foreach (var item in await ListFilesAndDirectories(source))
+            foreach (var item in await ListFilesAndDirectoriesAsync(source))
             {
                 var src = RelativePath(item.Uri.LocalPath);
                 var dest = UrlCombine(destination, Path.GetFileName(item.Uri.LocalPath));
                 if (item is CloudFileDirectory)
                 {
-                    await CopyDirectory(src, dest);
+                    await CopyDirectoryAsync(src, dest);
                 }
                 else if (item is CloudFile)
                 {
-                    await CopyFile(src, dest);
+                    await CopyFileAsync(src, dest);
                 }
             }
         }
 
-        public static async Task CopyFile(string source, string destination)
+        public static async Task CopyFileAsync(string source, string destination)
         {
             var rootDir = GetRootDirectoryReference(source);
 
@@ -61,7 +61,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             }
         }
 
-        public static async Task CreateDirectory(string dir)
+        public static async Task CreateDirectoryAsync(string dir)
         {
             var rootDir = GetRootDirectoryReference(dir);
 
@@ -78,7 +78,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             }
         }
 
-        public static async Task<bool> CreateShare(string share)
+        public static async Task<bool> CreateShareAsync(string share)
         {
             try
             {
@@ -94,7 +94,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             }
         }
 
-        public static async Task DeleteDirectory(string dir)
+        public static async Task DeleteDirectoryAsync(string dir)
         {
             var rootDir = GetRootDirectoryReference(dir);
 
@@ -102,23 +102,23 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             var sampleDir = rootDir.GetDirectoryReference(RelativePath(dir));
 
             // Delete subdirectories and files
-            foreach (var item in await ListFilesAndDirectories(dir))
+            foreach (var item in await ListFilesAndDirectoriesAsync(dir))
             {
                 string relativePath = RelativePath(item.Uri.LocalPath);
 
                 if (item is CloudFileDirectory)
                 {
-                    await DeleteDirectory(relativePath);
+                    await DeleteDirectoryAsync(relativePath);
                 }
                 else if (item is CloudFile)
                 {
-                    await DeleteFile(relativePath);
+                    await DeleteFileAsync(relativePath);
                 }
             }
             await sampleDir.DeleteAsync();
         }
 
-        public static async Task DeleteDirectoryIfExists(string dir)
+        public static async Task DeleteDirectoryIfExistsAsync(string dir)
         {
             var rootDir = GetRootDirectoryReference(dir);
 
@@ -128,7 +128,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             await sampleDir.DeleteIfExistsAsync();
         }
 
-        public static async Task DeleteFile(string file)
+        public static async Task DeleteFileAsync(string file)
         {
             var rootDir = GetRootDirectoryReference(file);
 
@@ -139,7 +139,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             await sampleFile.DeleteAsync();
         }
 
-        public static async Task DeleteFileIfExists(string file)
+        public static async Task DeleteFileIfExistsAsync(string file)
         {
             var rootDir = GetRootDirectoryReference(file);
 
@@ -150,7 +150,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             await sampleFile.DeleteIfExistsAsync();
         }
 
-        public static async Task<bool> DirectoryExists(string dir)
+        public static async Task<bool> DirectoryExistsAsync(string dir)
         {
             try
             {
@@ -172,7 +172,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             }
         }
 
-        public static async Task<DateTime> DirectoryLastModifiedTimeUtc(string dir)
+        public static async Task<DateTime> DirectoryLastModifiedTimeUtcAsync(string dir)
         {
             var rootDir = GetRootDirectoryReference(dir);
 
@@ -182,7 +182,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return sourceDir.Properties.LastModified?.DateTime ?? DateTime.UtcNow;
         }
 
-        public static async Task<byte[]> FileBytes(string file)
+        public static async Task<byte[]> FileBytesAsync(string file)
         {
             var rootDir = GetRootDirectoryReference(file);
             var sampleFile = rootDir.GetFileReference(RelativePath(file));
@@ -193,7 +193,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return result;
         }
 
-        public static async Task<bool> FileExists(string file)
+        public static async Task<bool> FileExistsAsync(string file)
         {
             try
             {
@@ -210,7 +210,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             }
         }
 
-        public static async Task<DateTime> FileLastModifiedTimeUtc(string file)
+        public static async Task<DateTime> FileLastModifiedTimeUtcAsync(string file)
         {
             var rootDir = GetRootDirectoryReference(file);
 
@@ -220,7 +220,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return sampleFile.Properties.LastModified?.DateTime ?? DateTime.UtcNow;
         }
 
-        public static async Task<long> FileLength(string file)
+        public static async Task<long> FileLengthAsync(string file)
         {
             var rootDir = GetRootDirectoryReference(file);
 
@@ -230,7 +230,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return sampleFile.Properties.Length;
         }
 
-        public static async Task<Stream> FileStream(string file)
+        public static async Task<Stream> FileStreamAsync(string file)
         {
             var rootDir = GetRootDirectoryReference(file);
 
@@ -239,7 +239,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return await sampleFile.OpenReadAsync();
         }
 
-        public static async Task Get(string file, Stream stream)
+        public static async Task GetAsync(string file, Stream stream)
         {
             var rootDir = GetRootDirectoryReference(file);
 
@@ -255,14 +255,14 @@ namespace elFinder.NetCore.Drivers.AzureStorage
         /// </summary>
         /// <param name="file">File</param>
         /// <returns>Duplicated name</returns>
-        public static async Task<string> GetDuplicatedName(IFile file)
+        public static async Task<string> GetDuplicatedNameAsync(IFile file)
         {
             var parentPath = file.Directory.Name;
             var name = Path.GetFileNameWithoutExtension(file.FullName);
             var ext = file.Extension;
 
             var newName = $@"{parentPath}/{name} copy{ext}";
-            if (!await FileExists(newName))
+            if (!await FileExistsAsync(newName))
             {
                 return newName;
             }
@@ -272,7 +272,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 for (var i = 1; i < 10 && !found; i++)
                 {
                     newName = $@"{parentPath}/{name} copy {i}{ext}";
-                    if (!await FileExists(newName))
+                    if (!await FileExistsAsync(newName))
                         found = true;
                 }
                 if (!found)
@@ -299,7 +299,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return fileshare.GetRootDirectoryReference();
         }
 
-        public static async Task<IEnumerable<IListFileItem>> ListFilesAndDirectories(string dir)
+        public static async Task<IEnumerable<IListFileItem>> ListFilesAndDirectoriesAsync(string dir)
         {
             var rootDir = GetRootDirectoryReference(dir);
             var sampleDir = IsRoot(dir) ? rootDir : rootDir.GetDirectoryReference(RelativePath(dir));
@@ -324,7 +324,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return results;
         }
 
-        public static async Task MakeFile(string file)
+        public static async Task MakeFileAsync(string file)
         {
             var rootDir = GetRootDirectoryReference(file);
 
@@ -335,9 +335,9 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             await sampleFile.CreateAsync(0);
         }
 
-        public static async Task MoveDirectory(string source, string destination)
+        public static async Task MoveDirectoryAsync(string source, string destination)
         {
-            await CopyDirectory(source, destination);
+            await CopyDirectoryAsync(source, destination);
 
             var rootDir = GetRootDirectoryReference(source);
             var sourceDir = rootDir.GetDirectoryReference(RelativePath(source));
@@ -345,9 +345,9 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             await sourceDir.DeleteAsync();
         }
 
-        public static async Task MoveFile(string source, string destination)
+        public static async Task MoveFileAsync(string source, string destination)
         {
-            await CopyFile(source, destination);
+            await CopyFileAsync(source, destination);
 
             var rootDir = GetRootDirectoryReference(source);
             var sourceFile = rootDir.GetFileReference(RelativePath(source));
@@ -355,7 +355,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             await sourceFile.DeleteAsync();
         }
 
-        public static async Task Put(string file, string content)
+        public static async Task PutAsync(string file, string content)
         {
             var rootDir = GetRootDirectoryReference(file);
 
@@ -364,7 +364,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             await sampleFile.UploadTextAsync(content);
         }
 
-        public static async Task Put(string file, Stream stream)
+        public static async Task PutAsync(string file, Stream stream)
         {
             var rootDir = GetRootDirectoryReference(file);
 
@@ -388,7 +388,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return string.Empty;
         }
 
-        public static async Task<bool> RootDirectoryExists(string root)
+        public static async Task<bool> RootDirectoryExistsAsync(string root)
         {
             try
             {
@@ -401,7 +401,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             }
         }
 
-        public static async Task Upload(IFormFile file, string path)
+        public static async Task UploadAsync(IFormFile file, string path)
         {
             var rootDir = GetRootDirectoryReference(path);
 

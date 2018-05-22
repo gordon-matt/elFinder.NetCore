@@ -60,7 +60,7 @@ namespace elFinder.NetCore.Models
         [JsonProperty("locked")]
         public byte Locked { get; protected set; }
 
-        public static async Task<BaseModel> Create(IDriver driver, IFile file, RootVolume volume)
+        public static async Task<BaseModel> CreateAsync(IDriver driver, IFile file, RootVolume volume)
         {
             if (file == null) throw new ArgumentNullException("file");
             if (volume == null) throw new ArgumentNullException("volume");
@@ -76,7 +76,7 @@ namespace elFinder.NetCore.Models
                     var dim = volume.PictureEditor.ImageSize(stream);
                     response = new ImageModel
                     {
-                        Thumbnail = await volume.GenerateThumbHash(file),
+                        Thumbnail = await volume.GenerateThumbHashAsync(file),
                         Dimension = $"{dim.Width}x{dim.Height}"
                     };
                 }
@@ -98,7 +98,7 @@ namespace elFinder.NetCore.Models
             return response;
         }
 
-        public static async Task<BaseModel> Create(IDriver driver, IDirectory directory, RootVolume volume)
+        public static async Task<BaseModel> CreateAsync(IDriver driver, IDirectory directory, RootVolume volume)
         {
             if (directory == null)
             {

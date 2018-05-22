@@ -18,7 +18,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
     public class FileSystemDriver : BaseDriver, IDriver
     {
         private const string _volumePrefix = "v";
-        
+
         #region Constructor
 
         /// <summary>
@@ -34,9 +34,12 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
         #region IDriver Members
 
-        public async Task<FullPath> GetFullPathAsync(string target)
+        public async Task<FullPath> ParsePathAsync(string target)
         {
-            if (string.IsNullOrEmpty(target)) return null;
+            if (string.IsNullOrEmpty(target))
+            {
+                return null;
+            }
 
             string volumePrefix = null;
             string pathHash = null;
@@ -49,6 +52,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     break;
                 }
             }
+
             var root = Roots.First(r => r.VolumeId == volumePrefix);
             var rootDirectory = new DirectoryInfo(root.RootDirectory);
             string path = Utils.DecodePath(pathHash);
@@ -68,7 +72,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
         public async Task<JsonResult> CropAsync(FullPath path, int x, int y, int width, int height)
         {
-            await RemoveThumbs(path);
+            await RemoveThumbsAsync(path);
 
             // Crop Image
             ImageWithMimeType image;
@@ -83,7 +87,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
             }
 
             var output = new ChangedResponseModel();
-            output.Changed.Add((FileModel)await BaseModel.Create(this, path.File, path.RootVolume));
+            output.Changed.Add((FileModel)await BaseModel.CreateAsync(this, path.File, path.RootVolume));
             return await Json(output);
         }
 
@@ -122,7 +126,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
                             }
                         }
                     }
-                    response.Added.Add(await BaseModel.Create(this, new FileSystemDirectory(newName), path.RootVolume));
+                    response.Added.Add(await BaseModel.CreateAsync(this, new FileSystemDirectory(newName), path.RootVolume));
                 }
                 else
                 {
@@ -146,7 +150,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
                             }
                         }
                     }
-                    response.Added.Add(await BaseModel.Create(this, new FileSystemFile(newName), path.RootVolume));
+                    response.Added.Add(await BaseModel.CreateAsync(this, new FileSystemFile(newName), path.RootVolume));
                 }
             }
             return await Json(response);
@@ -198,26 +202,26 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 path = new FullPath(root, new FileSystemDirectory(root.StartDirectory ?? root.RootDirectory), null);
             }
 
-            var response = new InitResponseModel(await BaseModel.Create(this, path.Directory, path.RootVolume), new Options(path));
+            var response = new InitResponseModel(await BaseModel.CreateAsync(this, path.Directory, path.RootVolume), new Options(path));
 
             foreach (var item in await path.Directory.GetFilesAsync())
             {
                 if (!item.Attributes.HasFlag(FileAttributes.Hidden))
                 {
-                    response.Files.Add(await BaseModel.Create(this, item, path.RootVolume));
+                    response.Files.Add(await BaseModel.CreateAsync(this, item, path.RootVolume));
                 }
             }
             foreach (var item in await path.Directory.GetDirectoriesAsync())
             {
                 if (!item.Attributes.HasFlag(FileAttributes.Hidden))
                 {
-                    response.Files.Add(await BaseModel.Create(this, item, path.RootVolume));
+                    response.Files.Add(await BaseModel.CreateAsync(this, item, path.RootVolume));
                 }
             }
 
             foreach (var item in Roots)
             {
-                response.Files.Add(await BaseModel.Create(this, new FileSystemDirectory(item.RootDirectory), item));
+                response.Files.Add(await BaseModel.CreateAsync(this, new FileSystemDirectory(item.RootDirectory), item));
             }
 
             if (path.RootVolume.RootDirectory != path.Directory.FullName)
@@ -228,7 +232,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     var attributes = item.Attributes;
                     if (!attributes.HasFlag(FileAttributes.Hidden))
                     {
-                        response.Files.Add(await BaseModel.Create(this, new FileSystemDirectory(item), path.RootVolume));
+                        response.Files.Add(await BaseModel.CreateAsync(this, new FileSystemDirectory(item), path.RootVolume));
                     }
                 }
             }
@@ -267,7 +271,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
             await newDir.CreateAsync();
 
             var response = new AddResponseModel();
-            response.Added.Add(await BaseModel.Create(this, newDir, path.RootVolume));
+            response.Added.Add(await BaseModel.CreateAsync(this, newDir, path.RootVolume));
             return await Json(response);
         }
 
@@ -277,25 +281,25 @@ namespace elFinder.NetCore.Drivers.FileSystem
             await newFile.CreateAsync();
 
             var response = new AddResponseModel();
-            response.Added.Add(await BaseModel.Create(this, newFile, path.RootVolume));
+            response.Added.Add(await BaseModel.CreateAsync(this, newFile, path.RootVolume));
             return await Json(response);
         }
 
         public async Task<JsonResult> OpenAsync(FullPath path, bool tree)
         {
-            var response = new OpenResponse(await BaseModel.Create(this, path.Directory, path.RootVolume), path);
+            var response = new OpenResponse(await BaseModel.CreateAsync(this, path.Directory, path.RootVolume), path);
             foreach (var item in await path.Directory.GetFilesAsync())
             {
                 if (!item.Attributes.HasFlag(FileAttributes.Hidden))
                 {
-                    response.Files.Add(await BaseModel.Create(this, item, path.RootVolume));
+                    response.Files.Add(await BaseModel.CreateAsync(this, item, path.RootVolume));
                 }
             }
             foreach (var item in await path.Directory.GetDirectoriesAsync())
             {
                 if (!item.Attributes.HasFlag(FileAttributes.Hidden))
                 {
-                    response.Files.Add(await BaseModel.Create(this, item, path.RootVolume));
+                    response.Files.Add(await BaseModel.CreateAsync(this, item, path.RootVolume));
                 }
             }
 
@@ -313,7 +317,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     // Ensure it's a child of the root
                     if (parent != null && path.RootVolume.RootDirectory.Contains(parent.Name))
                     {
-                        response.Files.Insert(0, await BaseModel.Create(this, parent, path.RootVolume));
+                        response.Files.Insert(0, await BaseModel.CreateAsync(this, parent, path.RootVolume));
                     }
                 }
             }
@@ -326,19 +330,19 @@ namespace elFinder.NetCore.Drivers.FileSystem
             var response = new TreeResponseModel();
             if (path.Directory.FullName == path.RootVolume.RootDirectory)
             {
-                response.Tree.Add(await BaseModel.Create(this, path.Directory, path.RootVolume));
+                response.Tree.Add(await BaseModel.CreateAsync(this, path.Directory, path.RootVolume));
             }
             else
             {
                 var parent = path.Directory;
                 foreach (var item in await parent.Parent.GetDirectoriesAsync())
                 {
-                    response.Tree.Add(await BaseModel.Create(this, item, path.RootVolume));
+                    response.Tree.Add(await BaseModel.CreateAsync(this, item, path.RootVolume));
                 }
                 while (parent.FullName != path.RootVolume.RootDirectory)
                 {
                     parent = parent.Parent;
-                    response.Tree.Add(await BaseModel.Create(this, parent, path.RootVolume));
+                    response.Tree.Add(await BaseModel.CreateAsync(this, parent, path.RootVolume));
                 }
             }
             return await Json(response);
@@ -353,18 +357,22 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 {
                     var newDir = new FileSystemDirectory(Path.Combine(dest.Directory.FullName, src.Directory.Name));
                     if (await newDir.ExistsAsync)
+                    {
                         Directory.Delete(newDir.FullName, true);
+                    }
 
                     if (isCut)
                     {
-                        await RemoveThumbs(src);
+                        await RemoveThumbsAsync(src);
                         Directory.Move(src.Directory.FullName, newDir.FullName);
                         response.Removed.Add(src.HashedTarget);
                     }
                     else
+                    {
                         DirectoryCopy(src.Directory.FullName, newDir.FullName, true);
+                    }
 
-                    response.Added.Add(await BaseModel.Create(this, newDir, dest.RootVolume));
+                    response.Added.Add(await BaseModel.CreateAsync(this, newDir, dest.RootVolume));
                 }
                 else
                 {
@@ -376,7 +384,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
                     if (isCut)
                     {
-                        await RemoveThumbs(src);
+                        await RemoveThumbsAsync(src);
                         File.Move(src.File.FullName, newFile.FullName);
                         response.Removed.Add(src.HashedTarget);
                     }
@@ -384,7 +392,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     {
                         File.Copy(src.File.FullName, newFile.FullName);
                     }
-                    response.Added.Add(await BaseModel.Create(this, newFile, dest.RootVolume));
+                    response.Added.Add(await BaseModel.CreateAsync(this, newFile, dest.RootVolume));
                 }
             }
             return await Json(response);
@@ -398,7 +406,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
             {
                 writer.Write(content);
             }
-            response.Changed.Add((FileModel)await BaseModel.Create(this, path.File, path.RootVolume));
+            response.Changed.Add((FileModel)await BaseModel.CreateAsync(this, path.File, path.RootVolume));
             return await Json(response);
         }
 
@@ -407,7 +415,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
             var response = new RemoveResponseModel();
             foreach (var path in paths)
             {
-                await RemoveThumbs(path);
+                await RemoveThumbsAsync(path);
                 if (path.IsDirectory)
                 {
                     Directory.Delete(path.Directory.FullName, true);
@@ -425,25 +433,27 @@ namespace elFinder.NetCore.Drivers.FileSystem
         {
             var response = new ReplaceResponseModel();
             response.Removed.Add(path.HashedTarget);
-            await RemoveThumbs(path);
+            await RemoveThumbsAsync(path);
+
             if (path.IsDirectory)
             {
                 var newPath = new FileSystemDirectory(Path.Combine(path.Directory.Parent.FullName, name));
                 Directory.Move(path.Directory.FullName, newPath.FullName);
-                response.Added.Add(await BaseModel.Create(this, newPath, path.RootVolume));
+                response.Added.Add(await BaseModel.CreateAsync(this, newPath, path.RootVolume));
             }
             else
             {
                 var newPath = new FileSystemFile(Path.Combine(path.File.DirectoryName, name));
                 File.Move(path.File.FullName, newPath.FullName);
-                response.Added.Add(await BaseModel.Create(this, newPath, path.RootVolume));
+                response.Added.Add(await BaseModel.CreateAsync(this, newPath, path.RootVolume));
             }
+
             return await Json(response);
         }
 
         public async Task<JsonResult> ResizeAsync(FullPath path, int width, int height)
         {
-            await RemoveThumbs(path);
+            await RemoveThumbsAsync(path);
 
             // Resize Image
             ImageWithMimeType image;
@@ -458,13 +468,13 @@ namespace elFinder.NetCore.Drivers.FileSystem
             }
 
             var output = new ChangedResponseModel();
-            output.Changed.Add((FileModel)await BaseModel.Create(this, path.File, path.RootVolume));
+            output.Changed.Add((FileModel)await BaseModel.CreateAsync(this, path.File, path.RootVolume));
             return await Json(output);
         }
 
         public async Task<JsonResult> RotateAsync(FullPath path, int degree)
         {
-            await RemoveThumbs(path);
+            await RemoveThumbsAsync(path);
 
             // Rotate Image
             ImageWithMimeType image;
@@ -479,7 +489,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
             }
 
             var output = new ChangedResponseModel();
-            output.Changed.Add((FileModel)await BaseModel.Create(this, path.File, path.RootVolume));
+            output.Changed.Add((FileModel)await BaseModel.CreateAsync(this, path.File, path.RootVolume));
             return await Json(output);
         }
 
@@ -488,7 +498,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
             var response = new ThumbsResponseModel();
             foreach (var path in paths)
             {
-                response.Images.Add(path.HashedTarget, await path.RootVolume.GenerateThumbHash(path.File));
+                response.Images.Add(path.HashedTarget, await path.RootVolume.GenerateThumbHashAsync(path.File));
                 //response.Images.Add(target, path.Root.GenerateThumbHash(path.File) + path.File.Extension); // 2018.02.23: Fix
             }
             return await Json(response);
@@ -501,7 +511,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
             {
                 if (!item.Attributes.HasFlag(FileAttributes.Hidden))
                 {
-                    response.Tree.Add(await BaseModel.Create(this, item, path.RootVolume));
+                    response.Tree.Add(await BaseModel.CreateAsync(this, item, path.RootVolume));
                 }
             }
             return await Json(response);
@@ -525,15 +535,15 @@ namespace elFinder.NetCore.Drivers.FileSystem
             }
             foreach (var file in files)
             {
-                var p = new FileInfo(Path.Combine(path.Directory.FullName, Path.GetFileName(file.FileName)));
+                var fileInfo = new FileInfo(Path.Combine(path.Directory.FullName, Path.GetFileName(file.FileName)));
 
-                if (p.Exists)
+                if (fileInfo.Exists)
                 {
                     if (path.RootVolume.UploadOverwrite)
                     {
                         //if file already exist we rename the current file,
                         //and if upload is succesfully delete temp file, in otherwise we restore old file
-                        string tmpPath = p.FullName + Guid.NewGuid();
+                        string tmpPath = fileInfo.FullName + Guid.NewGuid();
                         bool uploaded = false;
                         try
                         {
@@ -549,8 +559,8 @@ namespace elFinder.NetCore.Drivers.FileSystem
                         {
                             if (uploaded)
                             {
-                                File.Delete(p.FullName);
-                                File.Move(tmpPath, p.FullName);
+                                File.Delete(fileInfo.FullName);
+                                File.Move(tmpPath, fileInfo.FullName);
                             }
                             else
                             {
@@ -560,7 +570,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     }
                     else
                     {
-                        using (var fileStream = new FileStream(Path.Combine(p.DirectoryName, Utils.GetDuplicatedName(p)), FileMode.Create))
+                        using (var fileStream = new FileStream(Path.Combine(fileInfo.DirectoryName, Utils.GetDuplicatedName(fileInfo)), FileMode.Create))
                         {
                             await file.CopyToAsync(fileStream);
                         }
@@ -568,12 +578,12 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 }
                 else
                 {
-                    using (var fileStream = new FileStream(p.FullName, FileMode.Create))
+                    using (var fileStream = new FileStream(fileInfo.FullName, FileMode.Create))
                     {
                         await file.CopyToAsync(fileStream);
                     }
                 }
-                response.Added.Add((FileModel)await BaseModel.Create(this, new FileSystemFile(p.FullName), path.RootVolume));
+                response.Added.Add((FileModel)await BaseModel.CreateAsync(this, new FileSystemFile(fileInfo.FullName), path.RootVolume));
             }
             return await Json(response);
         }
@@ -623,17 +633,23 @@ namespace elFinder.NetCore.Drivers.FileSystem
             }
         }
 
-        private async Task RemoveThumbs(FullPath path)
+        private async Task RemoveThumbsAsync(FullPath path)
         {
-            if (path.IsDirectory)
+            if (path.Directory != null)
             {
-                if (await path.Directory.ExistsAsync)
-                    await path.Directory.DeleteAsync();
+                string thumbPath = path.RootVolume.GetExistingThumbPath(path.Directory);
+                if (!string.IsNullOrEmpty(thumbPath) && Directory.Exists(thumbPath))
+                {
+                    Directory.Delete(thumbPath, true);
+                }
             }
             else
             {
-                if (await path.File.ExistsAsync)
-                    await path.File.DeleteAsync();
+                string thumbPath = await path.RootVolume.GetExistingThumbPathAsync(path.File);
+                if (!string.IsNullOrEmpty(thumbPath) && File.Exists(thumbPath))
+                {
+                    File.Delete(thumbPath);
+                }
             }
         }
     }

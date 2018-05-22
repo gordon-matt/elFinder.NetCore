@@ -35,7 +35,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
         #region IDriver Members
 
-        public async Task<FullPath> GetFullPathAsync(string target)
+        public async Task<FullPath> ParsePathAsync(string target)
         {
             if (string.IsNullOrEmpty(target))
             {
@@ -72,10 +72,10 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
         public async Task<JsonResult> OpenAsync(FullPath path, bool tree)
         {
-            var response = new OpenResponse(await BaseModel.Create(this, path.Directory, path.RootVolume), path);
+            var response = new OpenResponse(await BaseModel.CreateAsync(this, path.Directory, path.RootVolume), path);
 
             // Get all files and directories
-            var items = await AzureStorageAPI.ListFilesAndDirectories(path.Directory.FullName);
+            var items = await AzureStorageAPI.ListFilesAndDirectoriesAsync(path.Directory.FullName);
 
             // Add visible files
             foreach (var file in items.Where(i => i is CloudFile))
@@ -83,7 +83,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 var f = new AzureStorageFile(file as CloudFile);
                 if (!f.Attributes.HasFlag(FileAttributes.Hidden))
                 {
-                    response.Files.Add(await BaseModel.Create(this, f, path.RootVolume));
+                    response.Files.Add(await BaseModel.CreateAsync(this, f, path.RootVolume));
                 }
             }
 
@@ -93,7 +93,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 var d = new AzureStorageDirectory(dir as CloudFileDirectory);
                 if (!d.Attributes.HasFlag(FileAttributes.Hidden))
                 {
-                    response.Files.Add(await BaseModel.Create(this, d, path.RootVolume));
+                    response.Files.Add(await BaseModel.CreateAsync(this, d, path.RootVolume));
                 }
             }
 
@@ -110,7 +110,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                     // Ensure it's a child of the root
                     if (parent != null && path.RootVolume.RootDirectory.Contains(parent.FullName))
                     {
-                        response.Files.Insert(0, await BaseModel.Create(this, parent, path.RootVolume));
+                        response.Files.Insert(0, await BaseModel.CreateAsync(this, parent, path.RootVolume));
                     }
                 }
             }
@@ -131,10 +131,10 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 path = new FullPath(root, new AzureStorageDirectory(root.StartDirectory ?? root.RootDirectory), null);
             }
 
-            var response = new InitResponseModel(await BaseModel.Create(this, path.Directory, path.RootVolume), new Options(path));
+            var response = new InitResponseModel(await BaseModel.CreateAsync(this, path.Directory, path.RootVolume), new Options(path));
 
             // Get all files and directories
-            var items = await AzureStorageAPI.ListFilesAndDirectories(path.Directory.FullName);
+            var items = await AzureStorageAPI.ListFilesAndDirectoriesAsync(path.Directory.FullName);
 
             // Add visible files
             foreach (var file in items.Where(i => i is CloudFile))
@@ -142,7 +142,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 var f = new AzureStorageFile(file as CloudFile);
                 if (!f.Attributes.HasFlag(FileAttributes.Hidden))
                 {
-                    response.Files.Add(await BaseModel.Create(this, f, path.RootVolume));
+                    response.Files.Add(await BaseModel.CreateAsync(this, f, path.RootVolume));
                 }
             }
 
@@ -152,20 +152,20 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 var d = new AzureStorageDirectory(dir as CloudFileDirectory);
                 if (!d.Attributes.HasFlag(FileAttributes.Hidden))
                 {
-                    response.Files.Add(await BaseModel.Create(this, d, path.RootVolume));
+                    response.Files.Add(await BaseModel.CreateAsync(this, d, path.RootVolume));
                 }
             }
 
             // Add roots
             foreach (var root in Roots)
             {
-                response.Files.Add(await BaseModel.Create(this, new AzureStorageDirectory(root.RootDirectory), root));
+                response.Files.Add(await BaseModel.CreateAsync(this, new AzureStorageDirectory(root.RootDirectory), root));
             }
 
             if (path.RootVolume.RootDirectory != path.Directory.FullName)
             {
                 // Get all files and directories
-                var entries = await AzureStorageAPI.ListFilesAndDirectories(path.RootVolume.RootDirectory);
+                var entries = await AzureStorageAPI.ListFilesAndDirectoriesAsync(path.RootVolume.RootDirectory);
 
                 // Add visible directories
                 foreach (var dir in entries.Where(i => i is CloudFileDirectory))
@@ -173,7 +173,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                     var d = new AzureStorageDirectory(dir as CloudFileDirectory);
                     if (!d.Attributes.HasFlag(FileAttributes.Hidden))
                     {
-                        response.Files.Add(await BaseModel.Create(this, d, path.RootVolume));
+                        response.Files.Add(await BaseModel.CreateAsync(this, d, path.RootVolume));
                     }
                 }
             }
@@ -195,7 +195,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             }
 
             // Check if path exists
-            if (!await AzureStorageAPI.FileExists(path.File.FullName))
+            if (!await AzureStorageAPI.FileExistsAsync(path.File.FullName))
             {
                 return new NotFoundResult();
             }
@@ -210,7 +210,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             string contentType = download ? "application/octet-stream" : Utils.GetMimeType(path.File);
 
             var stream = new MemoryStream();
-            await AzureStorageAPI.Get(path.File.FullName, stream);
+            await AzureStorageAPI.GetAsync(path.File.FullName, stream);
             stream.Position = 0;
             return new FileStreamResult(stream, contentType);
         }
@@ -220,7 +220,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             var response = new TreeResponseModel();
             if (path.Directory.FullName == path.RootVolume.RootDirectory)
             {
-                response.Tree.Add(await BaseModel.Create(this, path.Directory, path.RootVolume));
+                response.Tree.Add(await BaseModel.CreateAsync(this, path.Directory, path.RootVolume));
             }
             else
             {
@@ -237,21 +237,21 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                     // Ensure it's a child of the root
                     if (parent != null && path.RootVolume.RootDirectory.Contains(parent.Name))
                     {
-                        response.Tree.Insert(0, await BaseModel.Create(this, parent, path.RootVolume));
+                        response.Tree.Insert(0, await BaseModel.CreateAsync(this, parent, path.RootVolume));
                     }
                 }
 
                 // Check that directory has a parent
                 if (path.Directory.Parent != null)
                 {
-                    var items = await AzureStorageAPI.ListFilesAndDirectories(path.Directory.Parent.FullName);
+                    var items = await AzureStorageAPI.ListFilesAndDirectoriesAsync(path.Directory.Parent.FullName);
 
                     // Add all visible directories except the target
                     foreach (var dir in items.Where(i => i is CloudFileDirectory && ((CloudFileDirectory)i).Name != path.Directory.Name))
                     {
                         var d = new AzureStorageDirectory(dir as CloudFileDirectory);
                         if (!d.Attributes.HasFlag(FileAttributes.Hidden))
-                            response.Tree.Add(await BaseModel.Create(this, d, path.RootVolume));
+                            response.Tree.Add(await BaseModel.CreateAsync(this, d, path.RootVolume));
                     }
                 }
             }
@@ -262,7 +262,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
         {
             var response = new TreeResponseModel();
 
-            var items = await AzureStorageAPI.ListFilesAndDirectories(path.Directory.FullName);
+            var items = await AzureStorageAPI.ListFilesAndDirectoriesAsync(path.Directory.FullName);
 
             // Add visible directories
             foreach (var dir in items.Where(i => i is CloudFileDirectory))
@@ -270,7 +270,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 var d = new AzureStorageDirectory(dir as CloudFileDirectory);
                 if (!d.Attributes.HasFlag(FileAttributes.Hidden))
                 {
-                    response.Tree.Add(await BaseModel.Create(this, d, path.RootVolume));
+                    response.Tree.Add(await BaseModel.CreateAsync(this, d, path.RootVolume));
                 }
             }
 
@@ -282,7 +282,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             var response = new ListResponseModel();
 
             // Get all files and directories
-            var items = await AzureStorageAPI.ListFilesAndDirectories(path.Directory.FullName);
+            var items = await AzureStorageAPI.ListFilesAndDirectoriesAsync(path.Directory.FullName);
 
             // Add visible files
             foreach (var file in items.Where(i => i is CloudFile))
@@ -314,7 +314,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             await newDir.CreateAsync();
 
             var response = new AddResponseModel();
-            response.Added.Add(await BaseModel.Create(this, newDir, path.RootVolume));
+            response.Added.Add(await BaseModel.CreateAsync(this, newDir, path.RootVolume));
 
             return await Json(response);
         }
@@ -325,7 +325,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             await newFile.CreateAsync();
 
             var response = new AddResponseModel();
-            response.Added.Add(await BaseModel.Create(this, newFile, path.RootVolume));
+            response.Added.Add(await BaseModel.CreateAsync(this, newFile, path.RootVolume));
             return await Json(response);
         }
 
@@ -343,10 +343,10 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 var newPath = AzureStorageAPI.UrlCombine(path.Directory.Parent.FullName ?? string.Empty, name);
 
                 // Move file
-                await AzureStorageAPI.MoveDirectory(path.Directory.FullName, newPath);
+                await AzureStorageAPI.MoveDirectoryAsync(path.Directory.FullName, newPath);
 
                 // Add it to added entries list
-                response.Added.Add(await BaseModel.Create(this, new AzureStorageDirectory(newPath), path.RootVolume));
+                response.Added.Add(await BaseModel.CreateAsync(this, new AzureStorageDirectory(newPath), path.RootVolume));
             }
             else
             {
@@ -354,10 +354,10 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 var newPath = AzureStorageAPI.UrlCombine(path.File.DirectoryName ?? string.Empty, name);
 
                 // Move file
-                await AzureStorageAPI.MoveFile(path.File.FullName, newPath);
+                await AzureStorageAPI.MoveFileAsync(path.File.FullName, newPath);
 
                 // Add it to added entries list
-                response.Added.Add(await BaseModel.Create(this, new AzureStorageFile(newPath), path.RootVolume));
+                response.Added.Add(await BaseModel.CreateAsync(this, new AzureStorageFile(newPath), path.RootVolume));
             }
 
             return await Json(response);
@@ -373,11 +373,11 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
                 if (path.IsDirectory)
                 {
-                    await AzureStorageAPI.DeleteDirectory(path.Directory.FullName);
+                    await AzureStorageAPI.DeleteDirectoryAsync(path.Directory.FullName);
                 }
                 else
                 {
-                    await AzureStorageAPI.DeleteFile(path.File.FullName);
+                    await AzureStorageAPI.DeleteFileAsync(path.File.FullName);
                 }
 
                 response.Removed.Add(path.HashedTarget);
@@ -392,7 +392,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             // Get content
             using (var stream = new MemoryStream())
             {
-                await AzureStorageAPI.Get(path.File.FullName, stream);
+                await AzureStorageAPI.GetAsync(path.File.FullName, stream);
                 stream.Position = 0;
                 using (var reader = new StreamReader(stream))
                 {
@@ -408,9 +408,9 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             var response = new ChangedResponseModel();
 
             // Write content
-            await AzureStorageAPI.Put(path.File.FullName, content);
+            await AzureStorageAPI.PutAsync(path.File.FullName, content);
 
-            response.Changed.Add((FileModel)await BaseModel.Create(this, path.File, path.RootVolume));
+            response.Changed.Add((FileModel)await BaseModel.CreateAsync(this, path.File, path.RootVolume));
             return await Json(response);
         }
 
@@ -434,37 +434,37 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                     if (isCut)
                     {
                         RemoveThumbs(src);
-                        await AzureStorageAPI.MoveDirectory(src.Directory.FullName, newDir.FullName);
+                        await AzureStorageAPI.MoveDirectoryAsync(src.Directory.FullName, newDir.FullName);
                         response.Removed.Add(src.HashedTarget);
                     }
                     else
                     {
                         // Copy directory
-                        await AzureStorageAPI.CopyDirectory(src.Directory.FullName, newDir.FullName);
+                        await AzureStorageAPI.CopyDirectoryAsync(src.Directory.FullName, newDir.FullName);
                     }
-                    response.Added.Add(await BaseModel.Create(this, newDir, dest.RootVolume));
+                    response.Added.Add(await BaseModel.CreateAsync(this, newDir, dest.RootVolume));
                 }
                 else
                 {
                     string newFilePath = AzureStorageAPI.UrlCombine(dest.Directory.FullName, src.File.Name);
-                    await AzureStorageAPI.DeleteFileIfExists(newFilePath);
+                    await AzureStorageAPI.DeleteFileIfExistsAsync(newFilePath);
 
                     if (isCut)
                     {
                         RemoveThumbs(src);
 
                         // Move file
-                        await AzureStorageAPI.MoveFile(src.File.FullName, newFilePath);
+                        await AzureStorageAPI.MoveFileAsync(src.File.FullName, newFilePath);
 
                         response.Removed.Add(src.HashedTarget);
                     }
                     else
                     {
                         // Copy file
-                        await AzureStorageAPI.CopyFile(src.File.FullName, newFilePath);
+                        await AzureStorageAPI.CopyFileAsync(src.File.FullName, newFilePath);
                     }
 
-                    response.Added.Add(await BaseModel.Create(this, new AzureStorageFile(newFilePath), dest.RootVolume));
+                    response.Added.Add(await BaseModel.CreateAsync(this, new AzureStorageFile(newFilePath), dest.RootVolume));
                 }
             }
 
@@ -508,7 +508,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
                         try
                         {
-                            await AzureStorageAPI.Upload(file, tmpPath);
+                            await AzureStorageAPI.UploadAsync(file, tmpPath);
                             uploaded = true;
                         }
                         catch (Exception) { }
@@ -521,12 +521,12 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                                 await p.DeleteAsync();
 
                                 // Move file
-                                await AzureStorageAPI.MoveFile(tmpPath, p.FullName);
+                                await AzureStorageAPI.MoveFileAsync(tmpPath, p.FullName);
                             }
                             else
                             {
                                 // Delete temporary file
-                                await AzureStorageAPI.DeleteFile(tmpPath);
+                                await AzureStorageAPI.DeleteFileAsync(tmpPath);
                             }
                         }
                     }
@@ -536,16 +536,16 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                         if (string.IsNullOrEmpty(p.Directory.Name)) throw new ArgumentNullException("Directory");
 
                         // Save file
-                        await AzureStorageAPI.Upload(file, AzureStorageAPI.UrlCombine(p.Directory.FullName, await AzureStorageAPI.GetDuplicatedName(p)));
+                        await AzureStorageAPI.UploadAsync(file, AzureStorageAPI.UrlCombine(p.Directory.FullName, await AzureStorageAPI.GetDuplicatedNameAsync(p)));
                     }
                 }
                 else
                 {
                     // Save file
-                    await AzureStorageAPI.Upload(file, p.FullName);
+                    await AzureStorageAPI.UploadAsync(file, p.FullName);
                 }
 
-                response.Added.Add((FileModel)await BaseModel.Create(this, new AzureStorageFile(p.FullName), path.RootVolume));
+                response.Added.Add((FileModel)await BaseModel.CreateAsync(this, new AzureStorageFile(p.FullName), path.RootVolume));
             }
             return await Json(response);
         }
@@ -563,10 +563,10 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                     string newName = $"{parentPath}/{name} copy";
 
                     // Check if directory already exists
-                    if (!await AzureStorageAPI.DirectoryExists(newName))
+                    if (!await AzureStorageAPI.DirectoryExistsAsync(newName))
                     {
                         // Doesn't exist
-                        await AzureStorageAPI.CopyDirectory(path.Directory.FullName, newName);
+                        await AzureStorageAPI.CopyDirectoryAsync(path.Directory.FullName, newName);
                     }
                     else
                     {
@@ -577,9 +577,9 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                             newName = $"{parentPath}/{name} copy {i}";
 
                             // Test that it doesn't exist
-                            if (!await AzureStorageAPI.DirectoryExists(newName))
+                            if (!await AzureStorageAPI.DirectoryExistsAsync(newName))
                             {
-                                await AzureStorageAPI.CopyDirectory(path.Directory.FullName, newName);
+                                await AzureStorageAPI.CopyDirectoryAsync(path.Directory.FullName, newName);
                                 newNameFound = true;
                                 break;
                             }
@@ -589,7 +589,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                         if (!newNameFound) return Error.NewNameSelectionException($@"{parentPath}/{name} copy");
                     }
 
-                    response.Added.Add(await BaseModel.Create(this, new AzureStorageDirectory(newName), path.RootVolume));
+                    response.Added.Add(await BaseModel.CreateAsync(this, new AzureStorageDirectory(newName), path.RootVolume));
                 }
                 else // File
                 {
@@ -600,10 +600,10 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                     string newName = $"{parentPath}/{name} copy{ext}";
 
                     // Check if file already exists
-                    if (!await AzureStorageAPI.FileExists(newName))
+                    if (!await AzureStorageAPI.FileExistsAsync(newName))
                     {
                         // Doesn't exist
-                        await AzureStorageAPI.CopyFile(path.File.FullName, newName);
+                        await AzureStorageAPI.CopyFileAsync(path.File.FullName, newName);
                     }
                     else
                     {
@@ -615,9 +615,9 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                             newName = $@"{parentPath}/{name} copy {i}{ext}";
 
                             // Test that it doesn't exist
-                            if (!await AzureStorageAPI.FileExists(newName))
+                            if (!await AzureStorageAPI.FileExistsAsync(newName))
                             {
-                                await AzureStorageAPI.CopyFile(path.File.FullName, newName);
+                                await AzureStorageAPI.CopyFileAsync(path.File.FullName, newName);
                                 newNameFound = true;
                                 break;
                             }
@@ -627,7 +627,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                         if (!newNameFound) return Error.NewNameSelectionException($@"{parentPath}/{name} copy");
                     }
 
-                    response.Added.Add(await BaseModel.Create(this, new AzureStorageFile(newName), path.RootVolume));
+                    response.Added.Add(await BaseModel.CreateAsync(this, new AzureStorageFile(newName), path.RootVolume));
                 }
             }
             return await Json(response);
@@ -638,7 +638,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             var response = new ThumbsResponseModel();
             foreach (var path in paths)
             {
-                response.Images.Add(path.HashedTarget, await path.RootVolume.GenerateThumbHash(path.File));
+                response.Images.Add(path.HashedTarget, await path.RootVolume.GenerateThumbHashAsync(path.File));
                 //response.Images.Add(target, path.Root.GenerateThumbHash(path.File) + path.File.Extension); // 2018.02.23: Fix
             }
             return await Json(response);
@@ -646,7 +646,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
         public async Task<JsonResult> DimAsync(FullPath path)
         {
-            using (var stream = await AzureStorageAPI.FileStream(path.File.FullName))
+            using (var stream = await AzureStorageAPI.FileStreamAsync(path.File.FullName))
             {
                 var response = new DimResponseModel(path.RootVolume.PictureEditor.ImageSize(stream));
                 return await Json(response);
@@ -664,10 +664,10 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 image = path.RootVolume.PictureEditor.Resize(stream, width, height);
             }
 
-            await AzureStorageAPI.Put(path.File.FullName, image.ImageStream);
+            await AzureStorageAPI.PutAsync(path.File.FullName, image.ImageStream);
 
             var output = new ChangedResponseModel();
-            output.Changed.Add((FileModel)await BaseModel.Create(this, path.File, path.RootVolume));
+            output.Changed.Add((FileModel)await BaseModel.CreateAsync(this, path.File, path.RootVolume));
             return await Json(output);
         }
 
@@ -682,10 +682,10 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 image = path.RootVolume.PictureEditor.Crop(stream, x, y, width, height);
             }
 
-            await AzureStorageAPI.Put(path.File.FullName, image.ImageStream);
+            await AzureStorageAPI.PutAsync(path.File.FullName, image.ImageStream);
 
             var output = new ChangedResponseModel();
-            output.Changed.Add((FileModel)await BaseModel.Create(this, path.File, path.RootVolume));
+            output.Changed.Add((FileModel)await BaseModel.CreateAsync(this, path.File, path.RootVolume));
             return await Json(output);
         }
 
@@ -700,10 +700,10 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 image = path.RootVolume.PictureEditor.Rotate(stream, degree);
             }
 
-            await AzureStorageAPI.Put(path.File.FullName, image.ImageStream);
+            await AzureStorageAPI.PutAsync(path.File.FullName, image.ImageStream);
 
             var output = new ChangedResponseModel();
-            output.Changed.Add((FileModel)await BaseModel.Create(this, path.File, path.RootVolume));
+            output.Changed.Add((FileModel)await BaseModel.CreateAsync(this, path.File, path.RootVolume));
             return await Json(output);
         }
 
@@ -724,7 +724,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             }
             else
             {
-                var thumbPath = await path.RootVolume.GenerateThumbPath(path.File);
+                var thumbPath = await path.RootVolume.GenerateThumbPathAsync(path.File);
                 if (thumbPath == null)
                 {
                     return;

@@ -6,41 +6,49 @@ namespace elFinder.NetCore.Drivers.FileSystem
 {
     public class FileSystemFile : IFile
     {
-        private FileInfo fileInfo;
+        private string filePath;
 
         #region Constructors
 
-        public FileSystemFile(string fileName)
+        public FileSystemFile(string filePath)
+            : this(new FileInfo(filePath))
         {
-            fileInfo = new FileInfo(fileName);
         }
 
         public FileSystemFile(FileInfo fileInfo)
         {
-            this.fileInfo = fileInfo;
+            filePath = fileInfo.FullName;
+            Name = fileInfo.Name;
+            FullName = fileInfo.FullName;
+            DirectoryName = fileInfo.DirectoryName;
+            Extension = fileInfo.Extension;
         }
 
         #endregion Constructors
 
         #region IFile Members
 
-        public FileAttributes Attributes { get => fileInfo.Attributes; set => fileInfo.Attributes = value; }
+        public FileAttributes Attributes
+        {
+            get => File.GetAttributes(filePath);
+            set => File.SetAttributes(filePath, value);
+        }
 
-        public IDirectory Directory => new FileSystemDirectory(fileInfo.Directory);
+        public IDirectory Directory => new FileSystemDirectory(new FileInfo(filePath).Directory);
 
-        public string DirectoryName => fileInfo.DirectoryName;
+        public string DirectoryName { get; private set; }
 
-        public Task<bool> ExistsAsync => Task.FromResult(fileInfo.Exists);
+        public Task<bool> ExistsAsync => Task.FromResult(File.Exists(filePath));
 
-        public string Extension => fileInfo.Extension;
+        public string Extension { get; private set; }
 
-        public string FullName => fileInfo.FullName;
+        public string FullName { get; private set; }
 
-        public Task<DateTime> LastWriteTimeUtcAsync => Task.FromResult(fileInfo.LastWriteTimeUtc);
+        public Task<DateTime> LastWriteTimeUtcAsync => Task.FromResult(File.GetLastWriteTimeUtc(filePath));
 
-        public Task<long> LengthAsync => Task.FromResult(fileInfo.Length);
+        public Task<long> LengthAsync => Task.FromResult(new FileInfo(filePath).Length);
 
-        public string Name => fileInfo.Name;
+        public string Name { get; private set; }
 
         public IFile Clone(string path)
         {
@@ -50,20 +58,23 @@ namespace elFinder.NetCore.Drivers.FileSystem
         public Task<Stream> CreateAsync()
         {
             EnsureGarbageCollectorCalled();
-            return Task.FromResult(fileInfo.Create() as Stream);
+            using (var stream = File.Create(filePath))
+            {
+                return Task.FromResult(stream as Stream);
+            }
         }
 
         public Task DeleteAsync()
         {
             EnsureGarbageCollectorCalled();
-            fileInfo.Delete();
+            File.Delete(filePath);
             return Task.FromResult(0);
         }
 
         public Task<Stream> OpenReadAsync()
         {
             EnsureGarbageCollectorCalled();
-            return Task.FromResult(fileInfo.OpenRead() as Stream);
+            return Task.FromResult(File.OpenRead(filePath) as Stream);
         }
 
         public Task PutAsync(string content)
@@ -76,7 +87,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
         public Task PutAsync(Stream stream)
         {
             EnsureGarbageCollectorCalled();
-            using (var destination = fileInfo.OpenWrite())
+            using (var destination = File.OpenWrite(filePath))
             {
                 stream.CopyTo(destination);
             }
@@ -85,6 +96,11 @@ namespace elFinder.NetCore.Drivers.FileSystem
         }
 
         #endregion IFile Members
+
+        public void MoveTo(string destFileName)
+        {
+            File.Move(filePath, destFileName);
+        }
 
         // Bug Fix: https://stackoverflow.com/questions/13262548/delete-a-file-being-used-by-another-process/21137207#21137207
         private static void EnsureGarbageCollectorCalled()
