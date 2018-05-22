@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using elFinder.NetCore.Drawing;
-using elFinder.NetCore.Helpers;
+using elFinder.NetCore.Http;
 using elFinder.NetCore.Models;
 using elFinder.NetCore.Models.Commands;
 using Microsoft.AspNetCore.Http;
@@ -55,7 +55,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
             var root = Roots.First(r => r.VolumeId == volumePrefix);
             var rootDirectory = new DirectoryInfo(root.RootDirectory);
-            string path = Utils.DecodePath(pathHash);
+            string path = HttpEncoder.DecodePath(pathHash);
             string dirUrl = path != rootDirectory.Name ? path : string.Empty;
             var dir = new FileSystemDirectory(root.RootDirectory + dirUrl);
 
@@ -173,7 +173,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 result = new ForbidResult();
             }
             //result = new DownloadFileResult(fullPath.File, download);
-            string contentType = download ? "application/octet-stream" : Utils.GetMimeType(path.File);
+            string contentType = download ? "application/octet-stream" : Mime.GetMimeType(path.File);
             result = new PhysicalFileResult(path.File.FullName, contentType);
 
             return await Task.FromResult(result);
@@ -570,7 +570,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     }
                     else
                     {
-                        using (var fileStream = new FileStream(Path.Combine(fileInfo.DirectoryName, Utils.GetDuplicatedName(fileInfo)), FileMode.Create))
+                        using (var fileStream = new FileStream(Path.Combine(fileInfo.DirectoryName, GetDuplicatedName(fileInfo)), FileMode.Create))
                         {
                             await file.CopyToAsync(fileStream);
                         }
@@ -633,7 +633,38 @@ namespace elFinder.NetCore.Drivers.FileSystem
             }
         }
 
-        private async Task RemoveThumbsAsync(FullPath path)
+		private string GetDuplicatedName(FileInfo file)
+		{
+			string parentPath = file.DirectoryName;
+			string name = Path.GetFileNameWithoutExtension(file.Name);
+			string extension = file.Extension;
+
+			string newName = $"{parentPath}/{name} copy{extension}";
+			if (!File.Exists(newName))
+			{
+				return newName;
+			}
+			else
+			{
+				bool found = false;
+				for (int i = 1; i < 10 && !found; i++)
+				{
+					newName = $"{parentPath}/{name} copy {i}{extension}";
+					if (!File.Exists(newName))
+					{
+						found = true;
+					}
+				}
+				if (!found)
+				{
+					newName = $"{parentPath}/{name} copy {Guid.NewGuid()}{extension}";
+				}
+			}
+
+			return newName;
+		}
+
+		private async Task RemoveThumbsAsync(FullPath path)
         {
             if (path.Directory != null)
             {

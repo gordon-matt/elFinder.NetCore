@@ -1,14 +1,14 @@
-﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-using elFinder.NetCore.Drivers.AzureStorage;
-using elFinder.NetCore.Helpers;
+﻿using elFinder.NetCore.Drivers.AzureStorage;
+using elFinder.NetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace elFinder.NetCore.Web.Controllers
 {
-    [Route("el-finder/azure-storage")]
+	[Route("el-finder/azure-storage")]
     public class AzureStorageController : Controller
     {
         [Route("connector")]
@@ -28,7 +28,6 @@ namespace elFinder.NetCore.Web.Controllers
         [Route("files/{*path}")]
         public async Task<IActionResult> Files(string path)
         {
-            var driver = new AzureStorageDriver();
             var file = await AzureStorageAPI.FileStreamAsync(path);
             return new FileStreamResult(file, Mime.GetMimeType(Path.GetExtension(path).Substring(1)));
         }

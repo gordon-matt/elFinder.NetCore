@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using elFinder.NetCore.Drivers;
-using elFinder.NetCore.Helpers;
+using elFinder.NetCore.Http;
 using Newtonsoft.Json;
 
 namespace elFinder.NetCore.Models
@@ -92,9 +92,9 @@ namespace elFinder.NetCore.Models
             response.Name = file.Name;
             response.Size = await file.LengthAsync;
             response.UnixTimeStamp = (long)(await file.LastWriteTimeUtcAsync - _unixOrigin).TotalSeconds;
-            response.Mime = Utils.GetMimeType(file);
-            response.Hash = volume.VolumeId + Utils.EncodePath(relativePath);
-            response.ParentHash = volume.VolumeId + Utils.EncodePath(parentPath.Length > 0 ? parentPath : file.Directory.Name);
+            response.Mime = Http.Mime.GetMimeType(file);
+            response.Hash = volume.VolumeId + HttpEncoder.EncodePath(relativePath);
+            response.ParentHash = volume.VolumeId + HttpEncoder.EncodePath(parentPath.Length > 0 ? parentPath : file.Directory.Name);
             return response;
         }
 
@@ -127,7 +127,7 @@ namespace elFinder.NetCore.Models
                 {
                     Mime = "directory",
                     Dirs = hasSubdirs ? (byte)1 : (byte)0,
-                    Hash = volume.VolumeId + Utils.EncodePath(directory.Name),
+                    Hash = volume.VolumeId + HttpEncoder.EncodePath(directory.Name),
                     Read = 1,
                     Write = volume.IsReadOnly ? (byte)0 : (byte)1,
                     Locked = volume.IsLocked ? (byte)1 : (byte)0,
@@ -145,14 +145,14 @@ namespace elFinder.NetCore.Models
                 {
                     Mime = "directory",
                     ContainsChildDirs = (await directory.GetDirectoriesAsync()).Count() > 0 ? (byte)1 : (byte)0,
-                    Hash = volume.VolumeId + Utils.EncodePath(directory.FullName.Substring(volume.RootDirectory.Length)),
+                    Hash = volume.VolumeId + HttpEncoder.EncodePath(directory.FullName.Substring(volume.RootDirectory.Length)),
                     Read = 1,
                     Write = volume.IsReadOnly ? (byte)0 : (byte)1,
                     Locked = ((volume.LockedFolders != null && volume.LockedFolders.Any(f => f == directory.Name)) || volume.IsLocked) ? (byte)1 : (byte)0,
                     Size = 0,
                     Name = directory.Name,
                     UnixTimeStamp = (long)(await directory.LastWriteTimeUtcAsync - _unixOrigin).TotalSeconds,
-                    ParentHash = volume.VolumeId + Utils.EncodePath(parentPath.Length > 0 ? parentPath : directory.Parent.Name)
+                    ParentHash = volume.VolumeId + HttpEncoder.EncodePath(parentPath.Length > 0 ? parentPath : directory.Parent.Name)
                 };
                 return response;
             }

@@ -1,17 +1,19 @@
-﻿using System;
-using System.Threading.Tasks;
-using elFinder.NetCore.Drivers;
+﻿using elFinder.NetCore.Drivers;
 using Microsoft.AspNetCore.Http;
+using System;
+using System.Threading.Tasks;
 
-namespace elFinder.NetCore.Helpers
+namespace elFinder.NetCore.Http
 {
-    internal static class HttpCacheHelper
+	internal static class HttpCache
     {
-        // TODO: Needs testing due to porting over to .NET Core
-        public static async Task<bool> IsFileFromCacheAsync(IFile info, HttpRequest request, HttpResponse response)
+		// TODO: Needs testing due to porting over to .NET Core
+		public static async Task<bool> IsFileFromCacheAsync(IFile file, HttpRequest request, HttpResponse response)
         {
-            DateTime updated = await info.LastWriteTimeUtcAsync;
-            string filename = info.Name;
+			if (!await file.ExistsAsync) return false;
+
+            var updated = await file.LastWriteTimeUtcAsync;
+            string filename = file.Name;
 
             if (!DateTime.TryParse(request.Headers["If-Modified-Since"], out DateTime modifyDate))
             {
@@ -40,7 +42,7 @@ namespace elFinder.NetCore.Helpers
 
         private static string GetFileETag(string fileName, DateTime modified)
         {
-            return "\"" + Utils.GetFileMd5(fileName, modified) + "\"";
+            return "\"" + Cryptography.GetFileMd5(fileName, modified) + "\"";
         }
 
         private static bool IsFileModified(DateTime modifyDate, string eTag, HttpRequest request)
