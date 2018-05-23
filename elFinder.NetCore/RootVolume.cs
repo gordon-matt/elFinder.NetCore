@@ -33,8 +33,9 @@ namespace elFinder.NetCore
                 ThumbnailUrl = thumbnailsUrl;
             }
 
-            ThumbnailDirectory = Path.Combine(rootDirectory, ".tmb");
-            //ThumbnailDirectory = string.Concat(rootDirectory, "/", ".tmb");
+			// Use '/' as a universal way to separate paths. FileSystem operations allow it and using '\\' breaks AzureStorage and other connectors in the future.
+			// If necessary, we can add this to IDirectory and make it connector specific.
+			ThumbnailDirectory = string.Concat(rootDirectory, "/", ".tmb");
         }
 
         /// <summary>
