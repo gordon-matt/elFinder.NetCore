@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace elFinder.NetCore.Helpers
+namespace elFinder.NetCore.Http
 {
     public static class Error
     {

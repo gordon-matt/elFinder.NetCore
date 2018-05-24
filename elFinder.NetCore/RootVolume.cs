@@ -1,17 +1,17 @@
-﻿using System;
+﻿using elFinder.NetCore.Drawing;
+using elFinder.NetCore.Drivers;
+using elFinder.NetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using elFinder.NetCore.Drawing;
-using elFinder.NetCore.Drivers;
-using elFinder.NetCore.Helpers;
 
 namespace elFinder.NetCore
 {
-    /// <summary>
-    /// Represents a root of file system
-    /// </summary>
-    public class RootVolume
+	/// <summary>
+	/// Represents a root of file system
+	/// </summary>
+	public class RootVolume
     {
         public RootVolume(string rootDirectory, string url, string thumbnailsUrl = null)
         {
@@ -33,8 +33,9 @@ namespace elFinder.NetCore
                 ThumbnailUrl = thumbnailsUrl;
             }
 
-            ThumbnailDirectory = Path.Combine(rootDirectory, ".tmb");
-            //ThumbnailDirectory = string.Concat(rootDirectory, "/", ".tmb");
+			// Use '/' as a universal way to separate paths. FileSystem operations allow it and using '\\' breaks AzureStorage and other connectors in the future.
+			// If necessary, we can add this to IDirectory and make it connector specific.
+			ThumbnailDirectory = string.Concat(rootDirectory, "/", ".tmb");
         }
 
         /// <summary>
@@ -143,15 +144,15 @@ namespace elFinder.NetCore
         {
             if (ThumbnailDirectory == null)
             {
-                string thumbName = Path.GetFileNameWithoutExtension(originalImage.Name) + "_" + await Utils.GetFileMd5Async(originalImage) + originalImage.Extension;
+                string thumbName = Path.GetFileNameWithoutExtension(originalImage.Name) + "_" + await Cryptography.GetFileMd5Async(originalImage) + originalImage.Extension;
                 string relativePath = originalImage.DirectoryName.Substring(RootDirectory.Length);
-                return VolumeId + Utils.EncodePath($"{relativePath}/{thumbName}");
+                return VolumeId + HttpEncoder.EncodePath($"{relativePath}/{thumbName}");
             }
             else
             {
                 string thumbPath = await GenerateThumbPathAsync(originalImage);
                 string relativePath = thumbPath.Substring(ThumbnailDirectory.Length);
-                return VolumeId + Utils.EncodePath(relativePath);
+                return VolumeId + HttpEncoder.EncodePath(relativePath);
             }
         }
 
@@ -163,7 +164,7 @@ namespace elFinder.NetCore
             }
             string relativePath = originalImage.FullName.Substring(RootDirectory.Length);
             string thumbDir = GetDirectoryName(string.Concat(ThumbnailDirectory + relativePath));
-            string thumbName = Path.GetFileNameWithoutExtension(originalImage.Name) + "_" + await Utils.GetFileMd5Async(originalImage) + originalImage.Extension;
+            string thumbName = Path.GetFileNameWithoutExtension(originalImage.Name) + "_" + await Cryptography.GetFileMd5Async(originalImage) + originalImage.Extension;
             return string.Concat(thumbDir, "/", thumbName);
         }
 
@@ -200,7 +201,7 @@ namespace elFinder.NetCore
                 return null;
             }
             string relativePath = thumbPath.Substring(ThumbnailDirectory.Length);
-            return VolumeId + Utils.EncodePath(relativePath);
+            return VolumeId + HttpEncoder.EncodePath(relativePath);
         }
 
         internal async Task<string> GetExistingThumbPathAsync(IFile originalImage)

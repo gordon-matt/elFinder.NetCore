@@ -12,7 +12,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Helpers\Mime.cs~RF300871a6.TMP" />
     <None Remove="MimeTypes.txt" />
   </ItemGroup>
 

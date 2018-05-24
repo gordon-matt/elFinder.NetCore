@@ -1,11 +1,22 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Text;
 
-namespace elFinder.NetCore.Helpers
+namespace elFinder.NetCore.Http
 {
     public static class HttpEncoder
     {
-        public static byte[] UrlTokenDecode(string input)
+		public static string DecodePath(string path)
+		{
+			return Encoding.UTF8.GetString(UrlTokenDecode(path));
+		}
+
+		public static string EncodePath(string path)
+		{
+			return UrlTokenEncode(Encoding.UTF8.GetBytes(path));
+		}
+
+		public static byte[] UrlTokenDecode(string input)
         {
             if (input == null)
             {

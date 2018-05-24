@@ -1,22 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using elFinder.NetCore.Drawing;
-using elFinder.NetCore.Helpers;
+﻿using elFinder.NetCore.Drawing;
+using elFinder.NetCore.Http;
 using elFinder.NetCore.Models;
 using elFinder.NetCore.Models.Commands;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.WindowsAzure.Storage.File;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace elFinder.NetCore.Drivers.AzureStorage
 {
-    /// <summary>
-    /// Represents a driver for AzureStorage system
-    /// </summary>
-    public class AzureStorageDriver : BaseDriver, IDriver
+	/// <summary>
+	/// Represents a driver for AzureStorage system
+	/// </summary>
+	public class AzureStorageDriver : BaseDriver, IDriver
     {
         private const string _volumePrefix = "a";
 
@@ -55,7 +55,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             }
 
             var root = Roots.First(r => r.VolumeId == volumePrefix);
-            string path = Utils.DecodePath(pathHash);
+            string path = HttpEncoder.DecodePath(pathHash);
             string dirUrl = path != root.RootDirectory ? path : string.Empty;
             var dir = new AzureStorageDirectory(root.RootDirectory + dirUrl);
 
@@ -207,7 +207,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             }
 
             //result = new DownloadFileResult(fullPath.File, download);
-            string contentType = download ? "application/octet-stream" : Utils.GetMimeType(path.File);
+            string contentType = download ? "application/octet-stream" : Mime.GetMimeType(path.File);
 
             var stream = new MemoryStream();
             await AzureStorageAPI.GetAsync(path.File.FullName, stream);

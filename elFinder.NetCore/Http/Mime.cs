@@ -1,6 +1,7 @@
-﻿namespace elFinder.NetCore.Helpers
+﻿namespace elFinder.NetCore.Http
 {
-    using System;
+	using elFinder.NetCore.Drivers;
+	using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Reflection;
@@ -45,8 +46,22 @@
             }
         }
 
-        public static string GetMimeType(string extension)
+		public static string GetMimeType(IFile file)
+		{
+			if (file.Extension.Length > 1)
+			{
+				return GetMimeType(file.Extension.ToLower());
+			}
+			else
+			{
+				return "unknown";
+			}
+		}
+
+		public static string GetMimeType(string extension)
         {
+			if (extension.StartsWith(".")) extension = extension.Substring(1);
+
             if (mimeTypes.ContainsKey(extension))
             {
                 return mimeTypes[extension];
