@@ -101,7 +101,7 @@ namespace elFinder.NetCore
                 }
                 else
                 {
-                    string mimeType = Utils.GetMimeType(RootVolume.PictureEditor.ConvertThumbnailExtension(thumbFile.Extension));
+                    string mimeType = MimeHelper.GetMimeType(RootVolume.PictureEditor.ConvertThumbnailExtension(thumbFile.Extension));
                     return new ImageWithMimeType(mimeType, await thumbFile.OpenReadAsync());
                 }
             }

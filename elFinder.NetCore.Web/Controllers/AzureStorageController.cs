@@ -28,9 +28,8 @@ namespace elFinder.NetCore.Web.Controllers
         [Route("files/{*path}")]
         public async Task<IActionResult> Files(string path)
         {
-            var driver = new AzureStorageDriver();
             var file = await AzureStorageAPI.FileStreamAsync(path);
-            return new FileStreamResult(file, Mime.GetMimeType(Path.GetExtension(path).Substring(1)));
+            return new FileStreamResult(file, MimeHelper.GetMimeType(Path.GetExtension(path).Substring(1)));
         }
 
         private Connector GetConnector()
@@ -40,10 +39,13 @@ namespace elFinder.NetCore.Web.Controllers
             string absoluteUrl = UriHelper.BuildAbsolute(Request.Scheme, Request.Host);
             var uri = new Uri(absoluteUrl);
 
+            string rootDirectory = "test"; // TODO: Change this to the name of your own Azure file share.
+
             var root = new RootVolume(
-                "test",
-                $"http://{uri.Authority}/el-finder/azure-storage/files/test/",
-                $"http://{uri.Authority}/el-finder/azure-storage/thumb/")
+                rootDirectory,
+                $"http://{uri.Authority}/el-finder/azure-storage/files/{rootDirectory}/",
+                $"http://{uri.Authority}/el-finder/azure-storage/thumb/",
+                '/')
             {
                 //IsReadOnly = !User.IsInRole("Administrators")
                 IsReadOnly = false, // Can be readonly according to user's membership permission

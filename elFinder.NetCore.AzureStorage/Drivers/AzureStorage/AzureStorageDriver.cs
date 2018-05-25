@@ -55,7 +55,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             }
 
             var root = Roots.First(r => r.VolumeId == volumePrefix);
-            string path = Utils.DecodePath(pathHash);
+            string path = HttpEncoder.DecodePath(pathHash);
             string dirUrl = path != root.RootDirectory ? path : string.Empty;
             var dir = new AzureStorageDirectory(root.RootDirectory + dirUrl);
 
@@ -207,7 +207,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             }
 
             //result = new DownloadFileResult(fullPath.File, download);
-            string contentType = download ? "application/octet-stream" : Utils.GetMimeType(path.File);
+            string contentType = download ? "application/octet-stream" : MimeHelper.GetMimeType(path.File.Extension);
 
             var stream = new MemoryStream();
             await AzureStorageAPI.GetAsync(path.File.FullName, stream);
