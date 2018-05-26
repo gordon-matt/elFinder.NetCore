@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using elFinder.NetCore.Drivers;
-using elFinder.NetCore.Http;
+using elFinder.NetCore.Helpers;
 using Newtonsoft.Json;
 
 namespace elFinder.NetCore.Models
@@ -92,7 +92,7 @@ namespace elFinder.NetCore.Models
             response.Name = file.Name;
             response.Size = await file.LengthAsync;
             response.UnixTimeStamp = (long)(await file.LastWriteTimeUtcAsync - _unixOrigin).TotalSeconds;
-            response.Mime = Http.Mime.GetMimeType(file);
+            response.Mime = MimeHelper.GetMimeType(file.Extension);
             response.Hash = volume.VolumeId + HttpEncoder.EncodePath(relativePath);
             response.ParentHash = volume.VolumeId + HttpEncoder.EncodePath(parentPath.Length > 0 ? parentPath : file.Directory.Name);
             return response;

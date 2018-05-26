@@ -1,13 +1,13 @@
-﻿using elFinder.NetCore.Drawing;
-using elFinder.NetCore.Drivers;
-using elFinder.NetCore.Http;
-using System;
+﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using elFinder.NetCore.Drawing;
+using elFinder.NetCore.Drivers;
+using elFinder.NetCore.Helpers;
 
 namespace elFinder.NetCore
 {
-	public class FullPath
+    public class FullPath
     {
         #region Constructors
 
@@ -79,7 +79,7 @@ namespace elFinder.NetCore
                 }
                 else
                 {
-                    thumbFile = File.Clone(string.Concat(RootVolume.ThumbnailDirectory, "/", RelativePath));
+                    thumbFile = File.Clone($"{RootVolume.ThumbnailDirectory}{RootVolume.DirectorySeparatorChar}{RelativePath}");
                 }
 
                 if (!await thumbFile.ExistsAsync)
@@ -101,7 +101,7 @@ namespace elFinder.NetCore
                 }
                 else
                 {
-                    string mimeType = Mime.GetMimeType(RootVolume.PictureEditor.ConvertThumbnailExtension(thumbFile.Extension));
+                    string mimeType = MimeHelper.GetMimeType(RootVolume.PictureEditor.ConvertThumbnailExtension(thumbFile.Extension));
                     return new ImageWithMimeType(mimeType, await thumbFile.OpenReadAsync());
                 }
             }

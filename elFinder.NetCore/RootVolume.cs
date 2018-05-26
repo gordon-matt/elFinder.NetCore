@@ -1,25 +1,36 @@
-﻿using elFinder.NetCore.Drawing;
-using elFinder.NetCore.Drivers;
-using elFinder.NetCore.Http;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using elFinder.NetCore.Drawing;
+using elFinder.NetCore.Drivers;
+using elFinder.NetCore.Helpers;
 
 namespace elFinder.NetCore
 {
-	/// <summary>
-	/// Represents a root of file system
-	/// </summary>
-	public class RootVolume
+    /// <summary>
+    /// Represents a root of file system
+    /// </summary>
+    public class RootVolume
     {
-        public RootVolume(string rootDirectory, string url, string thumbnailsUrl = null)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rootDirectory">The root directory (physical location)</param>
+        /// <param name="url">URL of root directory</param>
+        /// <param name="thumbnailsUrl">URL of where to find thumbnails</param>
+        /// <param name="directorySeparatorChar">Character used to separate directory levels in a path string. Default is System.IO.Path.DirectorySeparatorChar</param>
+        public RootVolume(
+            string rootDirectory,
+            string url,
+            string thumbnailsUrl = null,
+            char directorySeparatorChar = default(char))
         {
             if (rootDirectory == null)
             {
                 throw new ArgumentNullException("rootDirectory", "Root directory cannot be null");
             }
-
+            
             Alias = Path.GetFileNameWithoutExtension(rootDirectory);
             RootDirectory = rootDirectory;
             Url = url;
@@ -33,10 +44,14 @@ namespace elFinder.NetCore
                 ThumbnailUrl = thumbnailsUrl;
             }
 
-			// Use '/' as a universal way to separate paths. FileSystem operations allow it and using '\\' breaks AzureStorage and other connectors in the future.
-			// If necessary, we can add this to IDirectory and make it connector specific.
-			ThumbnailDirectory = string.Concat(rootDirectory, "/", ".tmb");
+            DirectorySeparatorChar = directorySeparatorChar == default(char) ? Path.DirectorySeparatorChar : directorySeparatorChar; // Can be changed for other providers
+            ThumbnailDirectory = $"{rootDirectory}{DirectorySeparatorChar}.tmb";
         }
+
+        /// <summary>
+        /// Gets or sets the path separator char to use. Default is System.IO.Path.DirectorySeparatorChar.
+        /// </summary>
+        public char DirectorySeparatorChar { get; }
 
         /// <summary>
         /// Get or sets alias for root. If not set will use directory name of path
@@ -108,7 +123,7 @@ namespace elFinder.NetCore
         /// <summary>
         /// Get ot sets thumbnals directory
         /// </summary>
-        public string ThumbnailDirectory { get; }
+        public string ThumbnailDirectory { get; private set; }
 
         /// <summary>
         /// Get or sets thumbnails size
@@ -144,9 +159,10 @@ namespace elFinder.NetCore
         {
             if (ThumbnailDirectory == null)
             {
-                string thumbName = Path.GetFileNameWithoutExtension(originalImage.Name) + "_" + await Cryptography.GetFileMd5Async(originalImage) + originalImage.Extension;
+                string md5 = await originalImage.GetFileMd5Async();
+                string thumbName = $"{Path.GetFileNameWithoutExtension(originalImage.Name)}_{md5}{originalImage.Extension}";
                 string relativePath = originalImage.DirectoryName.Substring(RootDirectory.Length);
-                return VolumeId + HttpEncoder.EncodePath($"{relativePath}/{thumbName}");
+                return VolumeId + HttpEncoder.EncodePath($"{relativePath}{DirectorySeparatorChar}{thumbName}");
             }
             else
             {
@@ -163,9 +179,10 @@ namespace elFinder.NetCore
                 return null;
             }
             string relativePath = originalImage.FullName.Substring(RootDirectory.Length);
-            string thumbDir = GetDirectoryName(string.Concat(ThumbnailDirectory + relativePath));
-            string thumbName = Path.GetFileNameWithoutExtension(originalImage.Name) + "_" + await Cryptography.GetFileMd5Async(originalImage) + originalImage.Extension;
-            return string.Concat(thumbDir, "/", thumbName);
+            string thumbDir = GetDirectoryName($"{ThumbnailDirectory}{relativePath}");
+            string md5 = await originalImage.GetFileMd5Async();
+            string thumbName = $"{Path.GetFileNameWithoutExtension(originalImage.Name)}_{md5}{originalImage.Extension}";
+            return $"{thumbDir}{DirectorySeparatorChar}{thumbName}";
         }
 
         public string GenerateThumbPath(IDirectory originalDirectory)
@@ -185,7 +202,7 @@ namespace elFinder.NetCore
             while (--startIndex >= 0)
             {
                 char ch = file[startIndex];
-                if (ch == '/' || ch == '\\')
+                if (ch == DirectorySeparatorChar)
                 {
                     return file.Substring(0, startIndex);
                 }
