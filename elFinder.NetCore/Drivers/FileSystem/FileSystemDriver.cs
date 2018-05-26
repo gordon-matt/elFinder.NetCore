@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using elFinder.NetCore.Drawing;
-using elFinder.NetCore.Http;
+using elFinder.NetCore.Helpers;
 using elFinder.NetCore.Models;
 using elFinder.NetCore.Models.Commands;
 using Microsoft.AspNetCore.Http;
@@ -107,9 +107,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
             {
                 if (path.IsDirectory)
                 {
-                    var parentPath = path.Directory.Parent.FullName;
-                    var name = path.Directory.Name;
+                    string parentPath = path.Directory.Parent.FullName;
+                    string name = path.Directory.Name;
                     string newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy";
+
                     if (!Directory.Exists(newName))
                     {
                         DirectoryCopy(path.Directory.FullName, newName, true);
@@ -130,14 +131,16 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 }
                 else
                 {
-                    var parentPath = path.File.Directory.FullName;
-                    var name = path.File.Name.Substring(0, path.File.Name.Length - path.File.Extension.Length);
-                    var ext = path.File.Extension;
+                    string parentPath = path.File.Directory.FullName;
+                    string name = path.File.Name.Substring(0, path.File.Name.Length - path.File.Extension.Length);
+                    string ext = path.File.Extension;
 
                     string newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy{ext}";
 
                     if (!File.Exists(newName))
+                    {
                         File.Copy(path.File.FullName, newName);
+                    }
                     else
                     {
                         for (int i = 1; i < 100; i++)
@@ -173,7 +176,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 result = new ForbidResult();
             }
             //result = new DownloadFileResult(fullPath.File, download);
-            string contentType = download ? "application/octet-stream" : Mime.GetMimeType(path.File);
+            string contentType = download ? "application/octet-stream" : MimeHelper.GetMimeType(path.File.Extension);
             result = new PhysicalFileResult(path.File.FullName, contentType);
 
             return await Task.FromResult(result);
@@ -570,7 +573,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     }
                     else
                     {
-                        using (var fileStream = new FileStream(Path.Combine(fileInfo.DirectoryName, GetDuplicatedName(fileInfo)), FileMode.Create))
+                        using (var fileStream = new FileStream(Path.Combine(fileInfo.DirectoryName, CreateNameForCopy(fileInfo)), FileMode.Create))
                         {
                             await file.CopyToAsync(fileStream);
                         }
@@ -589,6 +592,37 @@ namespace elFinder.NetCore.Drivers.FileSystem
         }
 
         #endregion IDriver Members
+
+        private static string CreateNameForCopy(FileInfo file)
+        {
+            string parentPath = file.DirectoryName;
+            string name = Path.GetFileNameWithoutExtension(file.Name);
+            string extension = file.Extension;
+
+            string newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy{extension}";
+            if (!File.Exists(newName))
+            {
+                return newName;
+            }
+            else
+            {
+                bool found = false;
+                for (int i = 1; i < 10 && !found; i++)
+                {
+                    newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy {i}{extension}";
+                    if (!File.Exists(newName))
+                    {
+                        found = true;
+                    }
+                }
+                if (!found)
+                {
+                    newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy {Guid.NewGuid()}{extension}";
+                }
+            }
+
+            return newName;
+        }
 
         private void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)
         {
@@ -633,38 +667,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
             }
         }
 
-		private string GetDuplicatedName(FileInfo file)
-		{
-			string parentPath = file.DirectoryName;
-			string name = Path.GetFileNameWithoutExtension(file.Name);
-			string extension = file.Extension;
-
-			string newName = $"{parentPath}/{name} copy{extension}";
-			if (!File.Exists(newName))
-			{
-				return newName;
-			}
-			else
-			{
-				bool found = false;
-				for (int i = 1; i < 10 && !found; i++)
-				{
-					newName = $"{parentPath}/{name} copy {i}{extension}";
-					if (!File.Exists(newName))
-					{
-						found = true;
-					}
-				}
-				if (!found)
-				{
-					newName = $"{parentPath}/{name} copy {Guid.NewGuid()}{extension}";
-				}
-			}
-
-			return newName;
-		}
-
-		private async Task RemoveThumbsAsync(FullPath path)
+        private async Task RemoveThumbsAsync(FullPath path)
         {
             if (path.Directory != null)
             {

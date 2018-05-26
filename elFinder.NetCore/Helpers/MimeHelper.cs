@@ -1,19 +1,18 @@
-﻿namespace elFinder.NetCore.Http
+﻿namespace elFinder.NetCore.Helpers
 {
-	using elFinder.NetCore.Drivers;
-	using System;
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Reflection;
 
-    public static class Mime
+    public static class MimeHelper
     {
         private static Dictionary<string, string> mimeTypes;
 
-        static Mime()
+        static MimeHelper()
         {
             mimeTypes = new Dictionary<string, string>();
-            var assembly = typeof(Mime).GetTypeInfo().Assembly;
+            var assembly = typeof(MimeHelper).GetTypeInfo().Assembly;
 
             using (var stream = assembly.GetManifestResourceStream("elFinder.NetCore.MimeTypes.txt"))
             using (var reader = new StreamReader(stream))
@@ -46,25 +45,17 @@
             }
         }
 
-		public static string GetMimeType(IFile file)
-		{
-			if (file.Extension.Length > 1)
-			{
-				return GetMimeType(file.Extension.ToLower());
-			}
-			else
-			{
-				return "unknown";
-			}
-		}
-
-		public static string GetMimeType(string extension)
+        public static string GetMimeType(string extension)
         {
-			if (extension.StartsWith(".")) extension = extension.Substring(1);
-
-            if (mimeTypes.ContainsKey(extension))
+            string ext = extension.ToLower();
+            if (ext.StartsWith("."))
             {
-                return mimeTypes[extension];
+                ext = ext.Substring(1);
+            }
+
+            if (mimeTypes.ContainsKey(ext))
+            {
+                return mimeTypes[ext];
             }
 
             return "unknown";

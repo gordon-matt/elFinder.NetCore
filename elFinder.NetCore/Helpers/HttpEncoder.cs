@@ -2,21 +2,21 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace elFinder.NetCore.Http
+namespace elFinder.NetCore.Helpers
 {
     public static class HttpEncoder
     {
-		public static string DecodePath(string path)
-		{
-			return Encoding.UTF8.GetString(UrlTokenDecode(path));
-		}
+        public static string DecodePath(string path)
+        {
+            return Encoding.UTF8.GetString(UrlTokenDecode(path));
+        }
 
-		public static string EncodePath(string path)
-		{
-			return UrlTokenEncode(Encoding.UTF8.GetBytes(path));
-		}
+        public static string EncodePath(string path)
+        {
+            return UrlTokenEncode(Encoding.UTF8.GetBytes(path));
+        }
 
-		public static byte[] UrlTokenDecode(string input)
+        private static byte[] UrlTokenDecode(string input)
         {
             if (input == null)
             {
@@ -68,7 +68,7 @@ namespace elFinder.NetCore.Http
             return Convert.FromBase64CharArray(base64Chars, 0, base64Chars.Length);
         }
 
-        public static string UrlTokenEncode(byte[] input)
+        private static string UrlTokenEncode(byte[] input)
         {
             if (input == null)
             {
