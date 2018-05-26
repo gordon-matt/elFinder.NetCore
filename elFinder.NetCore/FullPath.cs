@@ -79,7 +79,7 @@ namespace elFinder.NetCore
                 }
                 else
                 {
-                    thumbFile = File.Clone(string.Concat(RootVolume.ThumbnailDirectory, "/", RelativePath));
+                    thumbFile = File.Clone($"{RootVolume.ThumbnailDirectory}{RootVolume.DirectorySeparatorChar}{RelativePath}");
                 }
 
                 if (!await thumbFile.ExistsAsync)
