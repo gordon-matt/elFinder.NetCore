@@ -10,5 +10,8 @@ namespace elFinder.NetCore.Models
 
         [JsonProperty("dirs")]
         public byte Dirs { get; set; }
-    }
+
+		[JsonProperty("isroot")]
+		public byte IsRoot => 1;
+	}
 }
