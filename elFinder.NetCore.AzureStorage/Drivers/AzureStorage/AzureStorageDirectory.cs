@@ -80,7 +80,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             var result = new List<IDirectory>();
 
             var files = (await AzureStorageAPI.ListFilesAndDirectoriesAsync(FullName)).Where(f => f is CloudFileDirectory);
-            result.AddRange(files.Select(f => new AzureStorageDirectory(((CloudFileDirectory)f).Uri.LocalPath.Substring(1))));
+            result.AddRange(files.Select(f => new AzureStorageDirectory(f as CloudFileDirectory)));
 
             return result;
         }
@@ -90,7 +90,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             var result = new List<IFile>();
 
             var files = (await AzureStorageAPI.ListFilesAndDirectoriesAsync(FullName)).Where(f => f is CloudFile);
-            result.AddRange(files.Select(f => new AzureStorageFile(((CloudFile)f).Uri.LocalPath.Substring(1))));
+            result.AddRange(files.Select(f => new AzureStorageFile(f as CloudFile)));
 
             return result;
         }

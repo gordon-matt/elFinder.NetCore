@@ -5,114 +5,112 @@ using Microsoft.WindowsAzure.Storage.File;
 
 namespace elFinder.NetCore.Drivers.AzureStorage
 {
-    public class AzureStorageFile : IFile
-    {
-        public static readonly char PathSeparator = '/';
+	public class AzureStorageFile : IFile
+	{
+		public static readonly char PathSeparator = '/';
 
-        #region Constructors
+		#region Constructors
 
-        public AzureStorageFile(string fileName)
-        {
-            FullName = fileName;
-        }
+		public AzureStorageFile(string fileName)
+		{
+			FullName = fileName;
+		}
 
-        public AzureStorageFile(CloudFile file)
-        {
-            FullName = file.Uri.LocalPath.Substring(1); // Remove starting '/'
-        }
+		public AzureStorageFile(CloudFile file)
+		{
+			FullName = file.Uri.LocalPath.Substring(1); // Remove starting '/'
+		}
 
-        #endregion Constructors
+		#endregion Constructors
 
-        #region IFile Members
+		#region IFile Members
 
-        public FileAttributes Attributes
-        {
-            get => Name.StartsWith(".") ? FileAttributes.Hidden : FileAttributes.Normal;
-            set => value = FileAttributes.Normal; // Azure Storage doesn't support setting attributes
-        }
+		public FileAttributes Attributes
+		{
+			get => Name.StartsWith(".") ? FileAttributes.Hidden : FileAttributes.Normal;
+			set { } // Azure Storage doesn't support setting attributes
+		}
 
-        public IDirectory Directory => new AzureStorageDirectory(DirectoryName);
+		public IDirectory Directory => new AzureStorageDirectory(DirectoryName);
 
-        public string DirectoryName
-        {
-            get
-            {
-                int length = FullName.Length;
-                int startIndex = length;
+		public string DirectoryName
+		{
+			get
+			{
+				int length = FullName.Length;
+				int startIndex = length;
 
-                while (--startIndex >= 0)
-                {
-                    char ch = FullName[startIndex];
-                    if (ch == PathSeparator)
-                    {
-                        return FullName.Substring(0, startIndex);
-                    }
-                }
-                return string.Empty;
-            }
-        }
+				while (--startIndex >= 0)
+				{
+					char ch = FullName[startIndex];
+					if (ch == PathSeparator)
+					{
+						return FullName.Substring(0, startIndex);
+					}
+				}
+				return string.Empty;
+			}
+		}
 
-        public Task<bool> ExistsAsync => AzureStorageAPI.FileExistsAsync(FullName);
+		public Task<bool> ExistsAsync => AzureStorageAPI.FileExistsAsync(FullName);
 
-        public string Extension
-        {
-            get
-            {
-                int length = FullName.Length;
-                int startIndex = length;
-                while (--startIndex >= 0)
-                {
-                    char ch = FullName[startIndex];
-                    if (ch == '.')
-                    {
-                        return FullName.Substring(startIndex);
-                    }
-                }
-                return string.Empty;
-            }
-        }
+		public string Extension
+		{
+			get
+			{
+				int length = FullName.Length;
+				int startIndex = length;
+				while (--startIndex >= 0)
+				{
+					char ch = FullName[startIndex];
+					if (ch == '.')
+					{
+						return FullName.Substring(startIndex);
+					}
+				}
+				return string.Empty;
+			}
+		}
 
-        public string FullName { get; }
+		public string FullName { get; }
 
-        public Task<DateTime> LastWriteTimeUtcAsync => AzureStorageAPI.FileLastModifiedTimeUtcAsync(FullName);
+		public Task<DateTime> LastWriteTimeUtcAsync => AzureStorageAPI.FileLastModifiedTimeUtcAsync(FullName);
 
-        public Task<long> LengthAsync => AzureStorageAPI.FileLengthAsync(FullName);
+		public Task<long> LengthAsync => AzureStorageAPI.FileLengthAsync(FullName);
 
-        public string Name
-        {
-            get
-            {
-                int length = FullName.Length;
-                int startIndex = length;
+		public string Name
+		{
+			get
+			{
+				int length = FullName.Length;
+				int startIndex = length;
 
-                while (--startIndex >= 0)
-                {
-                    char ch = FullName[startIndex];
-                    if (ch == PathSeparator)
-                    {
-                        return FullName.Substring(startIndex + 1);
-                    }
-                }
-                return FullName;
-            }
-        }
+				while (--startIndex >= 0)
+				{
+					char ch = FullName[startIndex];
+					if (ch == PathSeparator)
+					{
+						return FullName.Substring(startIndex + 1);
+					}
+				}
+				return FullName;
+			}
+		}
 
-        public IFile Clone(string path) => new AzureStorageFile(path);
+		public async Task<Stream> CreateAsync()
+		{
+			await AzureStorageAPI.MakeFileAsync(FullName);
+			return await AzureStorageAPI.FileStreamAsync(FullName);
+		}
 
-        public async Task<Stream> CreateAsync()
-        {
-            await AzureStorageAPI.MakeFileAsync(FullName);
-            return await AzureStorageAPI.FileStreamAsync(FullName);
-        }
+		public Task DeleteAsync() => AzureStorageAPI.DeleteFileAsync(FullName);
 
-        public Task DeleteAsync() => AzureStorageAPI.DeleteFileAsync(FullName);
+		public Task<Stream> OpenReadAsync() => AzureStorageAPI.FileStreamAsync(FullName);
 
-        public Task<Stream> OpenReadAsync() => AzureStorageAPI.FileStreamAsync(FullName);
+		public Task PutAsync(string content) => AzureStorageAPI.PutAsync(FullName, content);
 
-        public Task PutAsync(string content) => AzureStorageAPI.PutAsync(FullName, content);
+		public Task PutAsync(Stream stream) => AzureStorageAPI.PutAsync(FullName, stream);
 
-        public Task PutAsync(Stream stream) => AzureStorageAPI.PutAsync(FullName, stream);
-
-        #endregion IFile Members
-    }
+		#endregion IFile Members
+	}
 }
