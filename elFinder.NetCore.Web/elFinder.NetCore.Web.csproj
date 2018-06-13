@@ -22,6 +22,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="wwwroot\js\site.js" />
+    <None Include="wwwroot\js\site.min.js" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\elFinder.NetCore.AzureStorage\elFinder.NetCore.AzureStorage.csproj" />
   </ItemGroup>
 

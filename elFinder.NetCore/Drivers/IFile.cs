@@ -4,38 +4,36 @@ using System.Threading.Tasks;
 
 namespace elFinder.NetCore.Drivers
 {
-    public interface IFile
-    {
-        FileAttributes Attributes { get; set; }
+	public interface IFile
+	{
+		FileAttributes Attributes { get; set; }
 
-        IDirectory Directory { get; }
+		IDirectory Directory { get; }
 
-        string DirectoryName { get; }
+		string DirectoryName { get; }
 
-        Task<bool> ExistsAsync { get; }
+		Task<bool> ExistsAsync { get; }
 
-        string Extension { get; }
+		string Extension { get; }
 
-        string FullName { get; }
+		string FullName { get; }
 
-        Task<DateTime> LastWriteTimeUtcAsync { get; }
+		Task<DateTime> LastWriteTimeUtcAsync { get; }
 
-        Task<long> LengthAsync { get; }
+		Task<long> LengthAsync { get; }
 
-        // Properties
-        string Name { get; }
+		// Properties
+		string Name { get; }
 
-        // Functions
-        IFile Clone(string path);
+		// Functions
+		Task<Stream> CreateAsync();
 
-        Task<Stream> CreateAsync();
+		Task DeleteAsync();
 
-        Task DeleteAsync();
+		Task<Stream> OpenReadAsync();
 
-        Task<Stream> OpenReadAsync();
+		Task PutAsync(string content);
 
-        Task PutAsync(string content);
-
-        Task PutAsync(Stream stream);
-    }
+		Task PutAsync(Stream stream);
+	}
 }

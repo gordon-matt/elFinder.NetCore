@@ -16,7 +16,7 @@ namespace elFinder.NetCore.Models.Commands
 
     public class Options
     {
-        private static string[] disabled = new string[] { "extract", "create" };
+        private static string[] disabled = new string[] { "archive", "callback", "chmod", "editor", "extract", "netmount", "ping", "search", "zipdl" };
         private static string[] empty = new string[0];
         private static Archive emptyArchives = new Archive();
 
@@ -49,6 +49,9 @@ namespace elFinder.NetCore.Models.Commands
 
         [JsonProperty("tmbUrl")]
         public string ThumbnailsUrl { get; set; }
+
+		[JsonProperty("trashHash")]
+		public string TrashHash => string.Empty;
 
         [JsonProperty("url")]
         public string Url { get; set; }

@@ -79,7 +79,7 @@ namespace elFinder.NetCore
                 }
                 else
                 {
-                    thumbFile = File.Clone($"{RootVolume.ThumbnailDirectory}{RootVolume.DirectorySeparatorChar}{RelativePath}");
+					thumbFile = Activator.CreateInstance(File.GetType(), $"{RootVolume.ThumbnailDirectory}{RootVolume.DirectorySeparatorChar}{RelativePath}") as IFile;
                 }
 
                 if (!await thumbFile.ExistsAsync)
@@ -91,7 +91,8 @@ namespace elFinder.NetCore
                         thumbDir.Attributes = FileAttributes.Hidden;
                     }
 
-                    using (var original = await File.Clone(fullPath).OpenReadAsync())
+					var file = Activator.CreateInstance(File.GetType(), fullPath) as IFile;
+					using (var original = await file.OpenReadAsync())
                     {
                         var thumb = RootVolume.PictureEditor.GenerateThumbnail(original, RootVolume.ThumbnailSize, true);
                         await thumbFile.PutAsync(thumb.ImageStream);
@@ -107,7 +108,8 @@ namespace elFinder.NetCore
             }
             else
             {
-                using (var original = await File.Clone(fullPath).OpenReadAsync())
+				var file = Activator.CreateInstance(File.GetType(), fullPath) as IFile;
+				using (var original = await file.OpenReadAsync())
                 {
                     return RootVolume.PictureEditor.GenerateThumbnail(original, RootVolume.ThumbnailSize, true);
                 }
