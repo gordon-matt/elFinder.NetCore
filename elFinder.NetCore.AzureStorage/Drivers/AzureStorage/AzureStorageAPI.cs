@@ -19,11 +19,13 @@ namespace elFinder.NetCore.Drivers.AzureStorage
         public static async Task CopyDirectoryAsync(string source, string destination)
         {
             var rootDir = GetRootDirectoryReference(source);
+            var destDir = rootDir.GetDirectoryReference(RelativePath(destination));
+            await destDir.CreateIfNotExistsAsync();
 
             foreach (var item in await ListFilesAndDirectoriesAsync(source))
             {
                 var src = RelativePath(item.Uri.LocalPath);
-                var dest = UrlCombine(destination, Path.GetFileName(item.Uri.LocalPath));
+                var dest = PathCombine(destination, Path.GetFileName(item.Uri.LocalPath));
                 if (item is CloudFileDirectory)
                 {
                     await CopyDirectoryAsync(src, dest);
@@ -72,7 +74,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             var subdir = string.Empty;
             foreach (var path in relativePath.Split('/'))
             {
-                subdir = UrlCombine(subdir, path);
+                subdir = PathCombine(subdir, path);
                 var sampleDir = rootDir.GetDirectoryReference(subdir);
                 await sampleDir.CreateIfNotExistsAsync();
             }
@@ -124,6 +126,21 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
             // Get a reference to the directory we created previously.
             var sampleDir = rootDir.GetDirectoryReference(RelativePath(dir));
+
+            // Delete subdirectories and files
+            foreach (var item in await ListFilesAndDirectoriesAsync(dir))
+            {
+                string relativePath = RelativePath(item.Uri.LocalPath);
+
+                if (item is CloudFileDirectory)
+                {
+                    await DeleteDirectoryIfExistsAsync(relativePath);
+                }
+                else if (item is CloudFile)
+                {
+                    await DeleteFileIfExistsAsync(relativePath);
+                }
+            }
 
             await sampleDir.DeleteIfExistsAsync();
         }
@@ -416,7 +433,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             }
         }
 
-        public static string UrlCombine(string path1, string path2)
+        public static string PathCombine(string path1, string path2)
         {
             // Force forward slash as path separator
             var result = Path.Combine(path1, path2);
