@@ -17,9 +17,16 @@
     </environment>
 
     <link rel="stylesheet" href="~/lib/jquery-ui/themes/base/all.css" />
-    <link rel="stylesheet" href="~/css/elfinder/css/elfinder.full.css" />
-    <link rel="stylesheet" href="~/css/elfinder/css/theme.css" /> @* <-- NOTE: This file is new and some of the themes may not look quite right if this is used. *@
+    <link rel="stylesheet" href="~/lib/elfinder/css/elfinder.full.css" />
+    <link rel="stylesheet" href="~/lib/elfinder/css/theme.css" /> @* <-- NOTE: This file is new and some of the themes may not look quite right if this is used. *@
     <link rel="stylesheet" href="~/css/elfinder/themes/material/css/theme-gray.css" id="elfinder-theme" />
+
+    <style>
+        .elfinder-cwd table td {
+            /* fix conflict with Bootstrap CSS. See: https://github.com/Studio-42/elFinder/commit/4f858d5ffc9a8f41b4cc07a063782abe2e722bdf */
+            box-sizing: content-box;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-inverse navbar-fixed-top">
@@ -83,7 +90,7 @@
     </environment>
 
     <script src="~/lib/jquery-ui/jquery-ui.min.js"></script>
-    <script src="~/js/elfinder/elfinder.full.js"></script>
+    <script src="~/lib/elfinder/js/elfinder.full.js"></script>
 
     <script type="text/javascript">
         function switchTheme(href) {

@@ -60,14 +60,14 @@ namespace elFinder.NetCore
                 case "ls":
                     {
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
-                        return await driver.ListAsync(path);
+                        return await driver.ListAsync(path, parameters.GetValueOrDefault("intersect[]"));
                     }
                 case "mkdir":
                     {
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
                         var name = parameters.GetValueOrDefault("name");
                         var dirs = parameters.GetValueOrDefault("dirs[]");
-                        return await driver.MakeDirAsync(path, name);
+                        return await driver.MakeDirAsync(path, name, dirs);
                     }
                 case "mkfile":
                     {
@@ -96,8 +96,11 @@ namespace elFinder.NetCore
                 case "paste":
                     {
                         var paths = await GetFullPathArrayAsync(parameters.GetValueOrDefault("targets[]"));
-                        string dst = parameters.GetValueOrDefault("dst");
-                        return await driver.PasteAsync(await driver.ParsePathAsync(dst), paths, parameters.GetValueOrDefault("cut") == "1");
+                        var dst = parameters.GetValueOrDefault("dst");
+                        bool cut = parameters.GetValueOrDefault("cut") == "1";
+                        var renames = parameters.GetValueOrDefault("ranames[]");
+                        var suffix = parameters.GetValueOrDefault("suffix");
+                        return await driver.PasteAsync(await driver.ParsePathAsync(dst), paths, cut, renames, suffix);
                     }
                 case "put":
                     {
@@ -161,7 +164,11 @@ namespace elFinder.NetCore
                 case "upload":
                     {
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
-                        return await driver.UploadAsync(path, request.Form.Files);
+                        var uploadPath = await GetFullPathArrayAsync(parameters.GetValueOrDefault("upload_path[]"));
+                        bool overwrite = parameters.GetValueOrDefault("overwrite") == "1";
+                        var renames = parameters.GetValueOrDefault("renames[]");
+                        var suffix = parameters.GetValueOrDefault("suffix");
+                        return await driver.UploadAsync(path, request.Form.Files, overwrite, uploadPath, renames, suffix);
                     }
                 default: return Error.CommandNotFound();
             }

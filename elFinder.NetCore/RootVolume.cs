@@ -14,7 +14,7 @@ namespace elFinder.NetCore
     public class RootVolume
     {
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="rootDirectory">The root directory (physical location)</param>
         /// <param name="url">URL of root directory</param>
@@ -30,7 +30,7 @@ namespace elFinder.NetCore
             {
                 throw new ArgumentNullException("rootDirectory", "Root directory cannot be null");
             }
-            
+
             Alias = Path.GetFileNameWithoutExtension(rootDirectory);
             RootDirectory = rootDirectory;
             Url = url;

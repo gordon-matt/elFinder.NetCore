@@ -50,6 +50,9 @@ namespace elFinder.NetCore.Models.Commands
         [JsonProperty("tmbUrl")]
         public string ThumbnailsUrl { get; set; }
 
+        [JsonProperty("trashHash")]
+        public string TrashHash => string.Empty;
+
         [JsonProperty("url")]
         public string Url { get; set; }
     }

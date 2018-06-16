@@ -21,9 +21,9 @@ namespace elFinder.NetCore
 
         Task<JsonResult> InitAsync(FullPath path);
 
-        Task<JsonResult> ListAsync(FullPath path);
+        Task<JsonResult> ListAsync(FullPath path, IEnumerable<string> intersect);
 
-        Task<JsonResult> MakeDirAsync(FullPath path, string name);
+        Task<JsonResult> MakeDirAsync(FullPath path, string name, IEnumerable<string> dirs);
 
         Task<JsonResult> MakeFileAsync(FullPath path, string name);
 
@@ -31,7 +31,7 @@ namespace elFinder.NetCore
 
         Task<JsonResult> ParentsAsync(FullPath path);
 
-        Task<JsonResult> PasteAsync(FullPath dest, IEnumerable<FullPath> paths, bool isCut);
+        Task<JsonResult> PasteAsync(FullPath dest, IEnumerable<FullPath> paths, bool isCut, IEnumerable<string> renames, string suffix);
 
         Task<JsonResult> PutAsync(FullPath path, string content);
 
@@ -49,6 +49,6 @@ namespace elFinder.NetCore
 
         Task<JsonResult> TreeAsync(FullPath path);
 
-        Task<JsonResult> UploadAsync(FullPath path, IEnumerable<IFormFile> files);
+        Task<JsonResult> UploadAsync(FullPath path, IEnumerable<IFormFile> files, bool? overwrite, IEnumerable<FullPath> uploadPaths, IEnumerable<string> renames, string suffix);
     }
 }
