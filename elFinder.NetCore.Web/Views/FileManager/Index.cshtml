@@ -10,7 +10,8 @@
 		// https://github.com/Studio-42/elFinder/wiki/Client-configuration-options
         $(document).ready(function () {
             var myCommands = elFinder.prototype._options.commands;
-            var disabled = ['extract', 'archive', 'resize', 'help', 'select']; // Not yet implemented commands in ElFinder.Net
+            var disabled = ['archive', 'callback', 'chmod', 'editor', 'extract', 'netmount', 'ping', 'search', 'zipdl', 'help']; // Not yet implemented commands in ElFinder.Net
+            elFinder.prototype.i18.en.messages.TextArea = "Edit";
 
             $.each(disabled, function (i, cmd) {
                 (idx = $.inArray(cmd, myCommands)) !== -1 && myCommands.splice(idx, 1);
@@ -30,14 +31,16 @@
                         ['home', 'up'],
                         ['mkdir', 'mkfile', 'upload'],
                         ['open', 'download'],
+                        ['undo', 'redo'],
                         ['info'],
                         ['quicklook'],
                         ['copy', 'cut', 'paste'],
                         ['rm'],
                         ['duplicate', 'rename', 'edit'],
+                        ['selectall', 'selectnone', 'selectinvert'],
                         ['view', 'sort']
                     ]
-                },
+                }
 
                 //lang: 'vi', // Change language
             };

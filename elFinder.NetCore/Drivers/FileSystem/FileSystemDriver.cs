@@ -117,16 +117,24 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     }
                     else
                     {
+                        bool foundNewName = false;
                         for (int i = 1; i < 100; i++)
                         {
                             newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy {i}";
                             if (!Directory.Exists(newName))
                             {
                                 DirectoryCopy(path.Directory.FullName, newName, true);
+                                foundNewName = true;
                                 break;
                             }
                         }
+
+                        if (!foundNewName)
+                        {
+                            return Error.NewNameSelectionException($"{parentPath}{Path.DirectorySeparatorChar}{name} copy");
+                        }
                     }
+
                     response.Added.Add(await BaseModel.CreateAsync(this, new FileSystemDirectory(newName), path.RootVolume));
                 }
                 else
@@ -143,14 +151,21 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     }
                     else
                     {
+                        bool foundNewName = false;
                         for (int i = 1; i < 100; i++)
                         {
                             newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy {i}{ext}";
                             if (!File.Exists(newName))
                             {
                                 File.Copy(path.File.FullName, newName);
+                                foundNewName = true;
                                 break;
                             }
+                        }
+
+                        if (!foundNewName)
+                        {
+                            return Error.NewNameSelectionException($"{parentPath}{Path.DirectorySeparatorChar}{name} copy{ext}");
                         }
                     }
                     response.Added.Add(await BaseModel.CreateAsync(this, new FileSystemFile(newName), path.RootVolume));
@@ -167,15 +182,17 @@ namespace elFinder.NetCore.Drivers.FileSystem
             {
                 result = new ForbidResult();
             }
+
             if (!await path.File.ExistsAsync)
             {
                 result = new NotFoundResult();
             }
+
             if (path.RootVolume.IsShowOnly)
             {
                 result = new ForbidResult();
             }
-            //result = new DownloadFileResult(fullPath.File, download);
+
             string contentType = download ? "application/octet-stream" : MimeHelper.GetMimeType(path.File.Extension);
             result = new PhysicalFileResult(path.File.FullName, contentType);
 
@@ -247,7 +264,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
             return await Json(response);
         }
 
-        public async Task<JsonResult> ListAsync(FullPath path)
+        public async Task<JsonResult> ListAsync(FullPath path, IEnumerable<string> intersect)
         {
             var response = new ListResponseModel();
 
@@ -258,6 +275,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     response.List.Add(item.Name);
                 }
             }
+
             foreach (var item in await path.Directory.GetDirectoriesAsync())
             {
                 if (!item.Attributes.HasFlag(FileAttributes.Hidden))
@@ -265,16 +283,41 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     response.List.Add(item.Name);
                 }
             }
+
+            if (intersect.Any())
+            {
+                response.List.RemoveAll(x => !intersect.Contains(x));
+            }
+
             return await Json(response);
         }
 
-        public async Task<JsonResult> MakeDirAsync(FullPath path, string name)
+        public async Task<JsonResult> MakeDirAsync(FullPath path, string name, IEnumerable<string> dirs)
         {
-            var newDir = new FileSystemDirectory(Path.Combine(path.Directory.FullName, name));
-            await newDir.CreateAsync();
-
             var response = new AddResponseModel();
-            response.Added.Add(await BaseModel.CreateAsync(this, newDir, path.RootVolume));
+
+            if (!string.IsNullOrEmpty(name))
+            {
+                var newDir = new FileSystemDirectory(Path.Combine(path.Directory.FullName, name));
+                await newDir.CreateAsync();
+                response.Added.Add(await BaseModel.CreateAsync(this, newDir, path.RootVolume));
+            }
+
+            if (dirs.Any())
+            {
+                foreach (var dir in dirs)
+                {
+                    var dirName = dir.StartsWith("/") ? dir.Substring(1) : dir;
+                    var newDir = new FileSystemDirectory(Path.Combine(path.Directory.FullName, dirName));
+                    await newDir.CreateAsync();
+
+                    response.Added.Add(await BaseModel.CreateAsync(this, newDir, path.RootVolume));
+
+                    var relativePath = newDir.FullName.Substring(path.RootVolume.RootDirectory.Length);
+                    response.Hashes.Add(new KeyValuePair<string, string>($"/{dirName}", path.RootVolume.VolumeId + HttpEncoder.EncodePath(relativePath)));
+                }
+            }
+
             return await Json(response);
         }
 
@@ -351,7 +394,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
             return await Json(response);
         }
 
-        public async Task<JsonResult> PasteAsync(FullPath dest, IEnumerable<FullPath> paths, bool isCut)
+        public async Task<JsonResult> PasteAsync(FullPath dest, IEnumerable<FullPath> paths, bool isCut, IEnumerable<string> renames, string suffix)
         {
             var response = new ReplaceResponseModel();
             foreach (var src in paths)
@@ -551,63 +594,64 @@ namespace elFinder.NetCore.Drivers.FileSystem
             return await Json(response);
         }
 
-        public async Task<JsonResult> UploadAsync(FullPath path, IEnumerable<IFormFile> files)
+        public async Task<JsonResult> UploadAsync(FullPath path, IEnumerable<IFormFile> files, bool? overwrite, IEnumerable<FullPath> uploadPaths, IEnumerable<string> renames, string suffix)
         {
-            int fileCount = files.Count();
-
             var response = new AddResponseModel();
+
             if (path.RootVolume.MaxUploadSize.HasValue)
             {
-                for (int i = 0; i < fileCount; i++)
+                foreach (var file in files)
                 {
-                    IFormFile file = files.ElementAt(i);
                     if (file.Length > path.RootVolume.MaxUploadSize.Value)
                     {
                         return Error.MaxUploadFileSize();
                     }
                 }
             }
+
+            foreach (string rename in renames)
+            {
+                var fileInfo = new FileInfo(Path.Combine(path.Directory.FullName, rename));
+                var destination = Path.Combine(path.Directory.FullName, $"{Path.GetFileNameWithoutExtension(rename)}{suffix}{Path.GetExtension(rename)}");
+                fileInfo.MoveTo(destination);
+                response.Added.Add((FileModel)await BaseModel.CreateAsync(this, new FileSystemFile(destination), path.RootVolume));
+            }
+
+            foreach (var uploadPath in uploadPaths)
+            {
+                var directory = uploadPath.Directory;
+                while (directory.FullName != path.RootVolume.RootDirectory)
+                {
+                    response.Added.Add(await BaseModel.CreateAsync(this, new FileSystemDirectory(directory.FullName), path.RootVolume));
+                    directory = directory.Parent;
+                }
+            }
+
+            int i = 0;
             foreach (var file in files)
             {
-                var fileInfo = new FileInfo(Path.Combine(path.Directory.FullName, Path.GetFileName(file.FileName)));
+                string destination = uploadPaths.Count() > i ? uploadPaths.ElementAt(i).Directory.FullName : path.Directory.FullName;
+                var fileInfo = new FileInfo(Path.Combine(destination, Path.GetFileName(file.FileName)));
 
                 if (fileInfo.Exists)
                 {
-                    if (path.RootVolume.UploadOverwrite)
+                    if (overwrite ?? path.RootVolume.UploadOverwrite)
                     {
-                        //if file already exist we rename the current file,
-                        //and if upload is succesfully delete temp file, in otherwise we restore old file
-                        string tmpPath = fileInfo.FullName + Guid.NewGuid();
-                        bool uploaded = false;
-                        try
-                        {
-                            using (var fileStream = new FileStream(tmpPath, FileMode.Create))
-                            {
-                                await file.CopyToAsync(fileStream);
-                            }
-
-                            uploaded = true;
-                        }
-                        catch { }
-                        finally
-                        {
-                            if (uploaded)
-                            {
-                                File.Delete(fileInfo.FullName);
-                                File.Move(tmpPath, fileInfo.FullName);
-                            }
-                            else
-                            {
-                                File.Delete(tmpPath);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        using (var fileStream = new FileStream(Path.Combine(fileInfo.DirectoryName, CreateNameForCopy(fileInfo)), FileMode.Create))
+                        fileInfo.Delete();
+                        using (var fileStream = new FileStream(fileInfo.FullName, FileMode.Create))
                         {
                             await file.CopyToAsync(fileStream);
                         }
+                        response.Added.Add((FileModel)await BaseModel.CreateAsync(this, new FileSystemFile(fileInfo.FullName), path.RootVolume));
+                    }
+                    else
+                    {
+                        string newName = CreateNameForCopy(fileInfo, suffix);
+                        using (var fileStream = new FileStream(Path.Combine(fileInfo.DirectoryName, newName), FileMode.Create))
+                        {
+                            await file.CopyToAsync(fileStream);
+                        }
+                        response.Added.Add((FileModel)await BaseModel.CreateAsync(this, new FileSystemFile(newName), path.RootVolume));
                     }
                 }
                 else
@@ -616,43 +660,45 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     {
                         await file.CopyToAsync(fileStream);
                     }
+                    response.Added.Add((FileModel)await BaseModel.CreateAsync(this, new FileSystemFile(fileInfo.FullName), path.RootVolume));
                 }
-                response.Added.Add((FileModel)await BaseModel.CreateAsync(this, new FileSystemFile(fileInfo.FullName), path.RootVolume));
+
+                i++;
             }
             return await Json(response);
         }
 
         #endregion IDriver Members
 
-        private static string CreateNameForCopy(FileInfo file)
+        private static string CreateNameForCopy(FileInfo file, string suffix)
         {
             string parentPath = file.DirectoryName;
             string name = Path.GetFileNameWithoutExtension(file.Name);
             string extension = file.Extension;
 
-            string newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy{extension}";
+            if (string.IsNullOrEmpty(suffix))
+            {
+                suffix = "copy";
+            }
+
+            string newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} {suffix}{extension}";
             if (!File.Exists(newName))
             {
                 return newName;
             }
             else
             {
-                bool found = false;
-                for (int i = 1; i < 10 && !found; i++)
+                for (int i = 1; i < 10; i++)
                 {
-                    newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy {i}{extension}";
+                    newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} {suffix} {i}{extension}";
                     if (!File.Exists(newName))
                     {
-                        found = true;
+                        return newName;
                     }
-                }
-                if (!found)
-                {
-                    newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy {Guid.NewGuid()}{extension}";
                 }
             }
 
-            return newName;
+            return $"{parentPath}{Path.DirectorySeparatorChar}{name} {suffix} {Guid.NewGuid()}{extension}";
         }
 
         private void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)
