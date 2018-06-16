@@ -22,11 +22,9 @@ namespace elFinder.NetCore.Drivers
 
         Task<long> LengthAsync { get; }
 
-        // Properties
         string Name { get; }
 
-        // Functions
-        IFile Clone(string path);
+        IFile Open(string path);
 
         Task<Stream> CreateAsync();
 
