@@ -36,35 +36,31 @@ namespace elFinder.NetCore
 
             switch (cmd)
             {
-                case "open":
+                case "dim":
                     {
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
-
-                        if (parameters.GetValueOrDefault("init") == "1")
-                        {
-                            return await driver.InitAsync(path);
-                        }
-                        else
-                        {
-                            return await driver.OpenAsync(path, parameters.GetValueOrDefault("tree") == "1");
-                        }
+                        return await driver.DimAsync(path);
+                    }
+                case "duplicate":
+                    {
+                        var targets = await GetFullPathArrayAsync(parameters.GetValueOrDefault("targets[]"));
+                        return await driver.DuplicateAsync(targets);
                     }
                 case "file":
                     {
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
                         return await driver.FileAsync(path, parameters.GetValueOrDefault("download") == "1");
                     }
-                case "tree":
+                case "get":
                     {
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
-                        return await driver.TreeAsync(path);
+                        return await driver.GetAsync(path);
                     }
-                case "parents":
+                case "ls":
                     {
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
-                        return await driver.ParentsAsync(path);
+                        return await driver.ListAsync(path);
                     }
-
                 case "mkdir":
                     {
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
@@ -79,32 +75,23 @@ namespace elFinder.NetCore
                         var name = parameters.GetValueOrDefault("name");
                         return await driver.MakeFileAsync(path, name);
                     }
-                case "rename":
+                case "open":
                     {
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
-                        var name = parameters.GetValueOrDefault("name");
-                        return await driver.RenameAsync(path, name);
+
+                        if (parameters.GetValueOrDefault("init") == "1")
+                        {
+                            return await driver.InitAsync(path);
+                        }
+                        else
+                        {
+                            return await driver.OpenAsync(path, parameters.GetValueOrDefault("tree") == "1");
+                        }
                     }
-                case "rm":
-                    {
-                        var paths = await GetFullPathArrayAsync(parameters.GetValueOrDefault("targets[]"));
-                        return await driver.RemoveAsync(paths);
-                    }
-                case "ls":
-                    {
-                        var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
-                        return await driver.ListAsync(path);
-                    }
-                case "get":
+                case "parents":
                     {
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
-                        return await driver.GetAsync(path);
-                    }
-                case "put":
-                    {
-                        var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
-                        var content = parameters.GetValueOrDefault("content");
-                        return await driver.PutAsync(path, content);
+                        return await driver.ParentsAsync(path);
                     }
                 case "paste":
                     {
@@ -112,25 +99,17 @@ namespace elFinder.NetCore
                         string dst = parameters.GetValueOrDefault("dst");
                         return await driver.PasteAsync(await driver.ParsePathAsync(dst), paths, parameters.GetValueOrDefault("cut") == "1");
                     }
-                case "upload":
+                case "put":
                     {
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
-                        return await driver.UploadAsync(path, request.Form.Files);
+                        var content = parameters.GetValueOrDefault("content");
+                        return await driver.PutAsync(path, content);
                     }
-                case "duplicate":
-                    {
-                        var targets = await GetFullPathArrayAsync(parameters.GetValueOrDefault("targets[]"));
-                        return await driver.DuplicateAsync(targets);
-                    }
-                case "tmb":
-                    {
-                        var targets = await GetFullPathArrayAsync(parameters.GetValueOrDefault("targets[]"));
-                        return await driver.ThumbsAsync(targets);
-                    }
-                case "dim":
+                case "rename":
                     {
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
-                        return await driver.DimAsync(path);
+                        var name = parameters.GetValueOrDefault("name");
+                        return await driver.RenameAsync(path, name);
                     }
                 case "resize":
                     {
@@ -157,6 +136,27 @@ namespace elFinder.NetCore
                             default:
                                 return Error.CommandNotFound();
                         }
+                    }
+                case "rm":
+                    {
+                        var paths = await GetFullPathArrayAsync(parameters.GetValueOrDefault("targets[]"));
+                        return await driver.RemoveAsync(paths);
+                    }
+                case "tmb":
+                    {
+                        var targets = await GetFullPathArrayAsync(parameters.GetValueOrDefault("targets[]"));
+                        return await driver.ThumbsAsync(targets);
+                    }
+                case "tree":
+                    {
+                        var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
+                        return await driver.TreeAsync(path);
+                    }
+
+                case "upload":
+                    {
+                        var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
+                        return await driver.UploadAsync(path, request.Form.Files);
                     }
                 default: return Error.CommandNotFound();
             }

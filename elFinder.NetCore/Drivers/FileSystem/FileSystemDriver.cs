@@ -242,7 +242,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
             if (path.RootVolume.MaxUploadSize.HasValue)
             {
-                response.UploadMaxSize = path.RootVolume.MaxUploadSizeInKb.Value + "K";
+                response.UploadMaxSize = $"{path.RootVolume.MaxUploadSizeInKb.Value}K";
             }
             return await Json(response);
         }
@@ -418,6 +418,11 @@ namespace elFinder.NetCore.Drivers.FileSystem
             var response = new RemoveResponseModel();
             foreach (var path in paths)
             {
+                if (path.RootVolume.IsReadOnly)
+                {
+                    continue;
+                }
+
                 await RemoveThumbsAsync(path);
                 if (path.IsDirectory)
                 {

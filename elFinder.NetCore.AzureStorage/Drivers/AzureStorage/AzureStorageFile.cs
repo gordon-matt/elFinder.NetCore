@@ -28,7 +28,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
         public FileAttributes Attributes
         {
             get => Name.StartsWith(".") ? FileAttributes.Hidden : FileAttributes.Normal;
-            set => value = FileAttributes.Normal; // Azure Storage doesn't support setting attributes
+            set { } // Azure Storage doesn't support setting attributes
         }
 
         public IDirectory Directory => new AzureStorageDirectory(DirectoryName);
