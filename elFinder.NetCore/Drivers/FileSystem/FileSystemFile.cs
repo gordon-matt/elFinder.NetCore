@@ -50,7 +50,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
         public string Name { get; private set; }
 
-        public IFile Clone(string path)
+        public IFile Open(string path)
         {
             return new FileSystemFile(path);
         }
