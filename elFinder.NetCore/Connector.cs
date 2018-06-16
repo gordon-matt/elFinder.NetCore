@@ -7,6 +7,7 @@ using elFinder.NetCore.Extensions;
 using elFinder.NetCore.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 
 namespace elFinder.NetCore
 {
@@ -66,7 +67,6 @@ namespace elFinder.NetCore
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
                         var name = parameters.GetValueOrDefault("name");
                         var dirs = parameters.GetValueOrDefault("dirs[]");
-
                         return await driver.MakeDirAsync(path, name);
                     }
                 case "mkfile":
@@ -142,6 +142,11 @@ namespace elFinder.NetCore
                         var paths = await GetFullPathArrayAsync(parameters.GetValueOrDefault("targets[]"));
                         return await driver.RemoveAsync(paths);
                     }
+                case "size":
+                    {
+                        var paths = new StringValues(parameters.Where(p => p.Key.StartsWith("target")).Select(p => (string)p.Value).ToArray());
+                        return await driver.SizeAsync(await GetFullPathArrayAsync(paths));
+                    }
                 case "tmb":
                     {
                         var targets = await GetFullPathArrayAsync(parameters.GetValueOrDefault("targets[]"));
@@ -199,9 +204,8 @@ namespace elFinder.NetCore
             return !string.IsNullOrEmpty(path.RootVolume.ThumbnailUrl) && pictureEditor.CanProcessFile(path.File.Extension);
         }
 
-        private async Task<IEnumerable<FullPath>> GetFullPathArrayAsync(string target)
+        private async Task<IEnumerable<FullPath>> GetFullPathArrayAsync(StringValues targets)
         {
-            var targets = target.Split(',');
             var tasks = targets.Select(async t => await driver.ParsePathAsync(t));
             return await Task.WhenAll(tasks);
         }

@@ -501,6 +501,32 @@ namespace elFinder.NetCore.Drivers.FileSystem
             return await Json(output);
         }
 
+        public async Task<JsonResult> SizeAsync(IEnumerable<FullPath> paths)
+        {
+            var response = new SizeResponseModel();
+
+            foreach (var path in paths)
+            {
+                if (path.IsDirectory)
+                {
+                    response.DirectoryCount++; // API counts the current directory in the total
+
+                    var sizeAndCount = DirectorySizeAndCount(new DirectoryInfo(path.Directory.FullName));
+
+                    response.DirectoryCount += sizeAndCount.DirectoryCount;
+                    response.FileCount += sizeAndCount.FileCount;
+                    response.Size += sizeAndCount.Size;
+                }
+                else
+                {
+                    response.FileCount++;
+                    response.Size += await path.File.LengthAsync;
+                }
+            }
+
+            return await Json(response);
+        }
+
         public async Task<JsonResult> ThumbsAsync(IEnumerable<FullPath> paths)
         {
             var response = new ThumbsResponseModel();
@@ -672,9 +698,34 @@ namespace elFinder.NetCore.Drivers.FileSystem
             }
         }
 
+        private SizeResponseModel DirectorySizeAndCount(DirectoryInfo d)
+        {
+            var response = new SizeResponseModel();
+
+            // Add file sizes.
+            foreach (var file in d.GetFiles())
+            {
+                response.FileCount++;
+                response.Size += file.Length;
+            }
+
+            // Add subdirectory sizes.
+            foreach (var directory in d.GetDirectories())
+            {
+                response.DirectoryCount++;
+
+                var subdir = DirectorySizeAndCount(directory);
+                response.DirectoryCount += subdir.DirectoryCount;
+                response.FileCount += subdir.FileCount;
+                response.Size += subdir.Size;
+            }
+
+            return response;
+        }
+
         private async Task RemoveThumbsAsync(FullPath path)
         {
-            if (path.Directory != null)
+            if (path.IsDirectory)
             {
                 string thumbPath = path.RootVolume.GetExistingThumbPath(path.Directory);
                 if (!string.IsNullOrEmpty(thumbPath) && Directory.Exists(thumbPath))

@@ -35,9 +35,44 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
         #region IDriver Members
 
+        public async Task<FullPath> ParsePathAsync(string target)
+        {
+            if (string.IsNullOrEmpty(target))
+            {
+                return null;
+            }
+
+            string volumePrefix = null;
+            string pathHash = null;
+            for (int i = 0; i < target.Length; i++)
+            {
+                if (target[i] == '_')
+                {
+                    pathHash = target.Substring(i + 1);
+                    volumePrefix = target.Substring(0, i + 1);
+                    break;
+                }
+            }
+
+            var root = Roots.First(r => r.VolumeId == volumePrefix);
+            string path = HttpEncoder.DecodePath(pathHash);
+            string dirUrl = path != root.RootDirectory ? path : string.Empty;
+            var dir = new AzureStorageDirectory(root.RootDirectory + dirUrl);
+
+            if (await dir.ExistsAsync)
+            {
+                return new FullPath(root, dir, target);
+            }
+            else
+            {
+                var file = new AzureStorageFile(root.RootDirectory + dirUrl);
+                return new FullPath(root, file, target);
+            }
+        }
+
         public async Task<JsonResult> CropAsync(FullPath path, int x, int y, int width, int height)
         {
-            RemoveThumbs(path);
+            await RemoveThumbsAsync(path);
 
             // Crop Image
             ImageWithMimeType image;
@@ -403,41 +438,6 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return await Json(response);
         }
 
-        public async Task<FullPath> ParsePathAsync(string target)
-        {
-            if (string.IsNullOrEmpty(target))
-            {
-                return null;
-            }
-
-            string volumePrefix = null;
-            string pathHash = null;
-            for (int i = 0; i < target.Length; i++)
-            {
-                if (target[i] == '_')
-                {
-                    pathHash = target.Substring(i + 1);
-                    volumePrefix = target.Substring(0, i + 1);
-                    break;
-                }
-            }
-
-            var root = Roots.First(r => r.VolumeId == volumePrefix);
-            string path = HttpEncoder.DecodePath(pathHash);
-            string dirUrl = path != root.RootDirectory ? path : string.Empty;
-            var dir = new AzureStorageDirectory(root.RootDirectory + dirUrl);
-
-            if (await dir.ExistsAsync)
-            {
-                return new FullPath(root, dir, target);
-            }
-            else
-            {
-                var file = new AzureStorageFile(root.RootDirectory + dirUrl);
-                return new FullPath(root, file, target);
-            }
-        }
-
         public async Task<JsonResult> PasteAsync(FullPath dest, IEnumerable<FullPath> paths, bool isCut)
         {
             var response = new ReplaceResponseModel();
@@ -457,7 +457,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
                     if (isCut)
                     {
-                        RemoveThumbs(src);
+                        await RemoveThumbsAsync(src);
                         await AzureStorageAPI.MoveDirectoryAsync(src.Directory.FullName, newDir.FullName);
                         response.Removed.Add(src.HashedTarget);
                     }
@@ -475,7 +475,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
                     if (isCut)
                     {
-                        RemoveThumbs(src);
+                        await RemoveThumbsAsync(src);
 
                         // Move file
                         await AzureStorageAPI.MoveFileAsync(src.File.FullName, newFilePath);
@@ -512,13 +512,13 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
             foreach (FullPath path in paths)
             {
-                RemoveThumbs(path);
+                await RemoveThumbsAsync(path);
 
-                if (path.IsDirectory)
+                if (path.IsDirectory && await path.Directory.ExistsAsync)
                 {
                     await AzureStorageAPI.DeleteDirectoryAsync(path.Directory.FullName);
                 }
-                else
+                else if (await path.File.ExistsAsync)
                 {
                     await AzureStorageAPI.DeleteFileAsync(path.File.FullName);
                 }
@@ -534,12 +534,12 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
             response.Removed.Add(path.HashedTarget);
 
-            RemoveThumbs(path);
+            await RemoveThumbsAsync(path);
 
             if (path.IsDirectory)
             {
                 // Get new path
-                var newPath = AzureStorageAPI.PathCombine(path.Directory.Parent.FullName ?? string.Empty, name);
+                var newPath = AzureStorageAPI.PathCombine(path.Directory.Parent.FullName, name);
 
                 // Move file
                 await AzureStorageAPI.MoveDirectoryAsync(path.Directory.FullName, newPath);
@@ -564,7 +564,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
         public async Task<JsonResult> ResizeAsync(FullPath path, int width, int height)
         {
-            RemoveThumbs(path);
+            await RemoveThumbsAsync(path);
 
             // Resize Image
             ImageWithMimeType image;
@@ -582,7 +582,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
         public async Task<JsonResult> RotateAsync(FullPath path, int degree)
         {
-            RemoveThumbs(path);
+            await RemoveThumbsAsync(path);
 
             // Crop Image
             ImageWithMimeType image;
@@ -596,6 +596,32 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             var output = new ChangedResponseModel();
             output.Changed.Add((FileModel)await BaseModel.CreateAsync(this, path.File, path.RootVolume));
             return await Json(output);
+        }
+
+        public async Task<JsonResult> SizeAsync(IEnumerable<FullPath> paths)
+        {
+            var response = new SizeResponseModel();
+
+            foreach (var path in paths)
+            {
+                if (path.IsDirectory)
+                {
+                    response.DirectoryCount++; // API counts the current directory in the total
+
+                    var sizeAndCount = await DirectorySizeAndCount(new AzureStorageDirectory(path.Directory.FullName));
+
+                    response.DirectoryCount += sizeAndCount.DirectoryCount;
+                    response.FileCount += sizeAndCount.FileCount;
+                    response.Size += sizeAndCount.Size;
+                }
+                else
+                {
+                    response.FileCount++;
+                    response.Size += await path.File.LengthAsync;
+                }
+            }
+
+            return await Json(response);
         }
 
         public async Task<JsonResult> ThumbsAsync(IEnumerable<FullPath> paths)
@@ -709,7 +735,32 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
         #endregion IDriver Members
 
-        private async void RemoveThumbs(FullPath path)
+        private async Task<SizeResponseModel> DirectorySizeAndCount(IDirectory d)
+        {
+            var response = new SizeResponseModel();
+
+            // Add file sizes.
+            foreach (var file in await d.GetFilesAsync())
+            {
+                response.FileCount++;
+                response.Size += await file.LengthAsync;
+            }
+
+            // Add subdirectory sizes.
+            foreach (var directory in await d.GetDirectoriesAsync())
+            {
+                response.DirectoryCount++;
+
+                var subdir = await DirectorySizeAndCount(directory);
+                response.DirectoryCount += subdir.DirectoryCount;
+                response.FileCount += subdir.FileCount;
+                response.Size += subdir.Size;
+            }
+
+            return response;
+        }
+
+        private async Task RemoveThumbsAsync(FullPath path)
         {
             if (path.IsDirectory)
             {
