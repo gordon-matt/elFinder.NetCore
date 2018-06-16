@@ -43,6 +43,8 @@ namespace elFinder.NetCore
 
         Task<JsonResult> RotateAsync(FullPath path, int degree);
 
+        Task<JsonResult> SizeAsync(IEnumerable<FullPath> paths);
+
         Task<JsonResult> ThumbsAsync(IEnumerable<FullPath> paths);
 
         Task<JsonResult> TreeAsync(FullPath path);

@@ -97,7 +97,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             }
         }
 
-        public IFile Clone(string path) => new AzureStorageFile(path);
+        public IFile Open(string path) => new AzureStorageFile(path);
 
         public async Task<Stream> CreateAsync()
         {
