@@ -3,8 +3,7 @@
  * @author Marcin Mikołajczyk <marcin@pjwstk.edu.pl>
  * @author Wojciech Jabłoński <www.jablonski@gmail.com>
  * @author Bogusław Zięba <bobi@poczta.fm>
- * @author Bogusław Zięba <bobi@poczta.fm>
- * @version 2017-11-30
+ * @version 2018-04-13
  */
 (function(root, factory) {
 	if (typeof define === 'function' && define.amd) {
@@ -16,7 +15,7 @@
 	}
 }(this, function(elFinder) {
 	elFinder.prototype.i18.pl = {
-		translator : 'Marcin Mikołajczyk &lt;marcin@pjwstk.edu.pl&gt;, Wojciech Jabłoński &lt;www.jablonski@gmail.com&gt;, Bogusław Zięba &lt;bobi@poczta.fm&gt;, Bogusław Zięba &lt;bobi@poczta.fm&gt;',
+		translator : 'Marcin Mikołajczyk &lt;marcin@pjwstk.edu.pl&gt;, Wojciech Jabłoński &lt;www.jablonski@gmail.com&gt;, Bogusław Zięba &lt;bobi@poczta.fm&gt;',
 		language   : 'Polski',
 		direction  : 'ltr',
 		dateFormat : 'd.m.Y H:i', // Mar 13, 2012 05:27 PM
@@ -164,6 +163,7 @@
 			'cmdselectall' : 'Zaznacz wszystko', // from v2.1.28 added 15.08.2017
 			'cmdselectnone': 'Odznacz wszystko', // from v2.1.28 added 15.08.2017
 			'cmdselectinvert': 'Odwróć wybór', // from v2.1.28 added 15.08.2017
+			'cmdopennew'   : 'Otwórz w nowym oknie', // from v2.1.38 added 3.4.2018
 
 			/*********************************** buttons ***********************************/
 			'btnClose'  : 'Zamknij',
@@ -440,6 +440,24 @@
 			'selectAction'    : 'Działanie po wybraniu pliku', // from v2.1.30 added 23.11.2017
 			'useStoredEditor' : 'Otwórz za pomocą ostatnio używanego edytora', // from v2.1.30 added 23.11.2017
 			'selectinvert'    : 'Odwróć zaznaczenie', // from v2.1.30 added 25.11.2017
+			'renameMultiple'  : 'Czy na pewno chcesz zmienić nazwę $1 wybranych elementów takich jak $2?<br/>Tego nie da się cofnąć!', // from v2.1.31 added 4.12.2017
+			'batchRename'     : 'Zmień partiami', // from v2.1.31 added 8.12.2017
+			'plusNumber'      : '+ Liczba', // from v2.1.31 added 8.12.2017
+			'asPrefix'        : 'Dodaj prefix', // from v2.1.31 added 8.12.2017
+			'asSuffix'        : 'Dodaj suffix', // from v2.1.31 added 8.12.2017
+			'changeExtention' : 'Zmień rozszerzenie', // from v2.1.31 added 8.12.2017
+			'columnPref'      : 'Ustawienia kolumn (Widok listy)', // from v2.1.32 added 6.2.2018
+			'reflectOnImmediate' : 'Wszystkie zmiany widoczne natychmiast w archiwum.', // from v2.1.33 added 2.3.2018
+			'reflectOnUnmount'   : 'Wszelkie zmiany nie będą widoczne, dopóki nie odłączysz tego woluminu.', // from v2.1.33 added 2.3.2018
+			'unmountChildren' : 'Następujący wolumin (y), zamontowany na tym urządzeniu również niezamontowany. Czy na pewno chcesz go odmontować?', // from v2.1.33 added 5.3.2018
+			'selectionInfo'   : 'Informacje Wyboru', // from v2.1.33 added 7.3.2018
+			'hashChecker'     : 'Algorytmy do pokazywania hash pliku', // from v2.1.33 added 10.3.2018
+			'infoItems'       : 'Info Elementów (Wybór Panelu Informacyjnego)', // from v2.1.38 added 28.3.2018
+			'pressAgainToExit': 'Naciśnij ponownie, aby wyjść.', // from v2.1.38 added 1.4.2018
+			'toolbar'         : 'Pasek narzędziowy', // from v2.1.38 added 4.4.2018
+			'workspace'       : 'Obszar Pracy', // from v2.1.38 added 4.4.2018
+			'dialog'          : 'Dialog', // from v2.1.38 added 4.4.2018
+			'all'             : 'Wszystko', // from v2.1.38 added 4.4.2018
 
 			/********************************** mimetypes **********************************/
 			'kindUnknown'     : 'Nieznany',
@@ -525,4 +543,3 @@
 		}
 	};
 }));
-
