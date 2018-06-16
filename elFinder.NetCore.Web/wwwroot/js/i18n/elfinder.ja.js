@@ -2,7 +2,7 @@
  * Japanese translation
  * @author Tomoaki Yoshida <info@yoshida-studio.jp>
  * @author Naoki Sawada <hypweb+elfinder@gmail.com>
- * @version 2018-02-06
+ * @version 2018-05-22
  */
 (function(root, factory) {
 	if (typeof define === 'function' && define.amd) {
@@ -162,6 +162,7 @@
 			'cmdselectall' : 'すべて選択', // from v2.1.28 added 15.08.2017
 			'cmdselectnone': '選択解除', // from v2.1.28 added 15.08.2017
 			'cmdselectinvert': '選択を反転', // from v2.1.28 added 15.08.2017
+			'cmdopennew'   : '新しいウィンドウで開く', // from v2.1.38 added 3.4.2018
 
 			/*********************************** buttons ***********************************/
 			'btnClose'  : '閉じる',
@@ -313,12 +314,16 @@
 			'selectlfile'     : '最後のアイテムを選択',
 			'viewlist'        : 'リスト形式で表示',
 			'viewicons'       : 'アイコン形式で表示',
+			'viewSmall'       : '小アイコン', // from v2.1.39 added 22.5.2018
+			'viewMedium'      : '中アイコン', // from v2.1.39 added 22.5.2018
+			'viewLarge'       : '大アイコン', // from v2.1.39 added 22.5.2018
+			'viewExtraLarge'  : '特大アイコン', // from v2.1.39 added 22.5.2018
 			'places'          : 'よく使う項目',
 			'calc'            : '計算中',
 			'path'            : 'パス',
 			'aliasfor'        : 'エイリアス',
 			'locked'          : 'ロック',
-			'dim'             : 'サイズ',
+			'dim'             : '画素数',
 			'files'           : 'ファイル',
 			'folders'         : 'フォルダ',
 			'items'           : 'アイテム',
@@ -427,7 +432,7 @@
 			'folderToEmpty'   : 'フォルダ"$1"を空にします。', // from v2.1.25 added 22.6.2017
 			'filderIsEmpty'   : 'フォルダ"$1"にアイテムはありません。', // from v2.1.25 added 22.6.2017
 			'preference'      : '環境設定', // from v2.1.26 added 28.6.2017
-			'language'        : '言語設定', // from v2.1.26 added 28.6.2017
+			'language'        : '言語', // from v2.1.26 added 28.6.2017
 			'clearBrowserData': 'ブラウザに保存された設定を初期化する', // from v2.1.26 added 28.6.2017
 			'toolbarPref'     : 'ツールバー設定', // from v2.1.27 added 2.8.2017
 			'charsLeft'       : '... 残り $1 文字',  // from v2.1.29 added 30.8.2017
@@ -445,6 +450,18 @@
 			'asSuffix'        : '末尾に追加', // from v2.1.31 added 8.12.2017
 			'changeExtention' : '拡張子変更', // from v2.1.31 added 8.12.2017
 			'columnPref'      : '列項目設定(リストビュー)', // from v2.1.32 added 6.2.2018
+			'reflectOnImmediate' : '全ての変更は、直ちにアーカイブに反映されます。', // from v2.1.33 added 2.3.2018
+			'reflectOnUnmount'   : 'このボリュームをアンマウントするまで、変更は反映されません。', // from v2.1.33 added 2.3.2018
+			'unmountChildren' : 'このボリュームにマウントされている以下のボリュームもアンマウントされます。アンマウントしますか？', // from v2.1.33 added 5.3.2018
+			'selectionInfo'   : '選択情報', // from v2.1.33 added 7.3.2018
+			'hashChecker'     : 'ファイルハッシュを表示するアルゴリズム', // from v2.1.33 added 10.3.2018
+			'infoItems'       : '情報項目 (選択情報パネル)', // from v2.1.38 added 28.3.2018
+			'pressAgainToExit': 'もう一度押すと終了します。', // from v2.1.38 added 1.4.2018
+			'toolbar'         : 'ツールバー', // from v2.1.38 added 4.4.2018
+			'workspace'       : 'ワークスペース', // from v2.1.38 added 4.4.2018
+			'dialog'          : 'ダイアログ', // from v2.1.38 added 4.4.2018
+			'all'             : 'すべて', // from v2.1.38 added 4.4.2018
+			'iconSize'        : 'アイコンサイズ (アイコンビュー)', // form v2.1.39 added 7.5.2018
 
 			/********************************** mimetypes **********************************/
 			'kindUnknown'     : '不明',
