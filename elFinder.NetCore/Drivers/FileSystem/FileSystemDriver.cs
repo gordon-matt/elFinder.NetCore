@@ -253,7 +253,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
 			if (path.RootVolume.MaxUploadSize.HasValue)
 			{
-				response.UploadMaxSize = $"{path.RootVolume.MaxUploadSizeInKb.Value}K";
+				response.Options.UploadMaxSize = $"{path.RootVolume.MaxUploadSizeInKb.Value}K";
 			}
 			return await Json(response);
 		}

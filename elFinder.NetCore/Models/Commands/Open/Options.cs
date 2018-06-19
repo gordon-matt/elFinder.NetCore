@@ -12,7 +12,7 @@ namespace elFinder.NetCore.Models.Commands
 
         [JsonProperty("extract")]
         public IEnumerable<string> Extract => empty;
-    }
+	}
 
     public class Options
     {
@@ -53,7 +53,13 @@ namespace elFinder.NetCore.Models.Commands
 		[JsonProperty("trashHash")]
 		public string TrashHash => string.Empty;
 
-        [JsonProperty("url")]
+		[JsonProperty("uploadMaxConn")]
+		public int UploadMaxConnections => -1;
+
+		[JsonProperty("uploadMaxSize")]
+		public string UploadMaxSize { get; set; }
+
+		[JsonProperty("url")]
         public string Url { get; set; }
     }
 }
