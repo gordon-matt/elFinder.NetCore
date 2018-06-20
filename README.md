@@ -1,6 +1,4 @@
-<img src="https://github.com/gordon-matt/elFinder.NetCore/blob/master/_Misc/Logo.png" alt="Logo" width="250" />
-
-# elFinder.NetCore
+<img src="https://github.com/gordon-matt/elFinder.NetCore/blob/master/_Misc/Logo.png" alt="Logo" width="350" />
 
 ## Instructions
 
