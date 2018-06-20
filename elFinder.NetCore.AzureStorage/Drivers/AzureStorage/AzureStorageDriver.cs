@@ -288,7 +288,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
             if (path.RootVolume.MaxUploadSize.HasValue)
             {
-                response.UploadMaxSize = $"{path.RootVolume.MaxUploadSizeInKb.Value}K";
+                response.Options.UploadMaxSize = $"{path.RootVolume.MaxUploadSizeInKb.Value}K";
             }
 
             return await Json(response);
