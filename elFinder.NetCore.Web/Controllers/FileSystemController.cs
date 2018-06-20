@@ -38,7 +38,7 @@ namespace elFinder.NetCore.Web.Controllers
                 //IsReadOnly = !User.IsInRole("Administrators")
                 IsReadOnly = false, // Can be readonly according to user's membership permission
                 Alias = "Files", // Beautiful name given to the root/home folder
-                MaxUploadSizeInKb = 500, // Limit imposed to user uploaded file <= 500 KB
+                //MaxUploadSizeInKb = 2048, // Limit imposed to user uploaded file <= 2048 KB
                 //LockedFolders = new List<string>(new string[] { "Folder1" })
             };
 

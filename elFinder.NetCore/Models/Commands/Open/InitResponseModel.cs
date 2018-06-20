@@ -18,8 +18,5 @@ namespace elFinder.NetCore.Models.Commands
 
         [JsonProperty("netDrivers")]
         public IEnumerable<string> NetDrivers => empty;
-
-        [JsonProperty("uplMaxSize")]
-        public string UploadMaxSize { get; set; }
     }
 }
