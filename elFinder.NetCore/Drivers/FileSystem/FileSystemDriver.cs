@@ -461,11 +461,6 @@ namespace elFinder.NetCore.Drivers.FileSystem
             var response = new RemoveResponseModel();
             foreach (var path in paths)
             {
-                if (path.RootVolume.IsReadOnly)
-                {
-                    continue;
-                }
-
                 await RemoveThumbsAsync(path);
                 if (path.IsDirectory)
                 {
