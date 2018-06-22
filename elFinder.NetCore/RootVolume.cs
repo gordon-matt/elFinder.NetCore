@@ -61,7 +61,7 @@ namespace elFinder.NetCore
         /// <summary>
         /// Get or sets if root is locked (user can't remove, rename or delete files or subdirectories)
         /// </summary>
-        public bool IsLocked { get; }
+        public bool IsLocked { get; set; }
 
         /// <summary>
         /// Get or sets if root for read only (users can't change file)
