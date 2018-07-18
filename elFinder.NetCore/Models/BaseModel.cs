@@ -141,11 +141,12 @@ namespace elFinder.NetCore.Models
             else
             {
                 string parentPath = directory.Parent.FullName.Substring(volume.RootDirectory.Length);
+                string relativePath = directory.FullName.Substring(volume.RootDirectory.Length).TrimEnd(Path.DirectorySeparatorChar);
                 var response = new DirectoryModel
                 {
                     Mime = "directory",
                     ContainsChildDirs = (await directory.GetDirectoriesAsync()).Count() > 0 ? (byte)1 : (byte)0,
-                    Hash = volume.VolumeId + HttpEncoder.EncodePath(directory.FullName.Substring(volume.RootDirectory.Length)),
+                    Hash = volume.VolumeId + HttpEncoder.EncodePath(relativePath),
                     Read = 1,
                     Write = volume.IsReadOnly ? (byte)0 : (byte)1,
                     Locked = ((volume.LockedFolders != null && volume.LockedFolders.Any(f => f == directory.Name)) || volume.IsLocked) ? (byte)1 : (byte)0,
