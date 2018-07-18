@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using elFinder.NetCore.Drawing;
@@ -462,14 +463,18 @@ namespace elFinder.NetCore.Drivers.FileSystem
             foreach (var path in paths)
             {
                 await RemoveThumbsAsync(path);
-                if (path.IsDirectory)
+                try
                 {
-                    Directory.Delete(path.Directory.FullName, true);
+                    if (path.IsDirectory)
+                    {
+                        Directory.Delete(path.Directory.FullName, true);
+                    }
+                    else
+                    {
+                        File.Delete(path.File.FullName);
+                    }
                 }
-                else
-                {
-                    File.Delete(path.File.FullName);
-                }
+                catch { }
                 response.Removed.Add(path.HashedTarget);
             }
             return await Json(response);
@@ -783,5 +788,143 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 }
             }
         }
+
+        public async Task<JsonResult> ArchiveAsync(FullPath parentPath, IEnumerable<FullPath> paths, string filename, string mimeType)
+        {
+            var response = new AddResponseModel();
+
+            if (paths == null)
+            {
+                throw new NotSupportedException();
+            }
+
+            if (mimeType != "application/zip")
+            {
+                throw new NotSupportedException("Currently support only zip file");
+            }
+
+            // Parse target path
+
+            var directoryInfo = parentPath.Directory;
+
+            if (directoryInfo != null)
+            {
+                filename = filename ?? "newfile";
+
+                if (filename.EndsWith(".zip"))
+                {
+                    filename = filename.Replace(".zip", "");
+                }
+
+                var newPath = Path.Combine(directoryInfo.FullName, filename + ".zip");
+
+                if (File.Exists(newPath))
+                {
+                    File.Delete(newPath);
+                }
+
+                using (ZipArchive newFile = ZipFile.Open(newPath, ZipArchiveMode.Create))
+                {
+                    foreach (var tg in paths)
+                    {
+                        if (tg.IsDirectory)
+                        {
+                            await AddDirectoryToArchiveAsync(newFile, tg.Directory, "");
+                        }
+                        else
+                        {
+                            newFile.CreateEntryFromFile(tg.File.FullName, tg.File.Name);
+                        }
+                    }
+                }
+
+                response.Added.Add((FileModel)await BaseModel.CreateAsync(this, new FileSystemFile(newPath), parentPath.RootVolume));
+            }
+
+            return await Json(response);
+        }
+
+        public async Task<JsonResult> ExtractAsync(FullPath fullPath, bool newFolder)
+        {
+            var response = new AddResponseModel();
+
+            if (fullPath.IsDirectory || fullPath.File.Extension.ToLower() != ".zip")
+            {
+                throw new NotSupportedException("Currently support only zip file");
+            }
+
+            var rootPath = fullPath.File.Directory.FullName;
+
+            if (newFolder)
+            {
+                rootPath = Path.Combine(rootPath, Path.GetFileNameWithoutExtension(fullPath.File.Name));
+                var rootDir = new FileSystemDirectory(rootPath);
+                if (!await rootDir.ExistsAsync)
+                {
+                    await rootDir.CreateAsync();
+                }
+                response.Added.Add(await BaseModel.CreateAsync(this, rootDir, fullPath.RootVolume));
+            }
+
+            using (ZipArchive archive = ZipFile.OpenRead(fullPath.File.FullName))
+            {
+                var separator = Path.DirectorySeparatorChar.ToString();
+                foreach (ZipArchiveEntry entry in archive.Entries)
+                {
+                    try
+                    {
+                        //Replce zip entry path separator by system path separator
+                        var file = Path.Combine(rootPath, entry.FullName)
+                             .Replace("/", separator).Replace("\\", separator);
+
+                        if (file.EndsWith(separator)) //directory
+                        {
+                            var dir = new FileSystemDirectory(file);
+
+                            if (!await dir.ExistsAsync)
+                            {
+                                await dir.CreateAsync();
+                            }
+                            if (!newFolder)
+                            {
+                                response.Added.Add(await BaseModel.CreateAsync(this, dir, fullPath.RootVolume));
+                            }
+                        }
+                        else
+                        {
+                            entry.ExtractToFile(file, true);
+                            if (!newFolder)
+                            {
+                                response.Added.Add(await BaseModel.CreateAsync(this, new FileSystemFile(file), fullPath.RootVolume));
+                            }
+                        }
+                    }
+                    catch //(Exception ex)
+                    {
+                        //throw new Exception(entry.FullName, ex);
+                    }
+                }
+            }
+
+            return await Json(response);
+        }
+
+        #region private
+        private async Task AddDirectoryToArchiveAsync(ZipArchive zipFile, IDirectory directoryInfo, string root)
+        {
+            zipFile.CreateEntry(root + directoryInfo.Name + "/");
+            var dirs = await directoryInfo.GetDirectoriesAsync();
+            foreach (var dir in dirs)
+            {
+                await AddDirectoryToArchiveAsync(zipFile, dir, root + directoryInfo.Name + "/");
+            }
+
+            var files = await directoryInfo.GetFilesAsync();
+            foreach (var file in files)
+            {
+                zipFile.CreateEntryFromFile(file.FullName, root + directoryInfo.Name + "/" + file.Name);
+            }
+        }
+        #endregion
     }
 }

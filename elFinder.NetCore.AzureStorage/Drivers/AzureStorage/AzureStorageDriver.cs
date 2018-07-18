@@ -785,5 +785,15 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 await AzureStorageAPI.DeleteFileIfExistsAsync(thumbPath);
             }
         }
+
+        public Task<JsonResult> ArchiveAsync(FullPath parentPath, IEnumerable<FullPath> paths, string filename, string mimeType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<JsonResult> ExtractAsync(FullPath fullPath, bool newFolder)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
