@@ -45,6 +45,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
         public Task CreateAsync()
         {
             directoryInfo.Create();
+            directoryInfo.Refresh();
             return Task.FromResult(0);
         }
 

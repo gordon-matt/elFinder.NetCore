@@ -14,6 +14,7 @@ application/ecmascript ecma
 application/flash-video flv
 application/illustrator ai
 application/javascript js
+application/json json
 application/mac-binhex40
 application/mathematica nb
 application/msword doc
