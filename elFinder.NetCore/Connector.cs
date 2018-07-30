@@ -37,6 +37,14 @@ namespace elFinder.NetCore
 
             switch (cmd)
             {
+                case "archive":
+                    {
+                        var parentPath = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
+                        var paths = await GetFullPathArrayAsync(parameters.GetValueOrDefault("targets[]"));
+                        var name = parameters.GetValueOrDefault("name");
+                        var type = parameters.GetValueOrDefault("type");
+                        return await driver.ArchiveAsync(parentPath, paths, name, type);
+                    }
                 case "dim":
                     {
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
@@ -46,6 +54,12 @@ namespace elFinder.NetCore
                     {
                         var targets = await GetFullPathArrayAsync(parameters.GetValueOrDefault("targets[]"));
                         return await driver.DuplicateAsync(targets);
+                    }
+                case "extract":
+                    {
+                        var fullPath = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
+                        var makedir = parameters.GetValueOrDefault("makedir");
+                        return await driver.ExtractAsync(fullPath, makedir == "1");
                     }
                 case "file":
                     {
@@ -165,7 +179,7 @@ namespace elFinder.NetCore
                     {
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
                         var uploadPath = await GetFullPathArrayAsync(parameters.GetValueOrDefault("upload_path[]"));
-                        bool overwrite = parameters.GetValueOrDefault("overwrite") == "1";
+                        bool overwrite = parameters.GetValueOrDefault("overwrite") != "0";
                         var renames = parameters.GetValueOrDefault("renames[]");
                         var suffix = parameters.GetValueOrDefault("suffix");
                         return await driver.UploadAsync(path, request.Form.Files, overwrite, uploadPath, renames, suffix);

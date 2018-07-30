@@ -1,4 +1,4 @@
-﻿using System.DrawingCore;
+﻿using System.Drawing;
 using System.IO;
 
 namespace elFinder.NetCore.Drawing

@@ -5,18 +5,19 @@ namespace elFinder.NetCore.Models.Commands
 {
     public class Archive
     {
-        private static string[] empty = new string[0];
-
         [JsonProperty("create")]
-        public IEnumerable<string> Create => empty;
+        public IEnumerable<string> Create { get; set; }
 
         [JsonProperty("extract")]
-        public IEnumerable<string> Extract => empty;
+        public IEnumerable<string> Extract { get; set; }
+
+        [JsonProperty("createext")]
+        public IDictionary<string, string> CreateExt { get; set; }
     }
 
     public class Options
     {
-        private static string[] disabled = new string[] { "archive", "callback", "chmod", "editor", "extract", "netmount", "ping", "search", "zipdl" };
+        private static string[] disabled = new string[] { "callback", "chmod", "editor", "netmount", "ping", "search", "zipdl" };
         private static string[] empty = new string[0];
         private static Archive emptyArchives = new Archive();
 
@@ -30,10 +31,19 @@ namespace elFinder.NetCore.Models.Commands
             Url = fullPath.RootVolume.Url ?? string.Empty;
             ThumbnailsUrl = fullPath.RootVolume.ThumbnailUrl ?? string.Empty;
             //ThumbnailsUrl = fullPath.Root.ThumbnailUrl ?? fullPath.Root.Url + "/.tmb/";
+            Archivers = new Archive
+            {
+                Create = new[] { "application/zip" },
+                Extract = new[] { "application/zip" },
+                CreateExt = new Dictionary<string, string>
+                {
+                    {"application/zip" ,"zip"}
+                }
+            };
         }
 
         [JsonProperty("archivers")]
-        public Archive Archivers => emptyArchives;
+        public Archive Archivers { get; set; }
 
         [JsonProperty("disabled")]
         public IEnumerable<string> Disabled => disabled;
