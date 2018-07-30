@@ -35,11 +35,11 @@ namespace elFinder.NetCore.Models.Commands
             {
                 Create = new[] { "application/zip" },
                 Extract = new[] { "application/zip" },
-                CreateExt = new Dictionary<string, string>{
+                CreateExt = new Dictionary<string, string>
+                {
                     {"application/zip" ,"zip"}
                 }
             };
-
         }
 
         [JsonProperty("archivers")]

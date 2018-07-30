@@ -35,39 +35,9 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
         #region IDriver Members
 
-        public async Task<FullPath> ParsePathAsync(string target)
+        public Task<JsonResult> ArchiveAsync(FullPath parentPath, IEnumerable<FullPath> paths, string filename, string mimeType)
         {
-            if (string.IsNullOrEmpty(target))
-            {
-                return null;
-            }
-
-            string volumePrefix = null;
-            string pathHash = null;
-            for (int i = 0; i < target.Length; i++)
-            {
-                if (target[i] == '_')
-                {
-                    pathHash = target.Substring(i + 1);
-                    volumePrefix = target.Substring(0, i + 1);
-                    break;
-                }
-            }
-
-            var root = Roots.First(r => r.VolumeId == volumePrefix);
-            string path = HttpEncoder.DecodePath(pathHash);
-            string dirUrl = path != root.RootDirectory ? path : string.Empty;
-            var dir = new AzureStorageDirectory(root.RootDirectory + dirUrl);
-
-            if (await dir.ExistsAsync)
-            {
-                return new FullPath(root, dir, target);
-            }
-            else
-            {
-                var file = new AzureStorageFile(root.RootDirectory + dirUrl);
-                return new FullPath(root, file, target);
-            }
+            throw new NotImplementedException();
         }
 
         public async Task<JsonResult> CropAsync(FullPath path, int x, int y, int width, int height)
@@ -178,6 +148,11 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 }
             }
             return await Json(response);
+        }
+
+        public Task<JsonResult> ExtractAsync(FullPath fullPath, bool newFolder)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<IActionResult> FileAsync(FullPath path, bool download)
@@ -439,6 +414,41 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 }
             }
             return await Json(response);
+        }
+
+        public async Task<FullPath> ParsePathAsync(string target)
+        {
+            if (string.IsNullOrEmpty(target))
+            {
+                return null;
+            }
+
+            string volumePrefix = null;
+            string pathHash = null;
+            for (int i = 0; i < target.Length; i++)
+            {
+                if (target[i] == '_')
+                {
+                    pathHash = target.Substring(i + 1);
+                    volumePrefix = target.Substring(0, i + 1);
+                    break;
+                }
+            }
+
+            var root = Roots.First(r => r.VolumeId == volumePrefix);
+            string path = HttpEncoder.DecodePath(pathHash);
+            string dirUrl = path != root.RootDirectory ? path : string.Empty;
+            var dir = new AzureStorageDirectory(root.RootDirectory + dirUrl);
+
+            if (await dir.ExistsAsync)
+            {
+                return new FullPath(root, dir, target);
+            }
+            else
+            {
+                var file = new AzureStorageFile(root.RootDirectory + dirUrl);
+                return new FullPath(root, file, target);
+            }
         }
 
         public async Task<JsonResult> PasteAsync(FullPath dest, IEnumerable<FullPath> paths, bool isCut, IEnumerable<string> renames, string suffix)
@@ -784,16 +794,6 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
                 await AzureStorageAPI.DeleteFileIfExistsAsync(thumbPath);
             }
-        }
-
-        public Task<JsonResult> ArchiveAsync(FullPath parentPath, IEnumerable<FullPath> paths, string filename, string mimeType)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<JsonResult> ExtractAsync(FullPath fullPath, bool newFolder)
-        {
-            throw new NotImplementedException();
         }
     }
 }
