@@ -10,7 +10,7 @@
 		// https://github.com/Studio-42/elFinder/wiki/Client-configuration-options
         $(document).ready(function () {
             var myCommands = elFinder.prototype._options.commands;
-            var disabled = ['archive', 'callback', 'chmod', 'editor', 'extract', 'netmount', 'ping', 'search', 'zipdl', 'help']; // Not yet implemented commands in ElFinder.Net
+            var disabled = ['callback', 'chmod', 'editor', 'netmount', 'ping', 'search', 'zipdl', 'help']; // Not yet implemented commands in elFinder.NetCore
             elFinder.prototype.i18.en.messages.TextArea = "Edit";
 
             $.each(disabled, function (i, cmd) {

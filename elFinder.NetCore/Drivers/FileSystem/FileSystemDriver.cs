@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using elFinder.NetCore.Drawing;
@@ -34,40 +35,59 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
         #region IDriver Members
 
-        public async Task<FullPath> ParsePathAsync(string target)
+        public async Task<JsonResult> ArchiveAsync(FullPath parentPath, IEnumerable<FullPath> paths, string filename, string mimeType)
         {
-            if (string.IsNullOrEmpty(target))
+            var response = new AddResponseModel();
+
+            if (paths == null)
             {
-                return null;
+                throw new NotSupportedException();
             }
 
-            string volumePrefix = null;
-            string pathHash = null;
-            for (int i = 0; i < target.Length; i++)
+            if (mimeType != "application/zip")
             {
-                if (target[i] == '_')
+                throw new NotSupportedException("Only .zip files are currently supported.");
+            }
+
+            // Parse target path
+
+            var directoryInfo = parentPath.Directory;
+
+            if (directoryInfo != null)
+            {
+                filename = filename ?? "newfile";
+
+                if (filename.EndsWith(".zip"))
                 {
-                    pathHash = target.Substring(i + 1);
-                    volumePrefix = target.Substring(0, i + 1);
-                    break;
+                    filename = filename.Replace(".zip", "");
                 }
+
+                var newPath = Path.Combine(directoryInfo.FullName, filename + ".zip");
+
+                if (File.Exists(newPath))
+                {
+                    File.Delete(newPath);
+                }
+
+                using (var newFile = ZipFile.Open(newPath, ZipArchiveMode.Create))
+                {
+                    foreach (var tg in paths)
+                    {
+                        if (tg.IsDirectory)
+                        {
+                            await AddDirectoryToArchiveAsync(newFile, tg.Directory, "");
+                        }
+                        else
+                        {
+                            newFile.CreateEntryFromFile(tg.File.FullName, tg.File.Name);
+                        }
+                    }
+                }
+
+                response.Added.Add((FileModel)await BaseModel.CreateAsync(this, new FileSystemFile(newPath), parentPath.RootVolume));
             }
 
-            var root = Roots.First(r => r.VolumeId == volumePrefix);
-            var rootDirectory = new DirectoryInfo(root.RootDirectory);
-            string path = HttpEncoder.DecodePath(pathHash);
-            string dirUrl = path != rootDirectory.Name ? path : string.Empty;
-            var dir = new FileSystemDirectory(root.RootDirectory + dirUrl);
-
-            if (await dir.ExistsAsync)
-            {
-                return new FullPath(root, dir, target);
-            }
-            else
-            {
-                var file = new FileSystemFile(root.RootDirectory + dirUrl);
-                return new FullPath(root, file, target);
-            }
+            return await Json(response);
         }
 
         public async Task<JsonResult> CropAsync(FullPath path, int x, int y, int width, int height)
@@ -171,6 +191,71 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     response.Added.Add(await BaseModel.CreateAsync(this, new FileSystemFile(newName), path.RootVolume));
                 }
             }
+            return await Json(response);
+        }
+
+        public async Task<JsonResult> ExtractAsync(FullPath fullPath, bool newFolder)
+        {
+            var response = new AddResponseModel();
+
+            if (fullPath.IsDirectory || fullPath.File.Extension.ToLower() != ".zip")
+            {
+                throw new NotSupportedException("Only .zip files are currently supported.");
+            }
+
+            var rootPath = fullPath.File.Directory.FullName;
+
+            if (newFolder)
+            {
+                rootPath = Path.Combine(rootPath, Path.GetFileNameWithoutExtension(fullPath.File.Name));
+                var rootDir = new FileSystemDirectory(rootPath);
+                if (!await rootDir.ExistsAsync)
+                {
+                    await rootDir.CreateAsync();
+                }
+                response.Added.Add(await BaseModel.CreateAsync(this, rootDir, fullPath.RootVolume));
+            }
+
+            using (var archive = ZipFile.OpenRead(fullPath.File.FullName))
+            {
+                var separator = Path.DirectorySeparatorChar.ToString();
+                foreach (ZipArchiveEntry entry in archive.Entries)
+                {
+                    try
+                    {
+                        //Replce zip entry path separator by system path separator
+                        var file = Path.Combine(rootPath, entry.FullName)
+                             .Replace("/", separator).Replace("\\", separator);
+
+                        if (file.EndsWith(separator)) //directory
+                        {
+                            var dir = new FileSystemDirectory(file);
+
+                            if (!await dir.ExistsAsync)
+                            {
+                                await dir.CreateAsync();
+                            }
+                            if (!newFolder)
+                            {
+                                response.Added.Add(await BaseModel.CreateAsync(this, dir, fullPath.RootVolume));
+                            }
+                        }
+                        else
+                        {
+                            entry.ExtractToFile(file, true);
+                            if (!newFolder)
+                            {
+                                response.Added.Add(await BaseModel.CreateAsync(this, new FileSystemFile(file), fullPath.RootVolume));
+                            }
+                        }
+                    }
+                    catch //(Exception ex)
+                    {
+                        //throw new Exception(entry.FullName, ex);
+                    }
+                }
+            }
+
             return await Json(response);
         }
 
@@ -394,6 +479,42 @@ namespace elFinder.NetCore.Drivers.FileSystem
             return await Json(response);
         }
 
+        public async Task<FullPath> ParsePathAsync(string target)
+        {
+            if (string.IsNullOrEmpty(target))
+            {
+                return null;
+            }
+
+            string volumePrefix = null;
+            string pathHash = null;
+            for (int i = 0; i < target.Length; i++)
+            {
+                if (target[i] == '_')
+                {
+                    pathHash = target.Substring(i + 1);
+                    volumePrefix = target.Substring(0, i + 1);
+                    break;
+                }
+            }
+
+            var root = Roots.First(r => r.VolumeId == volumePrefix);
+            var rootDirectory = new DirectoryInfo(root.RootDirectory);
+            string path = HttpEncoder.DecodePath(pathHash);
+            string dirUrl = path != rootDirectory.Name ? path : string.Empty;
+            var dir = new FileSystemDirectory(root.RootDirectory + dirUrl);
+
+            if (await dir.ExistsAsync)
+            {
+                return new FullPath(root, dir, target);
+            }
+            else
+            {
+                var file = new FileSystemFile(root.RootDirectory + dirUrl);
+                return new FullPath(root, file, target);
+            }
+        }
+
         public async Task<JsonResult> PasteAsync(FullPath dest, IEnumerable<FullPath> paths, bool isCut, IEnumerable<string> renames, string suffix)
         {
             var response = new ReplaceResponseModel();
@@ -462,14 +583,18 @@ namespace elFinder.NetCore.Drivers.FileSystem
             foreach (var path in paths)
             {
                 await RemoveThumbsAsync(path);
-                if (path.IsDirectory)
+                try
                 {
-                    Directory.Delete(path.Directory.FullName, true);
+                    if (path.IsDirectory)
+                    {
+                        Directory.Delete(path.Directory.FullName, true);
+                    }
+                    else
+                    {
+                        File.Delete(path.File.FullName);
+                    }
                 }
-                else
-                {
-                    File.Delete(path.File.FullName);
-                }
+                catch { }
                 response.Removed.Add(path.HashedTarget);
             }
             return await Json(response);
@@ -783,5 +908,25 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 }
             }
         }
+
+        #region private
+
+        private async Task AddDirectoryToArchiveAsync(ZipArchive zipFile, IDirectory directoryInfo, string root)
+        {
+            zipFile.CreateEntry(root + directoryInfo.Name + "/");
+            var dirs = await directoryInfo.GetDirectoriesAsync();
+            foreach (var dir in dirs)
+            {
+                await AddDirectoryToArchiveAsync(zipFile, dir, root + directoryInfo.Name + "/");
+            }
+
+            var files = await directoryInfo.GetFilesAsync();
+            foreach (var file in files)
+            {
+                zipFile.CreateEntryFromFile(file.FullName, root + directoryInfo.Name + "/" + file.Name);
+            }
+        }
+
+        #endregion private
     }
 }

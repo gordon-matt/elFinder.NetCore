@@ -7,13 +7,15 @@ namespace elFinder.NetCore
 {
     public interface IDriver
     {
-        Task<FullPath> ParsePathAsync(string target);
+        Task<JsonResult> ArchiveAsync(FullPath parentPath, IEnumerable<FullPath> paths, string filename, string mimeType);
 
         Task<JsonResult> CropAsync(FullPath path, int x, int y, int width, int height);
 
         Task<JsonResult> DimAsync(FullPath path);
 
         Task<JsonResult> DuplicateAsync(IEnumerable<FullPath> paths);
+
+        Task<JsonResult> ExtractAsync(FullPath fullPath, bool newFolder);
 
         Task<IActionResult> FileAsync(FullPath path, bool download);
 
@@ -30,6 +32,8 @@ namespace elFinder.NetCore
         Task<JsonResult> OpenAsync(FullPath path, bool tree);
 
         Task<JsonResult> ParentsAsync(FullPath path);
+
+        Task<FullPath> ParsePathAsync(string target);
 
         Task<JsonResult> PasteAsync(FullPath dest, IEnumerable<FullPath> paths, bool isCut, IEnumerable<string> renames, string suffix);
 
