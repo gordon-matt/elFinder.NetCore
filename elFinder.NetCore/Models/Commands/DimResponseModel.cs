@@ -1,4 +1,4 @@
-﻿using System.DrawingCore;
+﻿using System.Drawing;
 using Newtonsoft.Json;
 
 namespace elFinder.NetCore.Models.Commands

@@ -50,5 +50,9 @@ namespace elFinder.NetCore
         Task<JsonResult> TreeAsync(FullPath path);
 
         Task<JsonResult> UploadAsync(FullPath path, IEnumerable<IFormFile> files, bool? overwrite, IEnumerable<FullPath> uploadPaths, IEnumerable<string> renames, string suffix);
+
+        Task<JsonResult> ArchiveAsync(FullPath parentPath, IEnumerable<FullPath> paths, string filename, string mimeType);
+
+        Task<JsonResult> ExtractAsync(FullPath fullPath, bool newFolder);
     }
 }

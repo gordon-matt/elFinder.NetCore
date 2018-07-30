@@ -283,3 +283,4 @@ __pycache__/
 
 ### VisualStudio Patch ###
 build/
+.vscode
