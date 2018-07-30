@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO.Compression;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,6 +27,22 @@ namespace elFinder.NetCore.Drivers
         protected Task<JsonResult> Json(object data)
         {
             return Task.FromResult(new JsonResult(data) { ContentType = "text/html" });
+        }
+
+        protected async Task AddDirectoryToArchiveAsync(ZipArchive zipFile, IDirectory directoryInfo, string root)
+        {
+            zipFile.CreateEntry(root + directoryInfo.Name + "/");
+            var dirs = await directoryInfo.GetDirectoriesAsync();
+            foreach (var dir in dirs)
+            {
+                await AddDirectoryToArchiveAsync(zipFile, dir, root + directoryInfo.Name + "/");
+            }
+
+            var files = await directoryInfo.GetFilesAsync();
+            foreach (var file in files)
+            {
+                zipFile.CreateEntryFromFile(file.FullName, root + directoryInfo.Name + "/" + file.Name);
+            }
         }
     }
 }

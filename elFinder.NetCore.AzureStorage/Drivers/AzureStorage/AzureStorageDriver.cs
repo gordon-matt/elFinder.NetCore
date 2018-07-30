@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using elFinder.NetCore.Drawing;
@@ -35,9 +36,67 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
         #region IDriver Members
 
-        public Task<JsonResult> ArchiveAsync(FullPath parentPath, IEnumerable<FullPath> paths, string filename, string mimeType)
+        public async Task<JsonResult> ArchiveAsync(FullPath parentPath, IEnumerable<FullPath> paths, string filename, string mimeType)
         {
-            throw new NotImplementedException();
+            var response = new AddResponseModel();
+
+            if (paths == null)
+            {
+                throw new NotSupportedException();
+            }
+
+            if (mimeType != "application/zip")
+            {
+                throw new NotSupportedException("Only .zip files are currently supported.");
+            }
+
+            // Parse target path
+
+            var directoryInfo = parentPath.Directory;
+
+            if (directoryInfo != null)
+            {
+                filename = filename ?? "newfile";
+
+                if (filename.EndsWith(".zip"))
+                {
+                    filename = filename.Replace(".zip", "");
+                }
+
+                var newPath = AzureStorageAPI.PathCombine(directoryInfo.FullName, filename + ".zip");
+
+                if (await AzureStorageAPI.FileExistsAsync(newPath))
+                {
+                    await AzureStorageAPI.DeleteFileAsync(newPath);
+                }
+
+                var archivePath = Path.GetTempFileName();
+                using (var newFile = ZipFile.Open(archivePath, ZipArchiveMode.Update))
+                {
+                    foreach (var tg in paths)
+                    {
+                        if (tg.IsDirectory)
+                        {
+                            await AddDirectoryToArchiveAsync(newFile, tg.Directory, "");
+                        }
+                        else
+                        {
+                            var filePath = Path.GetTempFileName();
+                            File.WriteAllBytes(filePath, await AzureStorageAPI.FileBytesAsync(tg.File.FullName));
+                            newFile.CreateEntryFromFile(filePath, tg.File.Name);
+                        }
+                    }
+                }
+                
+                using (var stream = new FileStream(archivePath, FileMode.Open))
+                {
+                    await AzureStorageAPI.PutAsync(newPath, stream);
+                }
+
+                response.Added.Add((FileModel)await BaseModel.CreateAsync(this, new AzureStorageFile(newPath), parentPath.RootVolume));
+            }
+
+            return await Json(response);
         }
 
         public async Task<JsonResult> CropAsync(FullPath path, int x, int y, int width, int height)
@@ -150,9 +209,86 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return await Json(response);
         }
 
-        public Task<JsonResult> ExtractAsync(FullPath fullPath, bool newFolder)
+        public async Task<JsonResult> ExtractAsync(FullPath fullPath, bool newFolder)
         {
-            throw new NotImplementedException();
+            var response = new AddResponseModel();
+
+            if (fullPath.IsDirectory || fullPath.File.Extension.ToLower() != ".zip")
+            {
+                throw new NotSupportedException("Only .zip files are currently supported.");
+            }
+
+            var rootPath = fullPath.File.Directory.FullName;
+
+            if (newFolder)
+            {
+                // Azure doesn't like directory names that look like a file name i.e. blah.png
+                // So iterate through the names until there's no more extension
+                var path = Path.GetFileNameWithoutExtension(fullPath.File.Name);
+                while (Path.HasExtension(path))
+                {
+                    path = Path.GetFileNameWithoutExtension(path);
+                }
+
+                rootPath = AzureStorageAPI.PathCombine(rootPath, path);
+                var rootDir = new AzureStorageDirectory(rootPath);
+                if (!await rootDir.ExistsAsync)
+                {
+                    await rootDir.CreateAsync();
+                }
+                response.Added.Add(await BaseModel.CreateAsync(this, rootDir, fullPath.RootVolume));
+            }
+
+            // Create temp file
+            var archivePath = Path.GetTempFileName();
+            File.WriteAllBytes(archivePath, await AzureStorageAPI.FileBytesAsync(fullPath.File.FullName));
+
+            using (var archive = ZipFile.OpenRead(archivePath))
+            {
+                var separator = Path.DirectorySeparatorChar.ToString();
+                foreach (ZipArchiveEntry entry in archive.Entries)
+                {
+                    try
+                    {
+                        var file = AzureStorageAPI.PathCombine(rootPath, entry.FullName);
+
+                        if (file.EndsWith(separator)) //directory
+                        {
+                            var dir = new AzureStorageDirectory(file);
+
+                            if (!await dir.ExistsAsync)
+                            {
+                                await dir.CreateAsync();
+                            }
+                            if (!newFolder)
+                            {
+                                response.Added.Add(await BaseModel.CreateAsync(this, dir, fullPath.RootVolume));
+                            }
+                        }
+                        else
+                        {
+                            var filePath = Path.GetTempFileName();
+                            entry.ExtractToFile(filePath, true);
+
+                            using (var stream = new FileStream(filePath, FileMode.Open))
+                            {
+                                await AzureStorageAPI.PutAsync(file, stream);
+                            }
+
+                            if (!newFolder)
+                            {
+                                response.Added.Add(await BaseModel.CreateAsync(this, new AzureStorageFile(file), fullPath.RootVolume));
+                            }
+                        }
+                    }
+                    catch //(Exception ex)
+                    {
+                        //throw new Exception(entry.FullName, ex);
+                    }
+                }
+            }
+
+            return await Json(response);
         }
 
         public async Task<IActionResult> FileAsync(FullPath path, bool download)
