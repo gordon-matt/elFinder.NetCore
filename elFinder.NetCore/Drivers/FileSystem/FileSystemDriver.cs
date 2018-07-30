@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Threading.Tasks;
-using elFinder.NetCore.Drawing;
+﻿using elFinder.NetCore.Drawing;
 using elFinder.NetCore.Helpers;
 using elFinder.NetCore.Models;
 using elFinder.NetCore.Models.Commands;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace elFinder.NetCore.Drivers.FileSystem
 {
@@ -908,25 +908,5 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 }
             }
         }
-
-        #region private
-
-        private async Task AddDirectoryToArchiveAsync(ZipArchive zipFile, IDirectory directoryInfo, string root)
-        {
-            zipFile.CreateEntry(root + directoryInfo.Name + "/");
-            var dirs = await directoryInfo.GetDirectoriesAsync();
-            foreach (var dir in dirs)
-            {
-                await AddDirectoryToArchiveAsync(zipFile, dir, root + directoryInfo.Name + "/");
-            }
-
-            var files = await directoryInfo.GetFilesAsync();
-            foreach (var file in files)
-            {
-                zipFile.CreateEntryFromFile(file.FullName, root + directoryInfo.Name + "/" + file.Name);
-            }
-        }
-
-        #endregion private
     }
 }
