@@ -64,11 +64,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 }
 
                 var newPath = AzureStorageAPI.PathCombine(directoryInfo.FullName, filename + ".zip");
-
-                if (await AzureStorageAPI.FileExistsAsync(newPath))
-                {
-                    await AzureStorageAPI.DeleteFileAsync(newPath);
-                }
+                await AzureStorageAPI.DeleteFileIfExistsAsync(newPath);
 
                 var archivePath = Path.GetTempFileName();
                 using (var newFile = ZipFile.Open(archivePath, ZipArchiveMode.Update))
@@ -92,6 +88,9 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 {
                     await AzureStorageAPI.PutAsync(newPath, stream);
                 }
+
+                // Cleanup
+                File.Delete(archivePath);
 
                 response.Added.Add((FileModel)await BaseModel.CreateAsync(this, new AzureStorageFile(newPath), parentPath.RootVolume));
             }
@@ -275,6 +274,8 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                                 await AzureStorageAPI.PutAsync(file, stream);
                             }
 
+                            File.Delete(filePath);
+
                             if (!newFolder)
                             {
                                 response.Added.Add(await BaseModel.CreateAsync(this, new AzureStorageFile(file), fullPath.RootVolume));
@@ -287,6 +288,8 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                     }
                 }
             }
+
+            File.Delete(archivePath);
 
             return await Json(response);
         }
