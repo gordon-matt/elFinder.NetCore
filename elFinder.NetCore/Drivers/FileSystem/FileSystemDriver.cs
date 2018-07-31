@@ -1,15 +1,15 @@
-﻿using elFinder.NetCore.Drawing;
-using elFinder.NetCore.Helpers;
-using elFinder.NetCore.Models;
-using elFinder.NetCore.Models.Commands;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
+using elFinder.NetCore.Drawing;
+using elFinder.NetCore.Helpers;
+using elFinder.NetCore.Models;
+using elFinder.NetCore.Models.Commands;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace elFinder.NetCore.Drivers.FileSystem
 {
