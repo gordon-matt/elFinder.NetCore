@@ -21,28 +21,31 @@ namespace elFinder.NetCore.Drivers
         public void AddRoot(RootVolume item)
         {
             Roots.Add(item);
-            item.VolumeId = VolumePrefix + Roots.Count + "_";
+            item.VolumeId = $"{VolumePrefix}{Roots.Count}_";
         }
 
-        protected Task<JsonResult> Json(object data)
+        protected virtual async Task AddDirectoryToArchiveAsync(ZipArchive zipFile, IDirectory directoryInfo, string root)
         {
-            return Task.FromResult(new JsonResult(data) { ContentType = "text/html" });
-        }
+            string entryName = $"{root}{directoryInfo.Name}/";
 
-        protected async Task AddDirectoryToArchiveAsync(ZipArchive zipFile, IDirectory directoryInfo, string root)
-        {
-            zipFile.CreateEntry(root + directoryInfo.Name + "/");
+            zipFile.CreateEntry(entryName);
             var dirs = await directoryInfo.GetDirectoriesAsync();
+
             foreach (var dir in dirs)
             {
-                await AddDirectoryToArchiveAsync(zipFile, dir, root + directoryInfo.Name + "/");
+                await AddDirectoryToArchiveAsync(zipFile, dir, entryName);
             }
 
             var files = await directoryInfo.GetFilesAsync();
             foreach (var file in files)
             {
-                zipFile.CreateEntryFromFile(file.FullName, root + directoryInfo.Name + "/" + file.Name);
+                zipFile.CreateEntryFromFile(file.FullName, entryName + file.Name);
             }
+        }
+
+        protected Task<JsonResult> Json(object data)
+        {
+            return Task.FromResult(new JsonResult(data) { ContentType = "text/html" });
         }
     }
 }

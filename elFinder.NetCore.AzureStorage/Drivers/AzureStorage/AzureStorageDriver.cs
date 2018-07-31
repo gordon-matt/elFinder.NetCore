@@ -83,7 +83,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                         }
                     }
                 }
-                
+
                 using (var stream = new FileStream(archivePath, FileMode.Open))
                 {
                     await AzureStorageAPI.PutAsync(newPath, stream);
