@@ -320,6 +320,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
         {
             var rootDir = GetRootDirectoryReference(dir);
             var sampleDir = IsRoot(dir) ? rootDir : rootDir.GetDirectoryReference(RelativePath(dir));
+            if (!await sampleDir.ExistsAsync()) return new IListFileItem[0];
 
             var results = new List<IListFileItem>();
             FileContinuationToken token = null;
