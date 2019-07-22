@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <UserSecretsId>a13535c9-0a1e-4ed1-8437-bafcc87a57a9</UserSecretsId>
@@ -24,5 +23,4 @@
   <ItemGroup>
     <ProjectReference Include="..\elFinder.NetCore.AzureStorage\elFinder.NetCore.AzureStorage.csproj" />
   </ItemGroup>
-
 </Project>

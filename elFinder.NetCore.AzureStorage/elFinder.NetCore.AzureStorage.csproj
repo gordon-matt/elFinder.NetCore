@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <Authors>Yevhen Noskov, Leniel Macaferi, Matt Gordon, Flavio Smirne</Authors>
@@ -19,5 +18,4 @@
   <ItemGroup>
     <ProjectReference Include="..\elFinder.NetCore\elFinder.NetCore.csproj" />
   </ItemGroup>
-
 </Project>
