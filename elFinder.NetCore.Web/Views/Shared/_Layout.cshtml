@@ -10,13 +10,14 @@
         <link rel="stylesheet" href="~/css/site.css" />
     </environment>
     <environment names="Staging,Production">
-        <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.6/css/bootstrap.min.css"
+        <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/css/bootstrap.min.css"
               asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
               asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
         <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
     </environment>
-
-    <link rel="stylesheet" href="~/lib/jquery-ui/themes/base/all.css" />
+    
+    <link rel="stylesheet" href="~/lib/jquery-ui/themes/base/theme.css" />
+    <link rel="stylesheet" href="~/lib/jquery-ui/themes/base/jquery-ui.css" />
     <link rel="stylesheet" href="~/lib/elfinder/css/elfinder.full.css" />
     <link rel="stylesheet" href="~/lib/elfinder/css/theme.css" /> @* <-- NOTE: This file is new and some of the themes may not look quite right if this is used. *@
     <link rel="stylesheet" href="~/css/elfinder/themes/material/css/theme-gray.css" id="elfinder-theme" />
@@ -82,7 +83,7 @@
                 asp-fallback-src="~/lib/jquery/dist/jquery.min.js"
                 asp-fallback-test="window.jQuery">
         </script>*@
-        <script src="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.6/bootstrap.min.js"
+        <script src="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/bootstrap.min.js"
                 asp-fallback-src="~/lib/bootstrap/dist/js/bootstrap.min.js"
                 asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal">
         </script>
