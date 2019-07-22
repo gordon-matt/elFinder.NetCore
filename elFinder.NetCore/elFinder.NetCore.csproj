@@ -1,11 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <Authors>Yevhen Noskov, Leniel Macaferi, Matt Gordon, Flavio Smirne</Authors>
     <Company>N/A</Company>
     <NeutralLanguage>en-US</NeutralLanguage>
-	  <Description>elFinder ASP.NET Core backend</Description>
+    <Description>elFinder ASP.NET Core backend</Description>
     <PackageProjectUrl>https://github.com/gordon-matt/elFinder.NetCore</PackageProjectUrl>
     <Version>1.2.0</Version>
     <PackageLicenseUrl></PackageLicenseUrl>
@@ -23,5 +22,4 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
     <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
   </ItemGroup>
-
 </Project>
