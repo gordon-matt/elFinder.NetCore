@@ -397,7 +397,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 response.Added.Add(await BaseModel.CreateAsync(this, newDir, path.RootVolume));
 
                 var relativePath = newDir.FullName.Substring(path.RootVolume.RootDirectory.Length);
-                response.Hashes.Add(new KeyValuePair<string, string>($"/{dirName}", path.RootVolume.VolumeId + HttpEncoder.EncodePath(relativePath)));
+                response.Hashes.Add($"/{dirName}", path.RootVolume.VolumeId + HttpEncoder.EncodePath(relativePath));
             }
 
             return await Json(response);
