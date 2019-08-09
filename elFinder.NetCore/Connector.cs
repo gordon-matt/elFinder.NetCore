@@ -15,7 +15,7 @@ namespace elFinder.NetCore
     /// </summary>
     public class Connector
     {
-        private IDriver driver;
+        private readonly IDriver driver;
 
         public Connector(IDriver driver)
         {
