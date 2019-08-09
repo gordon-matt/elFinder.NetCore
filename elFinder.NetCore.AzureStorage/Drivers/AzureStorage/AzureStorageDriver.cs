@@ -466,7 +466,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                     response.Added.Add(await BaseModel.CreateAsync(this, newDir, path.RootVolume));
 
                     string relativePath = newDir.FullName.Substring(path.RootVolume.RootDirectory.Length);
-                    response.Hashes.Add(new KeyValuePair<string, string>($"/{dirName}", path.RootVolume.VolumeId + HttpEncoder.EncodePath(relativePath)));
+                    response.Hashes.Add($"/{dirName}", path.RootVolume.VolumeId + HttpEncoder.EncodePath(relativePath));
                 }
             }
 
