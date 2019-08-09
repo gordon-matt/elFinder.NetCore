@@ -32,7 +32,7 @@ namespace elFinder.NetCore.Helpers
             ///////////////////////////////////////////////////////////////////
             // Step 1: Calculate the number of padding chars to append to this string.
             //         The number of padding chars to append is stored in the last char of the string.
-            int numPadChars = (int)input[len - 1] - (int)'0';
+            int numPadChars = input[len - 1] - '0';
             if (numPadChars < 0 || numPadChars > 10)
             {
                 return null;
@@ -76,7 +76,7 @@ namespace elFinder.NetCore.Helpers
             }
             if (input.Length < 1)
             {
-                return String.Empty;
+                return string.Empty;
             }
 
             string base64Str = null;
@@ -105,7 +105,7 @@ namespace elFinder.NetCore.Helpers
             // Step 3: Create char array to store all non-padding chars,
             //      plus a char to indicate how many padding chars are needed
             base64Chars = new char[endPos + 1];
-            base64Chars[endPos] = (char)((int)'0' + base64Str.Length - endPos); // Store a char at the end, to indicate how many padding chars are needed
+            base64Chars[endPos] = (char)('0' + base64Str.Length - endPos); // Store a char at the end, to indicate how many padding chars are needed
 
             ////////////////////////////////////////////////////////
             // Step 3: Copy in the other chars. Transform the "+" to "-", and "/" to "_"
