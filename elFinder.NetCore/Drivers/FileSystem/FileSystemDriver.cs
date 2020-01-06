@@ -62,7 +62,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     filename = filename.Replace(".zip", "");
                 }
 
-                var newPath = Path.Combine(directoryInfo.FullName, filename + ".zip");
+                string newPath = Path.Combine(directoryInfo.FullName, filename + ".zip");
 
                 if (File.Exists(newPath))
                 {
@@ -203,7 +203,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 throw new NotSupportedException("Only .zip files are currently supported.");
             }
 
-            var rootPath = fullPath.File.Directory.FullName;
+            string rootPath = fullPath.File.Directory.FullName;
 
             if (newFolder)
             {
@@ -218,13 +218,13 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
             using (var archive = ZipFile.OpenRead(fullPath.File.FullName))
             {
-                var separator = Path.DirectorySeparatorChar.ToString();
+                string separator = Path.DirectorySeparatorChar.ToString();
                 foreach (ZipArchiveEntry entry in archive.Entries)
                 {
                     try
                     {
                         //Replce zip entry path separator by system path separator
-                        var file = Path.Combine(rootPath, entry.FullName)
+                        string file = Path.Combine(rootPath, entry.FullName)
                              .Replace("/", separator).Replace("\\", separator);
 
                         if (file.EndsWith(separator)) //directory
@@ -388,19 +388,16 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 response.Added.Add(await BaseModel.CreateAsync(this, newDir, path.RootVolume));
             }
 
-            if (dirs.Any())
+            foreach (string dir in dirs)
             {
-                foreach (var dir in dirs)
-                {
-                    var dirName = dir.StartsWith("/") ? dir.Substring(1) : dir;
-                    var newDir = new FileSystemDirectory(Path.Combine(path.Directory.FullName, dirName));
-                    await newDir.CreateAsync();
+                string dirName = dir.StartsWith("/") ? dir.Substring(1) : dir;
+                var newDir = new FileSystemDirectory(Path.Combine(path.Directory.FullName, dirName));
+                await newDir.CreateAsync();
 
-                    response.Added.Add(await BaseModel.CreateAsync(this, newDir, path.RootVolume));
+                response.Added.Add(await BaseModel.CreateAsync(this, newDir, path.RootVolume));
 
-                    var relativePath = newDir.FullName.Substring(path.RootVolume.RootDirectory.Length);
-                    response.Hashes.Add(new KeyValuePair<string, string>($"/{dirName}", path.RootVolume.VolumeId + HttpEncoder.EncodePath(relativePath)));
-                }
+                string relativePath = newDir.FullName.Substring(path.RootVolume.RootDirectory.Length);
+                response.Hashes.Add($"/{dirName}", path.RootVolume.VolumeId + HttpEncoder.EncodePath(relativePath));
             }
 
             return await Json(response);
@@ -732,7 +729,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
             foreach (string rename in renames)
             {
                 var fileInfo = new FileInfo(Path.Combine(path.Directory.FullName, rename));
-                var destination = Path.Combine(path.Directory.FullName, $"{Path.GetFileNameWithoutExtension(rename)}{suffix}{Path.GetExtension(rename)}");
+                string destination = Path.Combine(path.Directory.FullName, $"{Path.GetFileNameWithoutExtension(rename)}{suffix}{Path.GetExtension(rename)}");
                 fileInfo.MoveTo(destination);
                 response.Added.Add((FileModel)await BaseModel.CreateAsync(this, new FileSystemFile(destination), path.RootVolume));
             }

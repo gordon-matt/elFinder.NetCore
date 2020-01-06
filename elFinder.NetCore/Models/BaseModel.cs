@@ -10,7 +10,7 @@ namespace elFinder.NetCore.Models
 {
     public abstract class BaseModel
     {
-        protected static readonly DateTime _unixOrigin = new DateTime(1970, 1, 1, 0, 0, 0);
+        protected static readonly DateTime unixOrigin = new DateTime(1970, 1, 1, 0, 0, 0);
 
         /// <summary>
         ///  Name of file/dir. Required
@@ -91,7 +91,7 @@ namespace elFinder.NetCore.Models
             response.Locked = ((volume.LockedFolders != null && volume.LockedFolders.Any(f => f == file.Directory.Name)) || volume.IsLocked) ? (byte)1 : (byte)0;
             response.Name = file.Name;
             response.Size = await file.LengthAsync;
-            response.UnixTimeStamp = (long)(await file.LastWriteTimeUtcAsync - _unixOrigin).TotalSeconds;
+            response.UnixTimeStamp = (long)(await file.LastWriteTimeUtcAsync - unixOrigin).TotalSeconds;
             response.Mime = MimeHelper.GetMimeType(file.Extension);
             response.Hash = volume.VolumeId + HttpEncoder.EncodePath(relativePath);
             response.ParentHash = volume.VolumeId + HttpEncoder.EncodePath(parentPath.Length > 0 ? parentPath : file.Directory.Name);
@@ -133,7 +133,7 @@ namespace elFinder.NetCore.Models
                     Locked = volume.IsLocked ? (byte)1 : (byte)0,
                     Name = volume.Alias,
                     Size = 0,
-                    UnixTimeStamp = (long)(DateTime.UtcNow - _unixOrigin).TotalSeconds,
+                    UnixTimeStamp = (long)(DateTime.UtcNow - unixOrigin).TotalSeconds,
                     VolumeId = volume.VolumeId
                 };
                 return response;
@@ -152,7 +152,7 @@ namespace elFinder.NetCore.Models
                     Locked = ((volume.LockedFolders != null && volume.LockedFolders.Any(f => f == directory.Name)) || volume.IsLocked) ? (byte)1 : (byte)0,
                     Size = 0,
                     Name = directory.Name,
-                    UnixTimeStamp = (long)(await directory.LastWriteTimeUtcAsync - _unixOrigin).TotalSeconds,
+                    UnixTimeStamp = (long)(await directory.LastWriteTimeUtcAsync - unixOrigin).TotalSeconds,
                     ParentHash = volume.VolumeId + HttpEncoder.EncodePath(parentPath.Length > 0 ? parentPath : directory.Parent.Name)
                 };
                 return response;

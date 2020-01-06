@@ -1,23 +1,26 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
     <Authors>Yevhen Noskov, Leniel Macaferi, Matt Gordon, Flavio Smirne</Authors>
     <Company>N/A</Company>
     <NeutralLanguage>en-US</NeutralLanguage>
     <PackageProjectUrl>https://github.com/gordon-matt/elFinder.NetCore</PackageProjectUrl>
     <Description>Microsoft Azure Storage driver for elFinder.NetCore</Description>
     <PackageLicenseUrl></PackageLicenseUrl>
-    <Version>1.1.0</Version>
+    <Version>1.2.2</Version>
+    <OutputType>Library</OutputType>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="2.0.3" />
-    <PackageReference Include="WindowsAzure.Storage" Version="9.1.1" />
+    <PackageReference Include="WindowsAzure.Storage" Version="9.3.3" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'=='netcoreapp2.2'">
+    <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\elFinder.NetCore\elFinder.NetCore.csproj" />
   </ItemGroup>
-
 </Project>
