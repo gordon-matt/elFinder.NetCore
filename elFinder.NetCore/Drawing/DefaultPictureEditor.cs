@@ -187,36 +187,36 @@ namespace elFinder.NetCore.Drawing
                     {
                         points = new Point[]
                         {
-                            new Point( (int) oppositeBottom, 0 ),
-                            new Point( nWidth, (int) oppositeTop ),
-                            new Point( 0, (int) adjacentBottom )
+                            new Point((int) oppositeBottom, 0),
+                            new Point(nWidth, (int) oppositeTop),
+                            new Point(0, (int) adjacentBottom)
                         };
                     }
                     else if (lockedTheta >= halfPi && lockedTheta < Math.PI)
                     {
                         points = new Point[]
                         {
-                            new Point( nWidth, (int) oppositeTop ),
-                            new Point( (int) adjacentTop, nHeight ),
-                            new Point( (int) oppositeBottom, 0 )
+                            new Point(nWidth, (int) oppositeTop),
+                            new Point((int) adjacentTop, nHeight),
+                            new Point((int) oppositeBottom, 0)
                         };
                     }
                     else if (lockedTheta >= Math.PI && lockedTheta < (Math.PI + halfPi))
                     {
                         points = new Point[]
                         {
-                            new Point( (int) adjacentTop, nHeight ),
-                            new Point( 0, (int) adjacentBottom ),
-                            new Point( nWidth, (int) oppositeTop )
+                            new Point((int) adjacentTop, nHeight),
+                            new Point(0, (int) adjacentBottom),
+                            new Point(nWidth, (int) oppositeTop)
                         };
                     }
                     else
                     {
                         points = new Point[]
                         {
-                            new Point( 0, (int) adjacentBottom ),
-                            new Point( (int) oppositeBottom, 0 ),
-                            new Point( (int) adjacentTop, nHeight )
+                            new Point(0, (int) adjacentBottom),
+                            new Point((int) oppositeBottom, 0),
+                            new Point((int) adjacentTop, nHeight)
                         };
                     }
                     g.InterpolationMode = InterpolationMode.HighQualityBilinear;

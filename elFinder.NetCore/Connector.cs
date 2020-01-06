@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using elFinder.NetCore.Drawing;
 using elFinder.NetCore.Drivers;
-using elFinder.NetCore.Extensions;
 using elFinder.NetCore.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +15,7 @@ namespace elFinder.NetCore
     /// </summary>
     public class Connector
     {
-        private IDriver driver;
+        private readonly IDriver driver;
 
         public Connector(IDriver driver)
         {
