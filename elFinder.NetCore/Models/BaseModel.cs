@@ -1,10 +1,10 @@
-﻿using System;
+﻿using elFinder.NetCore.Drivers;
+using elFinder.NetCore.Helpers;
+using System;
 using System.IO;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using elFinder.NetCore.Drivers;
-using elFinder.NetCore.Helpers;
-using Newtonsoft.Json;
 
 namespace elFinder.NetCore.Models
 {
@@ -15,53 +15,53 @@ namespace elFinder.NetCore.Models
         /// <summary>
         ///  Name of file/dir. Required
         /// </summary>
-        [JsonProperty("name")]
+        [JsonPropertyName("name")]
         public string Name { get; protected set; }
 
         /// <summary>
         ///  Hash of current file/dir path, first symbol must be letter, symbols before _underline_ - volume id, Required.
         /// </summary>
-        [JsonProperty("hash")]
+        [JsonPropertyName("hash")]
         public string Hash { get; protected set; }
 
         /// <summary>
         ///  mime type. Required.
         /// </summary>
-        [JsonProperty("mime")]
+        [JsonPropertyName("mime")]
         public string Mime { get; protected set; }
 
         /// <summary>
         /// file modification time in unix timestamp. Required.
         /// </summary>
-        [JsonProperty("ts")]
+        [JsonPropertyName("ts")]
         public long UnixTimeStamp { get; protected set; }
 
         /// <summary>
         ///  file size in bytes
         /// </summary>
-        [JsonProperty("size")]
+        [JsonPropertyName("size")]
         public long Size { get; protected set; }
 
         /// <summary>
         ///  is readable
         /// </summary>
-        [JsonProperty("read")]
+        [JsonPropertyName("read")]
         public byte Read { get; protected set; }
 
         /// <summary>
         /// is writable
         /// </summary>
-        [JsonProperty("write")]
+        [JsonPropertyName("write")]
         public byte Write { get; protected set; }
 
         /// <summary>
         ///  is file locked. If locked that object cannot be deleted and renamed
         /// </summary>
-        [JsonProperty("locked")]
+        [JsonPropertyName("locked")]
         public byte Locked { get; protected set; }
 
-        public static async Task<BaseModel> CreateAsync(IDriver driver, IFile file, RootVolume volume)
-        {
+        public static async Task<FileModel> CreateAsync(IFile file, RootVolume volume)
+		{
             if (file == null) throw new ArgumentNullException("file");
             if (volume == null) throw new ArgumentNullException("volume");
 
@@ -98,7 +98,7 @@ namespace elFinder.NetCore.Models
             return response;
         }
 
-        public static async Task<BaseModel> CreateAsync(IDriver driver, IDirectory directory, RootVolume volume)
+        public static async Task<DirectoryModel> CreateAsync(IDirectory directory, RootVolume volume)
         {
             if (directory == null)
             {
@@ -145,7 +145,7 @@ namespace elFinder.NetCore.Models
                 var response = new DirectoryModel
                 {
                     Mime = "directory",
-                    ContainsChildDirs = (await directory.GetDirectoriesAsync()).Count() > 0 ? (byte)1 : (byte)0,
+                    Dirs = (await directory.GetDirectoriesAsync()).Count() > 0 ? (byte)1 : (byte)0,
                     Hash = volume.VolumeId + HttpEncoder.EncodePath(relativePath),
                     Read = 1,
                     Write = volume.IsReadOnly ? (byte)0 : (byte)1,
@@ -153,7 +153,8 @@ namespace elFinder.NetCore.Models
                     Size = 0,
                     Name = directory.Name,
                     UnixTimeStamp = (long)(await directory.LastWriteTimeUtcAsync - unixOrigin).TotalSeconds,
-                    ParentHash = volume.VolumeId + HttpEncoder.EncodePath(parentPath.Length > 0 ? parentPath : directory.Parent.Name)
+                    ParentHash = volume.VolumeId + HttpEncoder.EncodePath(parentPath.Length > 0 ? parentPath : directory.Parent.Name),
+                    VolumeId = volume.VolumeId
                 };
                 return response;
             }
