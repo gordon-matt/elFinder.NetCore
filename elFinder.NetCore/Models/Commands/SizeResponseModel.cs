@@ -1,16 +1,16 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace elFinder.NetCore.Models.Commands
 {
     public class SizeResponseModel
     {
-        [JsonProperty("size")]
+        [JsonPropertyName("size")]
         public long Size { get; set; }
 
-        [JsonProperty("fileCnt")]
+        [JsonPropertyName("fileCnt")]
         public int FileCount { get; set; }
 
-        [JsonProperty("dirCnt")]
+        [JsonPropertyName("dirCnt")]
         public int DirectoryCount { get; set; }
     }
 }

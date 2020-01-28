@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <UserSecretsId>a13535c9-0a1e-4ed1-8437-bafcc87a57a9</UserSecretsId>
     <NeutralLanguage>en-US</NeutralLanguage>
     <Authors>Yevhen Noskov, Leniel Macaferi, Matt Gordon, Flavio Smirne</Authors>
@@ -10,15 +10,6 @@
     <PackageLicenseUrl></PackageLicenseUrl>
     <Version>1.2.1</Version>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.0.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.2" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\elFinder.NetCore.AzureStorage\elFinder.NetCore.AzureStorage.csproj" />

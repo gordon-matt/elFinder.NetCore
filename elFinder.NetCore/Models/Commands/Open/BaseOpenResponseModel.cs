@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace elFinder.NetCore.Models.Commands
 {
@@ -7,22 +7,22 @@ namespace elFinder.NetCore.Models.Commands
     {
         private static DebugResponseModel debug = new DebugResponseModel();
 
-        public BaseOpenResponseModel(BaseModel currentWorkingDirectory)
+        public BaseOpenResponseModel(DirectoryModel currentWorkingDirectory)
         {
-            Files = new List<BaseModel>();
+            Files = new List<object>();
             CurrentWorkingDirectory = currentWorkingDirectory;
         }
 
-        [JsonProperty("cwd")]
-        public BaseModel CurrentWorkingDirectory { get; protected set; }
+        [JsonPropertyName("cwd")]
+        public DirectoryModel CurrentWorkingDirectory { get; protected set; }
 
-        [JsonProperty("debug")]
+        [JsonPropertyName("debug")]
         public DebugResponseModel Debug => debug;
 
-        [JsonProperty("files")]
-        public List<BaseModel> Files { get; protected set; }
+        [JsonPropertyName("files")]
+        public List<object> Files { get; protected set; }
 
-        [JsonProperty("options")]
+        [JsonPropertyName("options")]
         public Options Options { get; protected set; }
     }
 }

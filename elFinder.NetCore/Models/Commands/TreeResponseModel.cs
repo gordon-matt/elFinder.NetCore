@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace elFinder.NetCore.Models.Commands
 {
@@ -7,10 +7,10 @@ namespace elFinder.NetCore.Models.Commands
     {
         public TreeResponseModel()
         {
-            Tree = new List<BaseModel>();
+            Tree = new List<object>();
         }
 
-        [JsonProperty("tree")]
-        public List<BaseModel> Tree { get; private set; }
+        [JsonPropertyName("tree")]
+        public List<object> Tree { get; private set; }
     }
 }
