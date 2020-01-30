@@ -39,6 +39,8 @@ namespace elFinder.NetCore
 
         Task<JsonResult> PutAsync(FullPath path, string content);
 
+        Task<JsonResult> PutAsync(FullPath path, byte[] content);
+
         Task<JsonResult> RemoveAsync(IEnumerable<FullPath> paths);
 
         Task<JsonResult> RenameAsync(FullPath path, string name);

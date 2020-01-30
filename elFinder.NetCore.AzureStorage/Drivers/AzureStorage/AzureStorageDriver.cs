@@ -657,6 +657,17 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return await Json(response);
         }
 
+        public async Task<JsonResult> PutAsync(FullPath path, byte[] content)
+        {
+            var response = new ChangedResponseModel();
+
+            // Write content
+            await AzureStorageAPI.PutAsync(path.File.FullName, content);
+
+            response.Changed.Add(await BaseModel.CreateAsync(path.File, path.RootVolume));
+            return await Json(response);
+        }
+
         public async Task<JsonResult> RemoveAsync(IEnumerable<FullPath> paths)
         {
             var response = new RemoveResponseModel();

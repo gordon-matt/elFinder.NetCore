@@ -32,8 +32,8 @@ namespace elFinder.NetCore.Web.Controllers
 
             var root = new RootVolume(
                 Startup.MapPath("~/Files"),
-                $"http://{uri.Authority}/Files/",
-                $"http://{uri.Authority}/el-finder/file-system/thumb/")
+                $"{uri.Scheme}://{uri.Authority}/Files/",
+                $"{uri.Scheme}://{uri.Authority}/el-finder/file-system/thumb/")
             {
                 //IsReadOnly = !User.IsInRole("Administrators")
                 IsReadOnly = false, // Can be readonly according to user's membership permission

@@ -391,6 +391,15 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             await sampleFile.UploadFromStreamAsync(stream);
         }
 
+        public static async Task PutAsync(string file, byte[] content)
+        {
+            var rootDir = GetRootDirectoryReference(file);
+
+            var sampleFile = rootDir.GetFileReference(RelativePath(file));
+
+            await sampleFile.UploadFromByteArrayAsync(content, 0, content.Length);
+        }
+
         public static string RelativePath(string path)
         {
             int length = 0;

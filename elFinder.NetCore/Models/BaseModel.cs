@@ -68,8 +68,10 @@ namespace elFinder.NetCore.Models
             string parentPath = file.DirectoryName.Substring(volume.RootDirectory.Length);
             string relativePath = file.FullName.Substring(volume.RootDirectory.Length);
 
+            var fileLength = await file.LengthAsync;
+
             FileModel response;
-            if (volume.CanCreateThumbnail(file))
+            if (volume.CanCreateThumbnail(file) && fileLength > 0)
             {
                 using (var stream = await file.OpenReadAsync())
                 {
@@ -90,7 +92,7 @@ namespace elFinder.NetCore.Models
             response.Write = volume.IsReadOnly ? (byte)0 : (byte)1;
             response.Locked = ((volume.LockedFolders != null && volume.LockedFolders.Any(f => f == file.Directory.Name)) || volume.IsLocked) ? (byte)1 : (byte)0;
             response.Name = file.Name;
-            response.Size = await file.LengthAsync;
+            response.Size = fileLength;
             response.UnixTimeStamp = (long)(await file.LastWriteTimeUtcAsync - unixOrigin).TotalSeconds;
             response.Mime = MimeHelper.GetMimeType(file.Extension);
             response.Hash = volume.VolumeId + HttpEncoder.EncodePath(relativePath);
