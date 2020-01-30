@@ -574,6 +574,18 @@ namespace elFinder.NetCore.Drivers.FileSystem
             return await Json(response);
         }
 
+        public async Task<JsonResult> PutAsync(FullPath path, byte[] content)
+        {
+            var response = new ChangedResponseModel();
+            using (var fileStream = new FileStream(path.File.FullName, FileMode.Create))
+            using (var writer = new BinaryWriter(fileStream))
+            {
+                writer.Write(content);
+            }
+            response.Changed.Add(await BaseModel.CreateAsync(path.File, path.RootVolume));
+            return await Json(response);
+        }
+
         public async Task<JsonResult> RemoveAsync(IEnumerable<FullPath> paths)
         {
             var response = new RemoveResponseModel();
