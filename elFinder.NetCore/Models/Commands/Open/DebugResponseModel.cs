@@ -1,10 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace elFinder.NetCore.Models.Commands
 {
     public class DebugResponseModel
     {
-        [JsonProperty("connector")]
+        [JsonPropertyName("connector")]
         public string Connector => ".net";
     }
 }

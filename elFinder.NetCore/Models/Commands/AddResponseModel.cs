@@ -1,19 +1,19 @@
 ﻿using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace elFinder.NetCore.Models.Commands
 {
     public class AddResponseModel
     {
-        [JsonProperty("added")]
-        public List<BaseModel> Added { get; protected set; }
+        [JsonPropertyName("added")]
+        public List<object> Added { get; protected set; }
 
-        [JsonProperty("hashes")]
+        [JsonPropertyName("hashes")]
         public Dictionary<string, string> Hashes { get; protected set; }
 
         public AddResponseModel()
         {
-            Added = new List<BaseModel>();
+            Added = new List<object>();
             Hashes = new Dictionary<string, string>();
         }
     }

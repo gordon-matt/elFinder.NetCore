@@ -43,8 +43,8 @@ namespace elFinder.NetCore.Web.Controllers
 
             var root = new RootVolume(
                 rootDirectory,
-                $"http://{uri.Authority}/el-finder/azure-storage/files/{rootDirectory}/",
-                $"http://{uri.Authority}/el-finder/azure-storage/thumb/",
+                $"{uri.Scheme}://{uri.Authority}/el-finder/azure-storage/files/{rootDirectory}/",
+                $"{uri.Scheme}://{uri.Authority}/el-finder/azure-storage/thumb/",
                 '/')
             {
                 //IsReadOnly = !User.IsInRole("Administrators")

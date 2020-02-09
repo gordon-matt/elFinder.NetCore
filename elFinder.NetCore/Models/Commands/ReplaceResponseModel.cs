@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace elFinder.NetCore.Models.Commands
 {
@@ -7,14 +7,14 @@ namespace elFinder.NetCore.Models.Commands
     {
         public ReplaceResponseModel()
         {
-            Added = new List<BaseModel>();
+            Added = new List<object>();
             Removed = new List<string>();
         }
 
-        [JsonProperty("added")]
-        public List<BaseModel> Added { get; private set; }
+        [JsonPropertyName("added")]
+        public List<object> Added { get; private set; }
 
-        [JsonProperty("removed")]
+        [JsonPropertyName("removed")]
         public List<string> Removed { get; private set; }
     }
 }

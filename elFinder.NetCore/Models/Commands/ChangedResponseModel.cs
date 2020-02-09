@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace elFinder.NetCore.Models.Commands
 {
@@ -10,7 +10,7 @@ namespace elFinder.NetCore.Models.Commands
             Changed = new List<FileModel>();
         }
 
-        [JsonProperty("changed")]
+        [JsonPropertyName("changed")]
         public List<FileModel> Changed { get; private set; }
     }
 }
