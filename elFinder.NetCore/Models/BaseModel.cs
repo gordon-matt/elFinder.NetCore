@@ -1,10 +1,10 @@
-﻿using elFinder.NetCore.Drivers;
-using elFinder.NetCore.Helpers;
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using elFinder.NetCore.Drivers;
+using elFinder.NetCore.Helpers;
 
 namespace elFinder.NetCore.Models
 {
@@ -61,7 +61,7 @@ namespace elFinder.NetCore.Models
         public byte Locked { get; protected set; }
 
         public static async Task<FileModel> CreateAsync(IFile file, RootVolume volume)
-		{
+        {
             if (file == null) throw new ArgumentNullException("file");
             if (volume == null) throw new ArgumentNullException("volume");
 
