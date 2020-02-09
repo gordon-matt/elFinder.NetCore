@@ -1,17 +1,17 @@
 ﻿using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace elFinder.NetCore.Models.Commands
 {
     public class Archive
     {
-        [JsonProperty("create")]
+        [JsonPropertyName("create")]
         public IEnumerable<string> Create { get; set; }
 
-        [JsonProperty("extract")]
+        [JsonPropertyName("extract")]
         public IEnumerable<string> Extract { get; set; }
 
-        [JsonProperty("createext")]
+        [JsonPropertyName("createext")]
         public IDictionary<string, string> CreateExt { get; set; }
     }
 
@@ -42,34 +42,34 @@ namespace elFinder.NetCore.Models.Commands
             };
         }
 
-        [JsonProperty("archivers")]
+        [JsonPropertyName("archivers")]
         public Archive Archivers { get; set; }
 
-        [JsonProperty("disabled")]
+        [JsonPropertyName("disabled")]
         public IEnumerable<string> Disabled => disabled;
 
-        [JsonProperty("copyOverwrite")]
+        [JsonPropertyName("copyOverwrite")]
         public byte IsCopyOverwrite => 1;
 
-        [JsonProperty("path")]
+        [JsonPropertyName("path")]
         public string Path { get; set; }
 
-        [JsonProperty("separator")]
+        [JsonPropertyName("separator")]
         public char Separator => '/';
 
-        [JsonProperty("tmbUrl")]
+        [JsonPropertyName("tmbUrl")]
         public string ThumbnailsUrl { get; set; }
 
-        [JsonProperty("trashHash")]
+        [JsonPropertyName("trashHash")]
         public string TrashHash => string.Empty;
 
-        [JsonProperty("uploadMaxConn")]
+        [JsonPropertyName("uploadMaxConn")]
         public int UploadMaxConnections => -1;
 
-        [JsonProperty("uploadMaxSize")]
+        [JsonPropertyName("uploadMaxSize")]
         public string UploadMaxSize { get; set; }
 
-        [JsonProperty("url")]
+        [JsonPropertyName("url")]
         public string Url { get; set; }
     }
 }

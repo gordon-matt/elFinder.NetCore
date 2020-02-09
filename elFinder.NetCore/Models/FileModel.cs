@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace elFinder.NetCore.Models
 {
@@ -7,7 +7,7 @@ namespace elFinder.NetCore.Models
         /// <summary>
         ///  Hash of parent directory. Required except roots dirs.
         /// </summary>
-        [JsonProperty("phash")]
+        [JsonPropertyName("phash")]
         public string ParentHash { get; set; }
     }
 }

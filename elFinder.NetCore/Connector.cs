@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using elFinder.NetCore.Drawing;
 using elFinder.NetCore.Drivers;
@@ -119,7 +121,18 @@ namespace elFinder.NetCore
                     {
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
                         var content = parameters.GetValueOrDefault("content");
-                        return await driver.PutAsync(path, content);
+                        var encoding = parameters.GetValueOrDefault("encoding");
+
+                        if (encoding == "scheme")
+                        {
+                            using (var client = new WebClient())
+                            {
+                                var data = await client.DownloadDataTaskAsync(new Uri(content));
+                                return await driver.PutAsync(path, data);
+                            }
+                        }
+                        else
+                            return await driver.PutAsync(path, content);
                     }
                 case "rename":
                     {
