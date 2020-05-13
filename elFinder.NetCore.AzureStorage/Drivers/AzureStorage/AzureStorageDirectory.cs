@@ -85,7 +85,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return result;
         }
 
-        public async Task<IEnumerable<IFile>> GetFilesAsync()
+        public async Task<IEnumerable<IFile>> GetFilesAsync(IEnumerable<string> mimes)
         {
             var result = new List<IFile>();
 

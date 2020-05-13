@@ -41,11 +41,15 @@ namespace elFinder.NetCore.Web.Controllers
                 Alias = "Files", // Beautiful name given to the root/home folder
                 //MaxUploadSizeInKb = 2048, // Limit imposed to user uploaded file <= 2048 KB
                 //LockedFolders = new List<string>(new string[] { "Folder1" })
+                //ThumbnailSize = 256 //Change default thumbnail size
             };
 
             driver.AddRoot(root);
 
-            return new Connector(driver);
+            return new Connector(driver)
+            {
+                //MimeDetect = MimeDetect.INTERNAL //change MimeDetect option for support onlyMimes in client
+            };
         }
     }
 }

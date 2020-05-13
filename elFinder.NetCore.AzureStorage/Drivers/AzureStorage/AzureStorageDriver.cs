@@ -10,6 +10,7 @@ using elFinder.NetCore.Models;
 using elFinder.NetCore.Models.Commands;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 using Microsoft.WindowsAzure.Storage.File;
 
 namespace elFinder.NetCore.Drivers.AzureStorage
@@ -340,7 +341,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return await Json(response);
         }
 
-        public async Task<JsonResult> InitAsync(FullPath path)
+        public async Task<JsonResult> InitAsync(FullPath path, IEnumerable<string> mimes = null)
         {
             if (path == null)
             {
@@ -408,7 +409,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return await Json(response);
         }
 
-        public async Task<JsonResult> ListAsync(FullPath path, IEnumerable<string> intersect)
+        public async Task<JsonResult> ListAsync(FullPath path, IEnumerable<string> intersect, IEnumerable<string> mimes = null)
         {
             var response = new ListResponseModel();
 
@@ -483,7 +484,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return await Json(response);
         }
 
-        public async Task<JsonResult> OpenAsync(FullPath path, bool tree)
+        public async Task<JsonResult> OpenAsync(FullPath path, bool tree, IEnumerable<string> mimes = null)
         {
             var response = new OpenResponse(await BaseModel.CreateAsync(path.Directory, path.RootVolume), path);
 
@@ -900,7 +901,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             var response = new SizeResponseModel();
 
             // Add file sizes.
-            foreach (var file in await d.GetFilesAsync())
+            foreach (var file in await d.GetFilesAsync(default(StringValues)))
             {
                 response.FileCount++;
                 response.Size += await file.LengthAsync;
