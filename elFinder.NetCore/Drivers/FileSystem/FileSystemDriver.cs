@@ -294,7 +294,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
             return await Json(response);
         }
 
-        public async Task<JsonResult> InitAsync(FullPath path)
+        public async Task<JsonResult> InitAsync(FullPath path, IEnumerable<string> mimes)
         {
             if (path == null)
             {
@@ -309,7 +309,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
             var response = new InitResponseModel(await BaseModel.CreateAsync(path.Directory, path.RootVolume), new Options(path));
 
-            foreach (var item in await path.Directory.GetFilesAsync())
+            foreach (var item in await path.Directory.GetFilesAsync(mimes))
             {
                 if (!item.Attributes.HasFlag(FileAttributes.Hidden))
                 {
@@ -349,11 +349,12 @@ namespace elFinder.NetCore.Drivers.FileSystem
             return await Json(response);
         }
 
-        public async Task<JsonResult> ListAsync(FullPath path, IEnumerable<string> intersect)
+        public async Task<JsonResult> ListAsync(FullPath path, IEnumerable<string> intersect,
+            IEnumerable<string> mimes)
         {
             var response = new ListResponseModel();
 
-            foreach (var item in await path.Directory.GetFilesAsync())
+            foreach (var item in await path.Directory.GetFilesAsync(mimes))
             {
                 if (!item.Attributes.HasFlag(FileAttributes.Hidden))
                 {
@@ -413,10 +414,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
             return await Json(response);
         }
 
-        public async Task<JsonResult> OpenAsync(FullPath path, bool tree)
+        public async Task<JsonResult> OpenAsync(FullPath path, bool tree, IEnumerable<string> mimes)
         {
             var response = new OpenResponse(await BaseModel.CreateAsync(path.Directory, path.RootVolume), path);
-            foreach (var item in await path.Directory.GetFilesAsync())
+            foreach (var item in await path.Directory.GetFilesAsync(mimes))
             {
                 if (!item.Attributes.HasFlag(FileAttributes.Hidden))
                 {

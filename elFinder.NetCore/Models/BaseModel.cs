@@ -61,7 +61,7 @@ namespace elFinder.NetCore.Models
         public byte Locked { get; protected set; }
 
         public static async Task<FileModel> CreateAsync(IFile file, RootVolume volume)
-		{
+        {
             if (file == null) throw new ArgumentNullException("file");
             if (volume == null) throw new ArgumentNullException("volume");
 
@@ -75,12 +75,20 @@ namespace elFinder.NetCore.Models
             {
                 using (var stream = await file.OpenReadAsync())
                 {
-                    var dim = volume.PictureEditor.ImageSize(stream);
-                    response = new ImageModel
+                    try
                     {
-                        Thumbnail = await volume.GenerateThumbHashAsync(file),
-                        Dimension = $"{dim.Width}x{dim.Height}"
-                    };
+                        var dim = volume.PictureEditor.ImageSize(stream);
+                        response = new ImageModel
+                        {
+                            Thumbnail = await volume.GenerateThumbHashAsync(file),
+                            Dimension = $"{dim.Width}x{dim.Height}"
+                        };
+                    }
+                    //catch for non standard images
+                    catch (Exception)
+                    {
+                        response = new FileModel();
+                    }
                 }
             }
             else

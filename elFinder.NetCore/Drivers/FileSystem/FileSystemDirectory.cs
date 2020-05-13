@@ -1,4 +1,5 @@
-﻿using System;
+﻿using elFinder.NetCore.Helpers;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -61,9 +62,13 @@ namespace elFinder.NetCore.Drivers.FileSystem
             return Task.FromResult(dirs);
         }
 
-        public Task<IEnumerable<IFile>> GetFilesAsync()
+        public Task<IEnumerable<IFile>> GetFilesAsync(IEnumerable<string> mimes)
         {
-            var files = directoryInfo.GetFiles().Select(f => new FileSystemFile(f) as IFile);
+            var files = directoryInfo.GetFiles().Select(f => new FileSystemFile(f) as IFile)
+                 .Where(f => !mimes.Any() || mimes.Any(m =>
+                     m.Contains("/") ?
+                     MimeHelper.GetMimeType(f.Extension) == m :
+                     MimeHelper.GetMimeType(f.Extension).StartsWith(m + "/")));
             return Task.FromResult(files);
         }
 

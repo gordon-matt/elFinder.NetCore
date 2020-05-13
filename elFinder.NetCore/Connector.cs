@@ -19,6 +19,8 @@ namespace elFinder.NetCore
     {
         private readonly IDriver driver;
 
+        //auto, internal, finfo, mime_content_type
+        public string MimeDetect { get; set; } = "auto";
         public Connector(IDriver driver)
         {
             this.driver = driver;
@@ -75,7 +77,10 @@ namespace elFinder.NetCore
                 case "ls":
                     {
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
-                        return await driver.ListAsync(path, parameters.GetValueOrDefault("intersect[]"));
+                        var intersects = parameters.GetValueOrDefault("intersect[]");
+                        var mimes = MimeDetect == "internal" ?
+                            parameters.GetValueOrDefault("mimes[]") : default;
+                        return await driver.ListAsync(path, intersects, mimes);
                     }
                 case "mkdir":
                     {
@@ -93,15 +98,14 @@ namespace elFinder.NetCore
                 case "open":
                     {
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
-
-                        if (parameters.GetValueOrDefault("init") == "1")
-                        {
-                            return await driver.InitAsync(path);
-                        }
+                        var mimes = MimeDetect == "internal" ?
+                            parameters.GetValueOrDefault("mimes[]") : default;
+                        var init = parameters.GetValueOrDefault("init") == "1";
+                        var tree = parameters.GetValueOrDefault("tree") == "1";
+                        if (init)
+                            return await driver.InitAsync(path, mimes);
                         else
-                        {
-                            return await driver.OpenAsync(path, parameters.GetValueOrDefault("tree") == "1");
-                        }
+                            return await driver.OpenAsync(path, tree, mimes);
                     }
                 case "parents":
                     {
