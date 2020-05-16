@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO.Compression;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,7 +37,7 @@ namespace elFinder.NetCore.Drivers
                 await AddDirectoryToArchiveAsync(zipFile, dir, entryName);
             }
 
-            var files = await directoryInfo.GetFilesAsync();
+            var files = await directoryInfo.GetFilesAsync(null);
             foreach (var file in files)
             {
                 zipFile.CreateEntryFromFile(file.FullName, entryName + file.Name);

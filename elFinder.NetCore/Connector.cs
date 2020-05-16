@@ -17,6 +17,8 @@ namespace elFinder.NetCore
     /// </summary>
     public class Connector
     {
+        public MimeDetectOption MimeDetect { get; set; } = MimeDetectOption.Auto;
+
         private readonly IDriver driver;
 
         public Connector(IDriver driver)
@@ -75,7 +77,13 @@ namespace elFinder.NetCore
                 case "ls":
                     {
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
-                        return await driver.ListAsync(path, parameters.GetValueOrDefault("intersect[]"));
+                        var intersects = parameters.GetValueOrDefault("intersect[]");
+
+                        var mimeTypes = MimeDetect == MimeDetectOption.Internal
+                            ? parameters.GetValueOrDefault("mimes[]")
+                            : default;
+
+                        return await driver.ListAsync(path, intersects, mimeTypes);
                     }
                 case "mkdir":
                     {
@@ -94,13 +102,17 @@ namespace elFinder.NetCore
                     {
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
 
+                        var mimeTypes = MimeDetect == MimeDetectOption.Internal
+                            ? parameters.GetValueOrDefault("mimes[]")
+                            : default;
+
                         if (parameters.GetValueOrDefault("init") == "1")
                         {
-                            return await driver.InitAsync(path);
+                            return await driver.InitAsync(path, mimeTypes);
                         }
                         else
                         {
-                            return await driver.OpenAsync(path, parameters.GetValueOrDefault("tree") == "1");
+                            return await driver.OpenAsync(path, parameters.GetValueOrDefault("tree") == "1", mimeTypes);
                         }
                     }
                 case "parents":
@@ -242,5 +254,15 @@ namespace elFinder.NetCore
             var tasks = targets.Select(async t => await driver.ParsePathAsync(t));
             return await Task.WhenAll(tasks);
         }
+    }
+
+    public enum MimeDetectOption : byte
+    {
+        Auto = 0,
+        Internal = 1,
+
+        // Not supported
+        //FInfo = 2,
+        //MimeContentType = 3
     }
 }
