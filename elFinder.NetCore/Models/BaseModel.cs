@@ -75,12 +75,21 @@ namespace elFinder.NetCore.Models
             {
                 using (var stream = await file.OpenReadAsync())
                 {
-                    var dim = volume.PictureEditor.ImageSize(stream);
-                    response = new ImageModel
+                    try
                     {
-                        Thumbnail = await volume.GenerateThumbHashAsync(file),
-                        Dimension = $"{dim.Width}x{dim.Height}"
-                    };
+                        var dim = volume.PictureEditor.ImageSize(stream);
+                        response = new ImageModel
+                        {
+                            Thumbnail = await volume.GenerateThumbHashAsync(file),
+                            Dimension = $"{dim.Width}x{dim.Height}"
+                        };
+                    }
+                    catch
+                    {
+                        // Fix for non-standard formats
+                        // https://github.com/gordon-matt/elFinder.NetCore/issues/36
+                        response = new FileModel();
+                    }
                 }
             }
             else
