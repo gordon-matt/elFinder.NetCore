@@ -35,7 +35,6 @@ namespace elFinder.NetCore
             RootDirectory = rootDirectory;
             Url = url;
             UploadOverwrite = true;
-            ThumbnailSize = 48;
             PictureEditor = new DefaultPictureEditor();
 
             // https://github.com/EvgenNoskov/Elfinder.NET/blob/fb19f17a3682ed81cadcfea978dcce575806eebd/docs/Documentation.md
@@ -128,7 +127,7 @@ namespace elFinder.NetCore
         /// <summary>
         /// Get or sets thumbnails size
         /// </summary>
-        public int ThumbnailSize { get; }
+        public int ThumbnailSize { get; set; } = 48;
 
         /// <summary>
         /// Get ot sets thumbnails url
