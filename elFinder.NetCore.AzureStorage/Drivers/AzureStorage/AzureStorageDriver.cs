@@ -56,7 +56,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
             if (directoryInfo != null)
             {
-                filename = filename ?? "newfile";
+                filename ??= "newfile";
 
                 if (filename.EndsWith(".zip"))
                 {
@@ -118,11 +118,9 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
         public async Task<JsonResult> DimAsync(FullPath path)
         {
-            using (var stream = await AzureStorageAPI.FileStreamAsync(path.File.FullName))
-            {
-                var response = new DimResponseModel(path.RootVolume.PictureEditor.ImageSize(stream));
-                return await Json(response);
-            }
+            using var stream = await AzureStorageAPI.FileStreamAsync(path.File.FullName);
+            var response = new DimResponseModel(path.RootVolume.PictureEditor.ImageSize(stream));
+            return await Json(response);
         }
 
         public async Task<JsonResult> DuplicateAsync(IEnumerable<FullPath> paths)
@@ -331,16 +329,13 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             {
                 await AzureStorageAPI.GetAsync(path.File.FullName, stream);
                 stream.Position = 0;
-                using (var reader = new StreamReader(stream))
-                {
-                    response.Content = reader.ReadToEnd();
-                }
+                using var reader = new StreamReader(stream);
+                response.Content = reader.ReadToEnd();
             }
 
             return await Json(response);
         }
 
-        // TODO: Make use of the mimeTypes argument
         public async Task<JsonResult> InitAsync(FullPath path, IEnumerable<string> mimeTypes)
         {
             if (path == null)
@@ -365,6 +360,9 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 var f = new AzureStorageFile(file as CloudFile);
                 if (!f.Attributes.HasFlag(FileAttributes.Hidden))
                 {
+                    if (mimeTypes != null && mimeTypes.Count() > 0 && !mimeTypes.Contains(f.MimeType))
+                        continue;
+
                     response.Files.Add(await BaseModel.CreateAsync(f, path.RootVolume));
                 }
             }
@@ -409,7 +407,6 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return await Json(response);
         }
 
-        // TODO: Make use of the mimeTypes argument
         public async Task<JsonResult> ListAsync(FullPath path, IEnumerable<string> intersect, IEnumerable<string> mimeTypes)
         {
             var response = new ListResponseModel();
@@ -423,6 +420,9 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 var f = new AzureStorageFile(file as CloudFile);
                 if (!f.Attributes.HasFlag(FileAttributes.Hidden))
                 {
+                    if (mimeTypes != null && mimeTypes.Count() > 0 && !mimeTypes.Contains(f.MimeType))
+                        continue;
+
                     response.List.Add(f.Name);
                 }
             }
@@ -485,7 +485,6 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return await Json(response);
         }
 
-        // TODO: Make use of the mimeTypes argument
         public async Task<JsonResult> OpenAsync(FullPath path, bool tree, IEnumerable<string> mimeTypes)
         {
             var response = new OpenResponse(await BaseModel.CreateAsync(path.Directory, path.RootVolume), path);
@@ -499,6 +498,9 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 var f = new AzureStorageFile(file as CloudFile);
                 if (!f.Attributes.HasFlag(FileAttributes.Hidden))
                 {
+                    if (mimeTypes != null && mimeTypes.Count() > 0 && !mimeTypes.Contains(f.MimeType))
+                        continue;
+
                     response.Files.Add(await BaseModel.CreateAsync(f, path.RootVolume));
                 }
             }
@@ -902,11 +904,15 @@ namespace elFinder.NetCore.Drivers.AzureStorage
         {
             var response = new SizeResponseModel();
 
-            // Add file sizes.
-            foreach (var file in await d.GetFilesAsync(null)) // TODO: Pass actual mimeTypes
+            // Get all files and directories
+            var items = await AzureStorageAPI.ListFilesAndDirectoriesAsync(d.FullName);
+
+            foreach (var file in items.Where(i => i is CloudFile))
             {
+                var cloudFile = file as CloudFile;
                 response.FileCount++;
-                response.Size += await file.LengthAsync;
+                await cloudFile.FetchAttributesAsync();
+                response.Size += cloudFile.Properties.Length;
             }
 
             // Add subdirectory sizes.

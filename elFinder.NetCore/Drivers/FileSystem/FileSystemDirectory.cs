@@ -9,7 +9,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 {
     public class FileSystemDirectory : IDirectory
     {
-        private DirectoryInfo directoryInfo;
+        private readonly DirectoryInfo directoryInfo;
 
         #region Constructors
 
@@ -67,13 +67,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
             var files = directoryInfo.GetFiles().Select(f => new FileSystemFile(f) as IFile);
 
             if (mimeTypes != null && mimeTypes.Count() > 0)
-            {
-                var extensions = files.Select(x => x.Extension)
-                    .Distinct()
-                    .Where(x => mimeTypes.Contains(MimeHelper.GetMimeType(x)));
-
-                files = files.Where(f => extensions.Contains(f.Extension));
-            }
+                files = files.Where(f => mimeTypes.Contains(f.MimeType));
 
             return Task.FromResult(files);
         }
