@@ -340,7 +340,8 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return await Json(response);
         }
 
-        public async Task<JsonResult> InitAsync(FullPath path)
+        // TODO: Make use of the mimeTypes argument
+        public async Task<JsonResult> InitAsync(FullPath path, IEnumerable<string> mimeTypes)
         {
             if (path == null)
             {
@@ -408,7 +409,8 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return await Json(response);
         }
 
-        public async Task<JsonResult> ListAsync(FullPath path, IEnumerable<string> intersect)
+        // TODO: Make use of the mimeTypes argument
+        public async Task<JsonResult> ListAsync(FullPath path, IEnumerable<string> intersect, IEnumerable<string> mimeTypes)
         {
             var response = new ListResponseModel();
 
@@ -483,7 +485,8 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return await Json(response);
         }
 
-        public async Task<JsonResult> OpenAsync(FullPath path, bool tree)
+        // TODO: Make use of the mimeTypes argument
+        public async Task<JsonResult> OpenAsync(FullPath path, bool tree, IEnumerable<string> mimeTypes)
         {
             var response = new OpenResponse(await BaseModel.CreateAsync(path.Directory, path.RootVolume), path);
 
@@ -900,7 +903,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             var response = new SizeResponseModel();
 
             // Add file sizes.
-            foreach (var file in await d.GetFilesAsync())
+            foreach (var file in await d.GetFilesAsync(null)) // TODO: Pass actual mimeTypes
             {
                 response.FileCount++;
                 response.Size += await file.LengthAsync;

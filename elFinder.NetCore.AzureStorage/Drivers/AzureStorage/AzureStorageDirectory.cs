@@ -85,7 +85,8 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return result;
         }
 
-        public async Task<IEnumerable<IFile>> GetFilesAsync()
+        // TODO: Make use of the mimeTypes argument
+        public async Task<IEnumerable<IFile>> GetFilesAsync(IEnumerable<string> mimeTypes)
         {
             var result = new List<IFile>();
 

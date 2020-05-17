@@ -21,15 +21,15 @@ namespace elFinder.NetCore
 
         Task<JsonResult> GetAsync(FullPath path);
 
-        Task<JsonResult> InitAsync(FullPath path);
+        Task<JsonResult> InitAsync(FullPath path, IEnumerable<string> mimeTypes);
 
-        Task<JsonResult> ListAsync(FullPath path, IEnumerable<string> intersect);
+        Task<JsonResult> ListAsync(FullPath path, IEnumerable<string> intersect, IEnumerable<string> mimeTypes);
 
         Task<JsonResult> MakeDirAsync(FullPath path, string name, IEnumerable<string> dirs);
 
         Task<JsonResult> MakeFileAsync(FullPath path, string name);
 
-        Task<JsonResult> OpenAsync(FullPath path, bool tree);
+        Task<JsonResult> OpenAsync(FullPath path, bool tree, IEnumerable<string> mimeTypes);
 
         Task<JsonResult> ParentsAsync(FullPath path);
 
