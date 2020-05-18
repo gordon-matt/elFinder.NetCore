@@ -773,7 +773,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
                 {
                     response.DirectoryCount++; // API counts the current directory in the total
 
-                    var sizeAndCount = await DirectorySizeAndCount(new AzureStorageDirectory(path.Directory.FullName));
+                    var sizeAndCount = await DirectorySizeAndCount(path.Directory.FullName);
 
                     response.DirectoryCount += sizeAndCount.DirectoryCount;
                     response.FileCount += sizeAndCount.FileCount;
@@ -900,12 +900,12 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return $"{parentPath}/{name}{suffix ?? "-"}{Guid.NewGuid()}{extension}";
         }
 
-        private async Task<SizeResponseModel> DirectorySizeAndCount(IDirectory d)
+        private async Task<SizeResponseModel> DirectorySizeAndCount(string dir)
         {
             var response = new SizeResponseModel();
 
             // Get all files and directories
-            var items = await AzureStorageAPI.ListFilesAndDirectoriesAsync(d.FullName);
+            var items = await AzureStorageAPI.ListFilesAndDirectoriesAsync(dir);
 
             foreach (var file in items.Where(i => i is CloudFile))
             {
@@ -916,11 +916,11 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             }
 
             // Add subdirectory sizes.
-            foreach (var directory in await d.GetDirectoriesAsync())
+            foreach (var directory in items.Where(i => i is CloudFileDirectory))
             {
                 response.DirectoryCount++;
 
-                var subdir = await DirectorySizeAndCount(directory);
+                var subdir = await DirectorySizeAndCount(directory.Uri.LocalPath.Substring(1)); // Get path without leading '/'
                 response.DirectoryCount += subdir.DirectoryCount;
                 response.FileCount += subdir.FileCount;
                 response.Size += subdir.Size;
