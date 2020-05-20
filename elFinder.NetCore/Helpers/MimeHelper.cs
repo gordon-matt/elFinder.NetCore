@@ -29,11 +29,11 @@
 
                 if (parts.Length > 1)
                 {
-                    var mime = parts[0];
+                    string mime = parts[0];
 
-                    for (var i = 1; i < parts.Length; i++)
+                    for (int i = 1; i < parts.Length; i++)
                     {
-                        var ext = parts[i].ToLower();
+                        string ext = parts[i].ToLower();
                         if (!mimeTypes.ContainsKey(ext))
                         {
                             mimeTypes.Add(ext, mime);

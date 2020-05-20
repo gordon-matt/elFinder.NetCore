@@ -1,7 +1,7 @@
-﻿using elFinder.NetCore.Helpers;
-using System;
+﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using elFinder.NetCore.Helpers;
 
 namespace elFinder.NetCore.Drivers.FileSystem
 {

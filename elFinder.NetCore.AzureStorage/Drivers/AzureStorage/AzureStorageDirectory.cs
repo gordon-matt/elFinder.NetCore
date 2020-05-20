@@ -1,9 +1,9 @@
-﻿using Microsoft.WindowsAzure.Storage.File;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage.File;
 
 namespace elFinder.NetCore.Drivers.AzureStorage
 {
