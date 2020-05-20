@@ -24,6 +24,8 @@ namespace elFinder.NetCore.Drivers
 
         string Name { get; }
 
+        string MimeType { get; }
+
         IFile Open(string path);
 
         Task<Stream> CreateAsync();

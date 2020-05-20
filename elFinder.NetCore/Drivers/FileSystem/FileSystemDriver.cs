@@ -55,7 +55,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
             if (directoryInfo != null)
             {
-                filename = filename ?? "newfile";
+                filename ??= "newfile";
 
                 if (filename.EndsWith(".zip"))
                 {
@@ -113,11 +113,9 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
         public async Task<JsonResult> DimAsync(FullPath path)
         {
-            using (var stream = new FileStream(path.File.FullName, FileMode.Open))
-            {
-                var response = new DimResponseModel(path.RootVolume.PictureEditor.ImageSize(stream));
-                return await Json(response);
-            }
+            using var stream = new FileStream(path.File.FullName, FileMode.Open);
+            var response = new DimResponseModel(path.RootVolume.PictureEditor.ImageSize(stream));
+            return await Json(response);
         }
 
         public async Task<JsonResult> DuplicateAsync(IEnumerable<FullPath> paths)
@@ -265,17 +263,17 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
             if (path.IsDirectory)
             {
-                result = new ForbidResult();
+                return new ForbidResult();
             }
 
             if (!await path.File.ExistsAsync)
             {
-                result = new NotFoundResult();
+                return new NotFoundResult();
             }
 
             if (path.RootVolume.IsShowOnly)
             {
-                result = new ForbidResult();
+                return new ForbidResult();
             }
 
             string contentType = download ? "application/octet-stream" : MimeHelper.GetMimeType(path.File.Extension);

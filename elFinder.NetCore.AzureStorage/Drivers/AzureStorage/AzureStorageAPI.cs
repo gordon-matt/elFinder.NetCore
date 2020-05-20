@@ -51,7 +51,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             await destFile.Parent.CreateIfNotExistsAsync();
 
             // Copy file
-            var result = await destFile.StartCopyAsync(sourceFile);
+            _ = await destFile.StartCopyAsync(sourceFile);
             while (destFile.CopyState.Status == CopyStatus.Pending)
             {
                 Thread.Sleep(500);
@@ -434,13 +434,9 @@ namespace elFinder.NetCore.Drivers.AzureStorage
 
             var sampleFile = rootDir.GetFileReference(RelativePath(path));
 
-            using (var dest = await sampleFile.OpenWriteAsync(file.Length))
-            {
-                using (var s = file.OpenReadStream())
-                {
-                    s.CopyTo(dest);
-                }
-            }
+            using var dest = await sampleFile.OpenWriteAsync(file.Length);
+            using var s = file.OpenReadStream();
+            s.CopyTo(dest);
         }
 
         public static string PathCombine(string path1, string path2)

@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Microsoft.WindowsAzure.Storage.File;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage.File;
 
 namespace elFinder.NetCore.Drivers.AzureStorage
 {
@@ -30,7 +30,7 @@ namespace elFinder.NetCore.Drivers.AzureStorage
         public FileAttributes Attributes
         {
             get => Name.StartsWith(".") ? FileAttributes.Hidden : FileAttributes.Directory;
-            set => value = FileAttributes.Directory; // Azure Storage doesn't support setting attributes
+            set => _ = FileAttributes.Directory; // Azure Storage doesn't support setting attributes
         }
 
         public Task<bool> ExistsAsync => AzureStorageAPI.DirectoryExistsAsync(FullName);
@@ -85,13 +85,15 @@ namespace elFinder.NetCore.Drivers.AzureStorage
             return result;
         }
 
-        // TODO: Make use of the mimeTypes argument
         public async Task<IEnumerable<IFile>> GetFilesAsync(IEnumerable<string> mimeTypes)
         {
             var result = new List<IFile>();
 
             var files = (await AzureStorageAPI.ListFilesAndDirectoriesAsync(FullName)).Where(f => f is CloudFile);
             result.AddRange(files.Select(f => new AzureStorageFile(f as CloudFile)));
+
+            if (mimeTypes != null && mimeTypes.Count() > 0)
+                return result.Where(f => mimeTypes.Contains(f.MimeType));
 
             return result;
         }
