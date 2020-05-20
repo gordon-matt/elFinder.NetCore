@@ -8,22 +8,9 @@
 
 As simple as that!
 
-## Azure Storage Connector
+## Azure Storage Driver
 
-In order to use the Azure Storage Connector
-
-1. Open your **Startup.cs** file and look for the following lines:
-
-```
-AzureStorageAPI.AccountName = "[Name]";
-AzureStorageAPI.AccountKey = "[Key]";
-```
-
-> Replace `[Name]` and `[Key]` with the appropriate values for your Azure account.
-
-2. Change the **root directory** in the `AzureStorageController` from `test` to the name of your Azure file share.
-
-3. Change the `url` parameter in **/Views/FileManager/Index.cshtml** to point to the `AzureStorageController`.
+The Azure storage driver has now been moved to a [new repository](https://github.com/fsmirne/elFinder.NetCore.AzureStorage). For any issues related to Azure, please log them there.
 
 ## Credits
 
