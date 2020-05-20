@@ -7,8 +7,8 @@ namespace elFinder.NetCore.Drivers
 {
     public static class IFileExtensions
     {
-        private static Encoder utf8Encoder = Encoding.UTF8.GetEncoder();
-        private static MD5 md5 = MD5.Create();
+        //private static readonly Encoder utf8Encoder = Encoding.UTF8.GetEncoder();
+        private static readonly MD5 md5 = MD5.Create();
 
         public static async Task<string> GetFileMd5Async(this IFile file)
         {

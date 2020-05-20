@@ -1,4 +1,5 @@
-﻿using System;
+﻿using elFinder.NetCore.Helpers;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -6,7 +7,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 {
     public class FileSystemFile : IFile
     {
-        private string filePath;
+        private readonly string filePath;
 
         #region Constructors
 
@@ -50,6 +51,8 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
         public string Name { get; private set; }
 
+        public string MimeType => MimeHelper.GetMimeType(Extension);
+
         public IFile Open(string path)
         {
             return new FileSystemFile(path);
@@ -58,10 +61,8 @@ namespace elFinder.NetCore.Drivers.FileSystem
         public Task<Stream> CreateAsync()
         {
             EnsureGarbageCollectorCalled();
-            using (var stream = File.Create(filePath))
-            {
-                return Task.FromResult(stream as Stream);
-            }
+            using var stream = File.Create(filePath);
+            return Task.FromResult(stream as Stream);
         }
 
         public Task DeleteAsync()

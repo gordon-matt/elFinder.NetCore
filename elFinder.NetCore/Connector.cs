@@ -137,11 +137,9 @@ namespace elFinder.NetCore
 
                         if (encoding == "scheme")
                         {
-                            using (var client = new WebClient())
-                            {
-                                var data = await client.DownloadDataTaskAsync(new Uri(content));
-                                return await driver.PutAsync(path, data);
-                            }
+                            using var client = new WebClient();
+                            var data = await client.DownloadDataTaskAsync(new Uri(content));
+                            return await driver.PutAsync(path, data);
                         }
                         else
                             return await driver.PutAsync(path, content);
