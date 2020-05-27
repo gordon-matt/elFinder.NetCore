@@ -1,4 +1,5 @@
-﻿using System;
+﻿using elFinder.NetCore.Helpers;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -24,7 +25,7 @@ namespace elFinder.NetCore.Drivers
 
         string Name { get; }
 
-        string MimeType { get; }
+        MimeType MimeType { get; }
 
         IFile Open(string path);
 

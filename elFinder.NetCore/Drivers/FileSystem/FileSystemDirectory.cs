@@ -67,10 +67,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
             if (mimeTypes != null && mimeTypes.Count() > 0)
             {
-                files = files.Where(f => mimeTypes.Any(m =>
-                    m.Contains("/") ?
-                    f.MimeType == m :
-                    f.MimeType.StartsWith($"{m}/")));
+                files = files.Where(f => mimeTypes.Contains(f.MimeType) || mimeTypes.Contains(f.MimeType.Type));
             }
 
             return Task.FromResult(files);
