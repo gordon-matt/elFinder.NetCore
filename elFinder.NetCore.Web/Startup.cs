@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using elFinder.NetCore.Drivers.AzureStorage;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -48,10 +47,6 @@ namespace elFinder.NetCore.Web
                 app.UseExceptionHandler("/error");
                 app.UseHsts();
             }
-
-            // Setup Azure Storage Credentials
-            AzureStorageAPI.AccountName = "[Name]";
-            AzureStorageAPI.AccountKey = "[Key]";
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
