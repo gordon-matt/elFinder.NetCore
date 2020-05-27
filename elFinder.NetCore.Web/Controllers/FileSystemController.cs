@@ -48,7 +48,7 @@ namespace elFinder.NetCore.Web.Controllers
             return new Connector(driver)
             {
                 // This allows support for the "onlyMimes" option on the client.
-                //MimeDetect = MimeDetectOption.Internal
+                MimeDetect = MimeDetectOption.Internal
             };
         }
     }

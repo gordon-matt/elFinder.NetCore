@@ -66,10 +66,12 @@ namespace elFinder.NetCore.Drivers.FileSystem
             var files = directoryInfo.GetFiles().Select(f => new FileSystemFile(f) as IFile);
 
             if (mimeTypes != null && mimeTypes.Count() > 0)
+            {
                 files = files.Where(f => mimeTypes.Any(m =>
                     m.Contains("/") ?
                     f.MimeType == m :
-                    f.MimeType.StartsWith(m + "/")));
+                    f.MimeType.StartsWith($"{m}/")));
+            }
 
             return Task.FromResult(files);
         }
