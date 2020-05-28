@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using elFinder.NetCore.Helpers;
+using elFinder.NetCore.Models;
 
 namespace elFinder.NetCore.Drivers.FileSystem
 {
