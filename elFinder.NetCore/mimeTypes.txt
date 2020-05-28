@@ -481,6 +481,7 @@ video/3gpp 3gp
 video/dv dv dif
 video/isivideo
 video/mpeg mpeg mpg mp2 mpe vob dat
+video/mp4 mp4
 video/quicktime qt mov moov qtvr
 video/vivo
 video/vnd.rn-realvideo rv
