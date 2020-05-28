@@ -51,7 +51,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
         public string Name { get; private set; }
 
-        public string MimeType => MimeHelper.GetMimeType(Extension);
+        public MimeType MimeType => MimeHelper.GetMimeType(Extension);
 
         public IFile Open(string path)
         {

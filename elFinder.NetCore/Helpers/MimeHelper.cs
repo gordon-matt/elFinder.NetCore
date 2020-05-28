@@ -7,11 +7,12 @@
 
     public static class MimeHelper
     {
-        private static readonly Dictionary<string, string> mimeTypes;
+        private static readonly Dictionary<string, MimeType> mimeTypes;
 
+        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
         static MimeHelper()
         {
-            mimeTypes = new Dictionary<string, string>();
+            mimeTypes = new Dictionary<string, MimeType>();
             var assembly = typeof(MimeHelper).GetTypeInfo().Assembly;
 
             using var stream = assembly.GetManifestResourceStream("elFinder.NetCore.MimeTypes.txt");
@@ -29,21 +30,21 @@
 
                 if (parts.Length > 1)
                 {
-                    string mime = parts[0];
+                    string[] mime = parts[0].Split('/');
 
                     for (int i = 1; i < parts.Length; i++)
                     {
                         string ext = parts[i].ToLower();
                         if (!mimeTypes.ContainsKey(ext))
                         {
-                            mimeTypes.Add(ext, mime);
+                            mimeTypes.Add(ext, new MimeType { Type = mime[0], Subtype = mime[1] });
                         }
                     }
                 }
             }
         }
 
-        public static string GetMimeType(string extension)
+        public static MimeType GetMimeType(string extension)
         {
             string ext = extension.ToLower();
             if (ext.StartsWith("."))
@@ -56,7 +57,8 @@
                 return mimeTypes[ext];
             }
 
-            return "unknown";
+            // https://stackoverflow.com/questions/12539058/is-there-a-default-mime-type/12560996
+            return new MimeType { Type = "application", Subtype = "octet-stream" };
         }
     }
 }
