@@ -8,9 +8,10 @@
 
 As simple as that!
 
-## Azure Storage Driver
+## Alternative Drivers
 
-The Azure storage driver has now been moved to a [new repository](https://github.com/fsmirne/elFinder.NetCore.AzureStorage). For any issues related to Azure, please log them there.
+- [Azure Storage](https://github.com/fsmirne/elFinder.NetCore.AzureStorage)
+- [Azure Blob Storage](https://github.com/brunomel/elFinder.NetCore.AzureBlobStorage)
 
 ## Credits
 
