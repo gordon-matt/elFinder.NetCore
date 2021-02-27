@@ -679,7 +679,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
             {
                 foreach (var item in await path.Directory.GetFilesAsync(mimeTypes, String.Concat("*", query, "*")))
                 {
-                    if (!item.Attributes.HasFlag(FileAttributes.Hidden))
+                    if (!item.Attributes.HasFlag(FileAttributes.Hidden) && item.Directory.Name != ".tmb")
                     {
                         response.Files.Add(await BaseModel.CreateAsync(item, path.RootVolume));
                     }
