@@ -61,9 +61,27 @@ namespace elFinder.NetCore.Drivers.FileSystem
             return Task.FromResult(dirs);
         }
 
+        public Task<IEnumerable<IDirectory>> GetDirectoriesAsync(string pattern)
+        {
+            var dirs = directoryInfo.GetDirectories(pattern, SearchOption.AllDirectories).Select(d => new FileSystemDirectory(d) as IDirectory);
+            return Task.FromResult(dirs);
+        }
+
         public Task<IEnumerable<IFile>> GetFilesAsync(IEnumerable<string> mimeTypes)
         {
             var files = directoryInfo.GetFiles().Select(f => new FileSystemFile(f) as IFile);
+
+            if (mimeTypes != null && mimeTypes.Count() > 0)
+            {
+                files = files.Where(f => mimeTypes.Contains(f.MimeType) || mimeTypes.Contains(f.MimeType.Type));
+            }
+
+            return Task.FromResult(files);
+        }
+
+        public Task<IEnumerable<IFile>> GetFilesAsync(IEnumerable<string> mimeTypes, string pattern)
+        {
+            var files = directoryInfo.GetFiles(pattern, SearchOption.AllDirectories).Select(f => new FileSystemFile(f) as IFile);
 
             if (mimeTypes != null && mimeTypes.Count() > 0)
             {

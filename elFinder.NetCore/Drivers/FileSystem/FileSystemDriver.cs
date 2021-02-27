@@ -671,6 +671,35 @@ namespace elFinder.NetCore.Drivers.FileSystem
             return await Json(output);
         }
 
+        public async Task<JsonResult> SearchAsync(FullPath path, string query, IEnumerable<string> mimeTypes)
+        {
+            var response = new SearchResponseModel();
+
+            if (!query.Any(Path.GetInvalidFileNameChars().Contains))
+            {
+                foreach (var item in await path.Directory.GetFilesAsync(mimeTypes, String.Concat("*", query, "*")))
+                {
+                    if (!item.Attributes.HasFlag(FileAttributes.Hidden))
+                    {
+                        response.Files.Add(await BaseModel.CreateAsync(item, path.RootVolume));
+                    }
+                }
+
+                if (!mimeTypes.Any())
+                {
+                    foreach (var item in await path.Directory.GetDirectoriesAsync(String.Concat("*", query, "*")))
+                    {
+                        if (!item.Attributes.HasFlag(FileAttributes.Hidden))
+                        {
+                            response.Files.Add(await BaseModel.CreateAsync(item, path.RootVolume));
+                        }
+                    }
+                }
+            }
+
+            return await Json(response);
+        }
+
         public async Task<JsonResult> SizeAsync(IEnumerable<FullPath> paths)
         {
             var response = new SizeResponseModel();
