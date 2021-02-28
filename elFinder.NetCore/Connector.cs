@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 using elFinder.NetCore.Drawing;
 using elFinder.NetCore.Drivers;
 using elFinder.NetCore.Helpers;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
+using elFinder.NetCore.Models;
 
 namespace elFinder.NetCore
 {
@@ -26,12 +25,8 @@ namespace elFinder.NetCore
             this.driver = driver;
         }
 
-        public async Task<IActionResult> ProcessAsync(HttpRequest request)
+        public async Task<object> ProcessAsync(Dictionary<string, StringValues> parameters, IList<FileContent> files = null)
         {
-            var parameters = request.Query.Any()
-                ? request.Query.ToDictionary(k => k.Key, v => v.Value)
-                : request.Form.ToDictionary(k => k.Key, v => v.Value);
-
             string cmd = parameters.GetValueOrDefault("cmd");
             if (string.IsNullOrEmpty(cmd))
             {
@@ -215,7 +210,7 @@ namespace elFinder.NetCore
                         bool overwrite = parameters.GetValueOrDefault("overwrite") != "0";
                         var renames = parameters.GetValueOrDefault("renames[]");
                         var suffix = parameters.GetValueOrDefault("suffix");
-                        return await driver.UploadAsync(path, request.Form.Files, overwrite, uploadPath, renames, suffix);
+                        return await driver.UploadAsync(path, files, overwrite, uploadPath, renames, suffix);
                     }
                 default: return Error.CommandNotFound();
             }
@@ -231,7 +226,7 @@ namespace elFinder.NetCore
             return !path.IsDirectory ? path.File : null;
         }
 
-        public async Task<IActionResult> GetThumbnailAsync(HttpRequest request, HttpResponse response, string hash)
+        public async Task<object> GetThumbnailAsync(/*HttpRequest request, HttpResponse response,*/ string hash)
         {
             if (hash != null)
             {
@@ -241,7 +236,7 @@ namespace elFinder.NetCore
                     //if (!await HttpCacheHelper.IsFileFromCache(path.File, request, response))
                     //{
                     var thumb = await path.GenerateThumbnailAsync();
-                    return new FileStreamResult(thumb.ImageStream, thumb.MimeType);
+                    return thumb;
                     //}
                     //else
                     //{
@@ -250,7 +245,7 @@ namespace elFinder.NetCore
                     //}
                 }
             }
-            return new EmptyResult();
+            return new { error = "errInvName" };
         }
 
         private bool CanCreateThumbnail(FullPath path, IPictureEditor pictureEditor)

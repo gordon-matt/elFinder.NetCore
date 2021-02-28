@@ -1,42 +1,42 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
 
 namespace elFinder.NetCore.Helpers
 {
     public static class Error
     {
-        public static JsonResult AccessDenied()
+        public static object AccessDenied()
         {
             return FormatSimpleError("errAccess");
         }
 
-        public static JsonResult CannotUploadFile()
+        public static object CannotUploadFile()
         {
             return FormatSimpleError("errUploadFile");
         }
 
-        public static JsonResult CommandNotFound()
+        public static object CommandNotFound()
         {
             return FormatSimpleError("errUnknownCmd");
         }
 
-        public static JsonResult MaxUploadFileSize()
+        public static object MaxUploadFileSize()
         {
             return FormatSimpleError("errFileMaxSize");
         }
 
-        public static JsonResult MissedParameter(string command)
+        public static object MissedParameter(string command)
         {
-            return new JsonResult(new { error = new string[] { "errCmdParams", command } });
+            return new { error = new string[] { "errCmdParams", command } };
         }
 
-        public static JsonResult NewNameSelectionException(string name)
+        public static object NewNameSelectionException(string name)
         {
-            return new JsonResult(new { error = $"Unable to create new file with name {name}" });
+            return new { error = $"Unable to create new file with name {name}" };
         }
 
-        private static JsonResult FormatSimpleError(string message)
+        private static object FormatSimpleError(string message)
         {
-            return new JsonResult(new { error = message });
+            return new { error = message };
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO.Compression;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 
 namespace elFinder.NetCore.Drivers
 {
@@ -43,9 +42,9 @@ namespace elFinder.NetCore.Drivers
             }
         }
 
-        protected Task<JsonResult> Json(object data)
+        /*protected Task<JsonResult> Json(object data)
         {
             return Task.FromResult(new JsonResult(data) { ContentType = "text/html" });
-        }
+        }*/
     }
 }

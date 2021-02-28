@@ -8,8 +8,6 @@ using elFinder.NetCore.Drawing;
 using elFinder.NetCore.Helpers;
 using elFinder.NetCore.Models;
 using elFinder.NetCore.Models.Commands;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 
 namespace elFinder.NetCore.Drivers.FileSystem
 {
@@ -35,7 +33,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
         #region IDriver Members
 
-        public async Task<JsonResult> ArchiveAsync(FullPath parentPath, IEnumerable<FullPath> paths, string filename, string mimeType)
+        public async Task<object> ArchiveAsync(FullPath parentPath, IEnumerable<FullPath> paths, string filename, string mimeType)
         {
             var response = new AddResponseModel();
 
@@ -87,10 +85,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 response.Added.Add(await BaseModel.CreateAsync(new FileSystemFile(newPath), parentPath.RootVolume));
             }
 
-            return await Json(response);
+            return response;
         }
 
-        public async Task<JsonResult> CropAsync(FullPath path, int x, int y, int width, int height)
+        public async Task<object> CropAsync(FullPath path, int x, int y, int width, int height)
         {
             await RemoveThumbsAsync(path);
 
@@ -108,17 +106,17 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
             var output = new ChangedResponseModel();
             output.Changed.Add(await BaseModel.CreateAsync(path.File, path.RootVolume));
-            return await Json(output);
+            return output;
         }
 
-        public async Task<JsonResult> DimAsync(FullPath path)
+        public async Task<object> DimAsync(FullPath path)
         {
             using var stream = new FileStream(path.File.FullName, FileMode.Open);
             var response = new DimResponseModel(path.RootVolume.PictureEditor.ImageSize(stream));
-            return await Json(response);
+            return await Task.FromResult(response);
         }
 
-        public async Task<JsonResult> DuplicateAsync(IEnumerable<FullPath> paths)
+        public async Task<object> DuplicateAsync(IEnumerable<FullPath> paths)
         {
             var response = new AddResponseModel();
             foreach (var path in paths)
@@ -189,10 +187,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     response.Added.Add(await BaseModel.CreateAsync(new FileSystemFile(newName), path.RootVolume));
                 }
             }
-            return await Json(response);
+            return response;
         }
 
-        public async Task<JsonResult> ExtractAsync(FullPath fullPath, bool newFolder)
+        public async Task<object> ExtractAsync(FullPath fullPath, bool newFolder)
         {
             var response = new AddResponseModel();
 
@@ -254,45 +252,49 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 }
             }
 
-            return await Json(response);
+            return response;
         }
 
-        public async Task<IActionResult> FileAsync(FullPath path, bool download)
+        public async Task<object> FileAsync(FullPath path, bool download)
         {
-            IActionResult result;
+            FileContent result;
 
             if (path.IsDirectory)
             {
-                return new ForbidResult();
+                return new { error = "errNotFile" };
             }
 
             if (!await path.File.ExistsAsync)
             {
-                return new NotFoundResult();
+                return new { error = "errFileNotFound" };
             }
 
             if (path.RootVolume.IsShowOnly)
             {
-                return new ForbidResult();
+                return new { error = "errPerm" };
             }
 
-            string contentType = download ? "application/octet-stream" : MimeHelper.GetMimeType(path.File.Extension);
-            result = new PhysicalFileResult(path.File.FullName, contentType);
+            result = new FileContent {
+                FileName = path.File.FullName,
+                Length = await path.File.LengthAsync,
+                ContentStream = File.OpenRead(path.File.FullName),
+                ContentType = download ? "application/octet-stream" : MimeHelper.GetMimeType(path.File.Extension)
+            };
 
             return await Task.FromResult(result);
         }
 
-        public async Task<JsonResult> GetAsync(FullPath path)
+        public async Task<object> GetAsync(FullPath path)
         {
             var response = new GetResponseModel();
             using (var reader = new StreamReader(await path.File.OpenReadAsync()))
             {
                 response.Content = reader.ReadToEnd();
             }
-            return await Json(response);
+            return response;
         }
 
-        public async Task<JsonResult> InitAsync(FullPath path, IEnumerable<string> mimeTypes)
+        public async Task<object> InitAsync(FullPath path, IEnumerable<string> mimeTypes)
         {
             if (path == null)
             {
@@ -344,10 +346,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
             {
                 response.Options.UploadMaxSize = $"{path.RootVolume.MaxUploadSizeInKb.Value}K";
             }
-            return await Json(response);
+            return response;
         }
 
-        public async Task<JsonResult> ListAsync(FullPath path, IEnumerable<string> intersect, IEnumerable<string> mimeTypes)
+        public async Task<object> ListAsync(FullPath path, IEnumerable<string> intersect, IEnumerable<string> mimeTypes)
         {
             var response = new ListResponseModel();
 
@@ -372,10 +374,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 response.List.RemoveAll(x => !intersect.Contains(x));
             }
 
-            return await Json(response);
+            return response;
         }
 
-        public async Task<JsonResult> MakeDirAsync(FullPath path, string name, IEnumerable<string> dirs)
+        public async Task<object> MakeDirAsync(FullPath path, string name, IEnumerable<string> dirs)
         {
             var response = new AddResponseModel();
 
@@ -398,20 +400,20 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 response.Hashes.Add($"/{dirName}", path.RootVolume.VolumeId + HttpEncoder.EncodePath(relativePath));
             }
 
-            return await Json(response);
+            return response;
         }
 
-        public async Task<JsonResult> MakeFileAsync(FullPath path, string name)
+        public async Task<object> MakeFileAsync(FullPath path, string name)
         {
             var newFile = new FileSystemFile(Path.Combine(path.Directory.FullName, name));
             await newFile.CreateAsync();
 
             var response = new AddResponseModel();
             response.Added.Add(await BaseModel.CreateAsync(newFile, path.RootVolume));
-            return await Json(response);
+            return response;
         }
 
-        public async Task<JsonResult> OpenAsync(FullPath path, bool tree, IEnumerable<string> mimeTypes)
+        public async Task<object> OpenAsync(FullPath path, bool tree, IEnumerable<string> mimeTypes)
         {
             var response = new OpenResponse(await BaseModel.CreateAsync(path.Directory, path.RootVolume), path);
             foreach (var item in await path.Directory.GetFilesAsync(mimeTypes))
@@ -448,10 +450,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 }
             }
 
-            return await Json(response);
+            return response;
         }
 
-        public async Task<JsonResult> ParentsAsync(FullPath path)
+        public async Task<object> ParentsAsync(FullPath path)
         {
             var response = new TreeResponseModel();
             if (path.Directory.FullName == path.RootVolume.RootDirectory)
@@ -471,7 +473,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     response.Tree.Add(await BaseModel.CreateAsync(parent, path.RootVolume));
                 }
             }
-            return await Json(response);
+            return response;
         }
 
         public async Task<FullPath> ParsePathAsync(string target)
@@ -510,7 +512,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
             }
         }
 
-        public async Task<JsonResult> PasteAsync(FullPath dest, IEnumerable<FullPath> paths, bool isCut, IEnumerable<string> renames, string suffix)
+        public async Task<object> PasteAsync(FullPath dest, IEnumerable<FullPath> paths, bool isCut, IEnumerable<string> renames, string suffix)
         {
             var response = new ReplaceResponseModel();
             foreach (var src in paths)
@@ -557,10 +559,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     response.Added.Add(await BaseModel.CreateAsync(newFile, dest.RootVolume));
                 }
             }
-            return await Json(response);
+            return response;
         }
 
-        public async Task<JsonResult> PutAsync(FullPath path, string content)
+        public async Task<object> PutAsync(FullPath path, string content)
         {
             var response = new ChangedResponseModel();
             using (var fileStream = new FileStream(path.File.FullName, FileMode.Create))
@@ -569,10 +571,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 writer.Write(content);
             }
             response.Changed.Add(await BaseModel.CreateAsync(path.File, path.RootVolume));
-            return await Json(response);
+            return response;
         }
 
-        public async Task<JsonResult> PutAsync(FullPath path, byte[] content)
+        public async Task<object> PutAsync(FullPath path, byte[] content)
         {
             var response = new ChangedResponseModel();
             using (var fileStream = new FileStream(path.File.FullName, FileMode.Create))
@@ -581,10 +583,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 writer.Write(content);
             }
             response.Changed.Add(await BaseModel.CreateAsync(path.File, path.RootVolume));
-            return await Json(response);
+            return response;
         }
 
-        public async Task<JsonResult> RemoveAsync(IEnumerable<FullPath> paths)
+        public async Task<object> RemoveAsync(IEnumerable<FullPath> paths)
         {
             var response = new RemoveResponseModel();
             foreach (var path in paths)
@@ -604,10 +606,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 catch { }
                 response.Removed.Add(path.HashedTarget);
             }
-            return await Json(response);
+            return response;
         }
 
-        public async Task<JsonResult> RenameAsync(FullPath path, string name)
+        public async Task<object> RenameAsync(FullPath path, string name)
         {
             var response = new ReplaceResponseModel();
             response.Removed.Add(path.HashedTarget);
@@ -626,10 +628,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 response.Added.Add(await BaseModel.CreateAsync(newPath, path.RootVolume));
             }
 
-            return await Json(response);
+            return response;
         }
 
-        public async Task<JsonResult> ResizeAsync(FullPath path, int width, int height)
+        public async Task<object> ResizeAsync(FullPath path, int width, int height)
         {
             await RemoveThumbsAsync(path);
 
@@ -647,10 +649,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
             var output = new ChangedResponseModel();
             output.Changed.Add(await BaseModel.CreateAsync(path.File, path.RootVolume));
-            return await Json(output);
+            return output;
         }
 
-        public async Task<JsonResult> RotateAsync(FullPath path, int degree)
+        public async Task<object> RotateAsync(FullPath path, int degree)
         {
             await RemoveThumbsAsync(path);
 
@@ -668,10 +670,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
             var output = new ChangedResponseModel();
             output.Changed.Add(await BaseModel.CreateAsync(path.File, path.RootVolume));
-            return await Json(output);
+            return output;
         }
 
-        public async Task<JsonResult> SearchAsync(FullPath path, string query, IEnumerable<string> mimeTypes)
+        public async Task<object> SearchAsync(FullPath path, string query, IEnumerable<string> mimeTypes)
         {
             var response = new SearchResponseModel();
 
@@ -697,10 +699,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 }
             }
 
-            return await Json(response);
+            return response;
         }
 
-        public async Task<JsonResult> SizeAsync(IEnumerable<FullPath> paths)
+        public async Task<object> SizeAsync(IEnumerable<FullPath> paths)
         {
             var response = new SizeResponseModel();
 
@@ -723,10 +725,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 }
             }
 
-            return await Json(response);
+            return response;
         }
 
-        public async Task<JsonResult> ThumbsAsync(IEnumerable<FullPath> paths)
+        public async Task<object> ThumbsAsync(IEnumerable<FullPath> paths)
         {
             var response = new ThumbsResponseModel();
             foreach (var path in paths)
@@ -734,10 +736,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 response.Images.Add(path.HashedTarget, await path.RootVolume.GenerateThumbHashAsync(path.File));
                 //response.Images.Add(target, path.Root.GenerateThumbHash(path.File) + path.File.Extension); // 2018.02.23: Fix
             }
-            return await Json(response);
+            return response;
         }
 
-        public async Task<JsonResult> TreeAsync(FullPath path)
+        public async Task<object> TreeAsync(FullPath path)
         {
             var response = new TreeResponseModel();
             foreach (var item in await path.Directory.GetDirectoriesAsync())
@@ -747,10 +749,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     response.Tree.Add(await BaseModel.CreateAsync(item, path.RootVolume));
                 }
             }
-            return await Json(response);
+            return response;
         }
 
-        public async Task<JsonResult> UploadAsync(FullPath path, IEnumerable<IFormFile> files, bool? overwrite, IEnumerable<FullPath> uploadPaths, IEnumerable<string> renames, string suffix)
+        public async Task<object> UploadAsync(FullPath path, IList<FileContent> files, bool? overwrite, IEnumerable<FullPath> uploadPaths, IEnumerable<string> renames, string suffix)
         {
             var response = new AddResponseModel();
 
@@ -794,34 +796,34 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     if (overwrite ?? path.RootVolume.UploadOverwrite)
                     {
                         fileInfo.Delete();
-                        using (var fileStream = new FileStream(fileInfo.FullName, FileMode.Create))
+                        using (var fileStream = File.OpenWrite(fileInfo.FullName))
                         {
-                            await file.CopyToAsync(fileStream);
+                            await file.ContentStream.CopyToAsync(fileStream);
                         }
                         response.Added.Add(await BaseModel.CreateAsync(new FileSystemFile(fileInfo.FullName), path.RootVolume));
                     }
                     else
                     {
                         string newName = CreateNameForCopy(fileInfo, suffix);
-                        using (var fileStream = new FileStream(Path.Combine(fileInfo.DirectoryName, newName), FileMode.Create))
+                        using (var fileStream = File.OpenWrite(Path.Combine(fileInfo.DirectoryName, newName)))
                         {
-                            await file.CopyToAsync(fileStream);
+                            await file.ContentStream.CopyToAsync(fileStream);
                         }
                         response.Added.Add(await BaseModel.CreateAsync(new FileSystemFile(newName), path.RootVolume));
                     }
                 }
                 else
                 {
-                    using (var fileStream = new FileStream(fileInfo.FullName, FileMode.Create))
+                    using (var fileStream = File.OpenWrite(fileInfo.FullName))
                     {
-                        await file.CopyToAsync(fileStream);
+                        await file.ContentStream.CopyToAsync(fileStream);
                     }
                     response.Added.Add(await BaseModel.CreateAsync(new FileSystemFile(fileInfo.FullName), path.RootVolume));
                 }
 
                 i++;
             }
-            return await Json(response);
+            return response;
         }
 
         #endregion IDriver Members
