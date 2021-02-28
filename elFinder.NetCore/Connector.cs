@@ -188,7 +188,7 @@ namespace elFinder.NetCore
 
                         var mimeTypes = MimeDetect == MimeDetectOption.Internal
                             ? parameters.GetValueOrDefault("mimes[]")
-                            : default(StringValues);
+                            : default;
 
                         return await driver.SearchAsync(path, query, mimeTypes);
                     }

@@ -677,7 +677,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
             if (!query.Any(Path.GetInvalidFileNameChars().Contains))
             {
-                foreach (var item in await path.Directory.GetFilesAsync(mimeTypes, String.Concat("*", query, "*")))
+                foreach (var item in await path.Directory.GetFilesAsync(mimeTypes, string.Concat("*", query, "*")))
                 {
                     if (!item.Attributes.HasFlag(FileAttributes.Hidden) && !item.Directory.Attributes.HasFlag(FileAttributes.Hidden))
                     {
@@ -687,7 +687,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
                 if (!mimeTypes.Any())
                 {
-                    foreach (var item in await path.Directory.GetDirectoriesAsync(String.Concat("*", query, "*")))
+                    foreach (var item in await path.Directory.GetDirectoriesAsync(string.Concat("*", query, "*")))
                     {
                         if (!item.Attributes.HasFlag(FileAttributes.Hidden))
                         {
