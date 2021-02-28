@@ -181,6 +181,17 @@ namespace elFinder.NetCore
                         var paths = await GetFullPathArrayAsync(parameters.GetValueOrDefault("targets[]"));
                         return await driver.RemoveAsync(paths);
                     }
+                case "search":
+                    {
+                        var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
+                        var query = parameters.GetValueOrDefault("q");
+
+                        var mimeTypes = MimeDetect == MimeDetectOption.Internal
+                            ? parameters.GetValueOrDefault("mimes[]")
+                            : default(StringValues);
+
+                        return await driver.SearchAsync(path, query, mimeTypes);
+                    }
                 case "size":
                     {
                         var paths = new StringValues(parameters.Where(p => p.Key.StartsWith("target")).Select(p => (string)p.Value).ToArray());
