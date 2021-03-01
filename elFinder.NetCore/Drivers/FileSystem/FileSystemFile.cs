@@ -62,8 +62,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
         public Task<Stream> CreateAsync()
         {
             EnsureGarbageCollectorCalled();
-            using var stream = File.Create(filePath);
-            return Task.FromResult(stream as Stream);
+            using (var stream = File.Create(filePath))
+            {
+                return Task.FromResult(stream as Stream);
+            }
         }
 
         public Task DeleteAsync()

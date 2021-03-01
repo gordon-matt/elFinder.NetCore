@@ -53,7 +53,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
             if (directoryInfo != null)
             {
-                filename ??= "newfile";
+                if (filename is null)
+                {
+                    filename = "newfile";
+                }
 
                 if (filename.EndsWith(".zip"))
                 {
@@ -111,9 +114,11 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
         public async Task<object> DimAsync(FullPath path)
         {
-            using var stream = new FileStream(path.File.FullName, FileMode.Open);
-            var response = new DimResponseModel(path.RootVolume.PictureEditor.ImageSize(stream));
-            return await Task.FromResult(response);
+            using (var stream = new FileStream(path.File.FullName, FileMode.Open))
+            {
+                var response = new DimResponseModel(path.RootVolume.PictureEditor.ImageSize(stream));
+                return await Task.FromResult(response);
+            }
         }
 
         public async Task<object> DuplicateAsync(IEnumerable<FullPath> paths)
