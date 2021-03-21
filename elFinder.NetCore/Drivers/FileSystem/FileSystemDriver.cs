@@ -33,7 +33,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
         #region IDriver Members
 
-        public async Task<object> ArchiveAsync(FullPath parentPath, IEnumerable<FullPath> paths, string filename, string mimeType)
+        public async Task<ConnectorResult> ArchiveAsync(FullPath parentPath, IEnumerable<FullPath> paths, string filename, string mimeType)
         {
             var response = new AddResponseModel();
 
@@ -88,10 +88,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 response.Added.Add(await BaseModel.CreateAsync(new FileSystemFile(newPath), parentPath.RootVolume));
             }
 
-            return response;
+            return new ConnectorResult(response);
         }
 
-        public async Task<object> CropAsync(FullPath path, int x, int y, int width, int height)
+        public async Task<ConnectorResult> CropAsync(FullPath path, int x, int y, int width, int height)
         {
             await RemoveThumbsAsync(path);
 
@@ -109,19 +109,19 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
             var output = new ChangedResponseModel();
             output.Changed.Add(await BaseModel.CreateAsync(path.File, path.RootVolume));
-            return output;
+            return new ConnectorResult(output);
         }
 
-        public async Task<object> DimAsync(FullPath path)
+        public Task<ConnectorResult> DimAsync(FullPath path)
         {
             using (var stream = new FileStream(path.File.FullName, FileMode.Open))
             {
                 var response = new DimResponseModel(path.RootVolume.PictureEditor.ImageSize(stream));
-                return await Task.FromResult(response);
+                return Task.FromResult(new ConnectorResult(response));
             }
         }
 
-        public async Task<object> DuplicateAsync(IEnumerable<FullPath> paths)
+        public async Task<ConnectorResult> DuplicateAsync(IEnumerable<FullPath> paths)
         {
             var response = new AddResponseModel();
             foreach (var path in paths)
@@ -152,7 +152,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
                         if (!foundNewName)
                         {
-                            return Error.NewNameSelectionException($"{parentPath}{Path.DirectorySeparatorChar}{name} copy");
+                            new ConnectorResult($"Unable to create new file with name {parentPath}{Path.DirectorySeparatorChar}{name} copy");
                         }
                     }
 
@@ -186,16 +186,16 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
                         if (!foundNewName)
                         {
-                            return Error.NewNameSelectionException($"{parentPath}{Path.DirectorySeparatorChar}{name} copy{ext}");
+                            new ConnectorResult($"Unable to create new file with name {parentPath}{Path.DirectorySeparatorChar}{name} copy{ext}");
                         }
                     }
                     response.Added.Add(await BaseModel.CreateAsync(new FileSystemFile(newName), path.RootVolume));
                 }
             }
-            return response;
+            return new ConnectorResult(response);
         }
 
-        public async Task<object> ExtractAsync(FullPath fullPath, bool newFolder)
+        public async Task<ConnectorResult> ExtractAsync(FullPath fullPath, bool newFolder)
         {
             var response = new AddResponseModel();
 
@@ -257,26 +257,26 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 }
             }
 
-            return response;
+            return new ConnectorResult(response);
         }
 
-        public async Task<object> FileAsync(FullPath path, bool download)
+        public async Task<ConnectorResult> FileAsync(FullPath path, bool download)
         {
             FileContent result;
 
             if (path.IsDirectory)
             {
-                return new { error = "errNotFile" };
+                return new ConnectorResult("errNotFile");
             }
 
             if (!await path.File.ExistsAsync)
             {
-                return new { error = "errFileNotFound" };
+                return new ConnectorResult("errFileNotFound");
             }
 
             if (path.RootVolume.IsShowOnly)
             {
-                return new { error = "errPerm" };
+                return new ConnectorResult("errPerm");
             }
 
             result = new FileContent {
@@ -286,20 +286,20 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 ContentType = download ? "application/octet-stream" : MimeHelper.GetMimeType(path.File.Extension)
             };
 
-            return await Task.FromResult(result);
+            return new ConnectorResult(result);
         }
 
-        public async Task<object> GetAsync(FullPath path)
+        public async Task<ConnectorResult> GetAsync(FullPath path)
         {
             var response = new GetResponseModel();
             using (var reader = new StreamReader(await path.File.OpenReadAsync()))
             {
                 response.Content = reader.ReadToEnd();
             }
-            return response;
+            return new ConnectorResult(response);
         }
 
-        public async Task<object> InitAsync(FullPath path, IEnumerable<string> mimeTypes)
+        public async Task<ConnectorResult> InitAsync(FullPath path, IEnumerable<string> mimeTypes)
         {
             if (path == null)
             {
@@ -351,10 +351,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
             {
                 response.Options.UploadMaxSize = $"{path.RootVolume.MaxUploadSizeInKb.Value}K";
             }
-            return response;
+            return new ConnectorResult(response);
         }
 
-        public async Task<object> ListAsync(FullPath path, IEnumerable<string> intersect, IEnumerable<string> mimeTypes)
+        public async Task<ConnectorResult> ListAsync(FullPath path, IEnumerable<string> intersect, IEnumerable<string> mimeTypes)
         {
             var response = new ListResponseModel();
 
@@ -379,10 +379,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 response.List.RemoveAll(x => !intersect.Contains(x));
             }
 
-            return response;
+            return new ConnectorResult(response);
         }
 
-        public async Task<object> MakeDirAsync(FullPath path, string name, IEnumerable<string> dirs)
+        public async Task<ConnectorResult> MakeDirAsync(FullPath path, string name, IEnumerable<string> dirs)
         {
             var response = new AddResponseModel();
 
@@ -405,20 +405,20 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 response.Hashes.Add($"/{dirName}", path.RootVolume.VolumeId + HttpEncoder.EncodePath(relativePath));
             }
 
-            return response;
+            return new ConnectorResult(response);
         }
 
-        public async Task<object> MakeFileAsync(FullPath path, string name)
+        public async Task<ConnectorResult> MakeFileAsync(FullPath path, string name)
         {
             var newFile = new FileSystemFile(Path.Combine(path.Directory.FullName, name));
             await newFile.CreateAsync();
 
             var response = new AddResponseModel();
             response.Added.Add(await BaseModel.CreateAsync(newFile, path.RootVolume));
-            return response;
+            return new ConnectorResult(response);
         }
 
-        public async Task<object> OpenAsync(FullPath path, bool tree, IEnumerable<string> mimeTypes)
+        public async Task<ConnectorResult> OpenAsync(FullPath path, bool tree, IEnumerable<string> mimeTypes)
         {
             var response = new OpenResponse(await BaseModel.CreateAsync(path.Directory, path.RootVolume), path);
             foreach (var item in await path.Directory.GetFilesAsync(mimeTypes))
@@ -455,10 +455,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 }
             }
 
-            return response;
+            return new ConnectorResult(response);
         }
 
-        public async Task<object> ParentsAsync(FullPath path)
+        public async Task<ConnectorResult> ParentsAsync(FullPath path)
         {
             var response = new TreeResponseModel();
             if (path.Directory.FullName == path.RootVolume.RootDirectory)
@@ -478,7 +478,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     response.Tree.Add(await BaseModel.CreateAsync(parent, path.RootVolume));
                 }
             }
-            return response;
+            return new ConnectorResult(response);
         }
 
         public async Task<FullPath> ParsePathAsync(string target)
@@ -517,7 +517,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
             }
         }
 
-        public async Task<object> PasteAsync(FullPath dest, IEnumerable<FullPath> paths, bool isCut, IEnumerable<string> renames, string suffix)
+        public async Task<ConnectorResult> PasteAsync(FullPath dest, IEnumerable<FullPath> paths, bool isCut, IEnumerable<string> renames, string suffix)
         {
             var response = new ReplaceResponseModel();
             foreach (var src in paths)
@@ -564,10 +564,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     response.Added.Add(await BaseModel.CreateAsync(newFile, dest.RootVolume));
                 }
             }
-            return response;
+            return new ConnectorResult(response);
         }
 
-        public async Task<object> PutAsync(FullPath path, string content)
+        public async Task<ConnectorResult> PutAsync(FullPath path, string content)
         {
             var response = new ChangedResponseModel();
             using (var fileStream = new FileStream(path.File.FullName, FileMode.Create))
@@ -576,10 +576,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 writer.Write(content);
             }
             response.Changed.Add(await BaseModel.CreateAsync(path.File, path.RootVolume));
-            return response;
+            return new ConnectorResult(response);
         }
 
-        public async Task<object> PutAsync(FullPath path, byte[] content)
+        public async Task<ConnectorResult> PutAsync(FullPath path, byte[] content)
         {
             var response = new ChangedResponseModel();
             using (var fileStream = new FileStream(path.File.FullName, FileMode.Create))
@@ -588,10 +588,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 writer.Write(content);
             }
             response.Changed.Add(await BaseModel.CreateAsync(path.File, path.RootVolume));
-            return response;
+            return new ConnectorResult(response);
         }
 
-        public async Task<object> RemoveAsync(IEnumerable<FullPath> paths)
+        public async Task<ConnectorResult> RemoveAsync(IEnumerable<FullPath> paths)
         {
             var response = new RemoveResponseModel();
             foreach (var path in paths)
@@ -611,10 +611,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 catch { }
                 response.Removed.Add(path.HashedTarget);
             }
-            return response;
+            return new ConnectorResult(response);
         }
 
-        public async Task<object> RenameAsync(FullPath path, string name)
+        public async Task<ConnectorResult> RenameAsync(FullPath path, string name)
         {
             var response = new ReplaceResponseModel();
             response.Removed.Add(path.HashedTarget);
@@ -633,10 +633,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 response.Added.Add(await BaseModel.CreateAsync(newPath, path.RootVolume));
             }
 
-            return response;
+            return new ConnectorResult(response);
         }
 
-        public async Task<object> ResizeAsync(FullPath path, int width, int height)
+        public async Task<ConnectorResult> ResizeAsync(FullPath path, int width, int height)
         {
             await RemoveThumbsAsync(path);
 
@@ -654,10 +654,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
             var output = new ChangedResponseModel();
             output.Changed.Add(await BaseModel.CreateAsync(path.File, path.RootVolume));
-            return output;
+            return new ConnectorResult(output);
         }
 
-        public async Task<object> RotateAsync(FullPath path, int degree)
+        public async Task<ConnectorResult> RotateAsync(FullPath path, int degree)
         {
             await RemoveThumbsAsync(path);
 
@@ -675,10 +675,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
             var output = new ChangedResponseModel();
             output.Changed.Add(await BaseModel.CreateAsync(path.File, path.RootVolume));
-            return output;
+            return new ConnectorResult(output);
         }
 
-        public async Task<object> SearchAsync(FullPath path, string query, IEnumerable<string> mimeTypes)
+        public async Task<ConnectorResult> SearchAsync(FullPath path, string query, IEnumerable<string> mimeTypes)
         {
             var response = new SearchResponseModel();
 
@@ -704,10 +704,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 }
             }
 
-            return response;
+            return new ConnectorResult(response);
         }
 
-        public async Task<object> SizeAsync(IEnumerable<FullPath> paths)
+        public async Task<ConnectorResult> SizeAsync(IEnumerable<FullPath> paths)
         {
             var response = new SizeResponseModel();
 
@@ -730,10 +730,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 }
             }
 
-            return response;
+            return new ConnectorResult(response);
         }
 
-        public async Task<object> ThumbsAsync(IEnumerable<FullPath> paths)
+        public async Task<ConnectorResult> ThumbsAsync(IEnumerable<FullPath> paths)
         {
             var response = new ThumbsResponseModel();
             foreach (var path in paths)
@@ -741,10 +741,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 response.Images.Add(path.HashedTarget, await path.RootVolume.GenerateThumbHashAsync(path.File));
                 //response.Images.Add(target, path.Root.GenerateThumbHash(path.File) + path.File.Extension); // 2018.02.23: Fix
             }
-            return response;
+            return new ConnectorResult(response);
         }
 
-        public async Task<object> TreeAsync(FullPath path)
+        public async Task<ConnectorResult> TreeAsync(FullPath path)
         {
             var response = new TreeResponseModel();
             foreach (var item in await path.Directory.GetDirectoriesAsync())
@@ -754,10 +754,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     response.Tree.Add(await BaseModel.CreateAsync(item, path.RootVolume));
                 }
             }
-            return response;
+            return new ConnectorResult(response);
         }
 
-        public async Task<object> UploadAsync(FullPath path, IList<FileContent> files, bool? overwrite, IEnumerable<FullPath> uploadPaths, IEnumerable<string> renames, string suffix)
+        public async Task<ConnectorResult> UploadAsync(FullPath path, IList<FileContent> files, bool? overwrite, IEnumerable<FullPath> uploadPaths, IEnumerable<string> renames, string suffix)
         {
             var response = new AddResponseModel();
 
@@ -767,7 +767,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 {
                     if (file.Length > path.RootVolume.MaxUploadSize.Value)
                     {
-                        return Error.MaxUploadFileSize();
+                        new ConnectorResult("errFileMaxSize");
                     }
                 }
             }
@@ -828,7 +828,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
                 i++;
             }
-            return response;
+            return new ConnectorResult(response);
         }
 
         #endregion IDriver Members

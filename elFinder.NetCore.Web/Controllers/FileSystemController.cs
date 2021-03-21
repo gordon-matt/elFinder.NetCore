@@ -20,7 +20,7 @@ namespace elFinder.NetCore.Web.Controllers
 
             var parameters = Request.Query.ToDictionary(k => k.Key, v => v.Value);
 
-            var result = await connector.ProcessAsync(parameters);
+            var result = (await connector.ProcessAsync(parameters)).Value;
             if (result is FileContent)
             {
                 var file = result as FileContent;
@@ -52,11 +52,11 @@ namespace elFinder.NetCore.Web.Controllers
                         FileName = file.FileName
                     });
                 }
-                return Json(await connector.ProcessAsync(parameters, files));
+                return Json((await connector.ProcessAsync(parameters, files)).Value);
             }
             else
             {
-                return Json(await connector.ProcessAsync(parameters));
+                return Json((await connector.ProcessAsync(parameters)).Value);
             }
         }
 
@@ -65,7 +65,7 @@ namespace elFinder.NetCore.Web.Controllers
         {
             var connector = GetConnector();
 
-            var result = await connector.GetThumbnailAsync(hash);
+            var result = (await connector.GetThumbnailAsync(hash)).Value;
             if (result is ImageWithMimeType)
             {
                 var file = result as ImageWithMimeType;

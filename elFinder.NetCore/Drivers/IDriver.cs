@@ -6,56 +6,56 @@ namespace elFinder.NetCore
 {
     public interface IDriver
     {
-        Task<object> ArchiveAsync(FullPath parentPath, IEnumerable<FullPath> paths, string filename, string mimeType);
+        Task<ConnectorResult> ArchiveAsync(FullPath parentPath, IEnumerable<FullPath> paths, string filename, string mimeType);
 
-        Task<object> CropAsync(FullPath path, int x, int y, int width, int height);
+        Task<ConnectorResult> CropAsync(FullPath path, int x, int y, int width, int height);
 
-        Task<object> DimAsync(FullPath path);
+        Task<ConnectorResult> DimAsync(FullPath path);
 
-        Task<object> DuplicateAsync(IEnumerable<FullPath> paths);
+        Task<ConnectorResult> DuplicateAsync(IEnumerable<FullPath> paths);
 
-        Task<object> ExtractAsync(FullPath fullPath, bool newFolder);
+        Task<ConnectorResult> ExtractAsync(FullPath fullPath, bool newFolder);
 
-        Task<object> FileAsync(FullPath path, bool download);
+        Task<ConnectorResult> FileAsync(FullPath path, bool download);
 
-        Task<object> GetAsync(FullPath path);
+        Task<ConnectorResult> GetAsync(FullPath path);
 
-        Task<object> InitAsync(FullPath path, IEnumerable<string> mimeTypes);
+        Task<ConnectorResult> InitAsync(FullPath path, IEnumerable<string> mimeTypes);
 
-        Task<object> ListAsync(FullPath path, IEnumerable<string> intersect, IEnumerable<string> mimeTypes);
+        Task<ConnectorResult> ListAsync(FullPath path, IEnumerable<string> intersect, IEnumerable<string> mimeTypes);
 
-        Task<object> MakeDirAsync(FullPath path, string name, IEnumerable<string> dirs);
+        Task<ConnectorResult> MakeDirAsync(FullPath path, string name, IEnumerable<string> dirs);
 
-        Task<object> MakeFileAsync(FullPath path, string name);
+        Task<ConnectorResult> MakeFileAsync(FullPath path, string name);
 
-        Task<object> OpenAsync(FullPath path, bool tree, IEnumerable<string> mimeTypes);
+        Task<ConnectorResult> OpenAsync(FullPath path, bool tree, IEnumerable<string> mimeTypes);
 
-        Task<object> ParentsAsync(FullPath path);
+        Task<ConnectorResult> ParentsAsync(FullPath path);
 
         Task<FullPath> ParsePathAsync(string target);
 
-        Task<object> PasteAsync(FullPath dest, IEnumerable<FullPath> paths, bool isCut, IEnumerable<string> renames, string suffix);
+        Task<ConnectorResult> PasteAsync(FullPath dest, IEnumerable<FullPath> paths, bool isCut, IEnumerable<string> renames, string suffix);
 
-        Task<object> PutAsync(FullPath path, string content);
+        Task<ConnectorResult> PutAsync(FullPath path, string content);
 
-        Task<object> PutAsync(FullPath path, byte[] content);
+        Task<ConnectorResult> PutAsync(FullPath path, byte[] content);
 
-        Task<object> RemoveAsync(IEnumerable<FullPath> paths);
+        Task<ConnectorResult> RemoveAsync(IEnumerable<FullPath> paths);
 
-        Task<object> RenameAsync(FullPath path, string name);
+        Task<ConnectorResult> RenameAsync(FullPath path, string name);
 
-        Task<object> ResizeAsync(FullPath path, int width, int height);
+        Task<ConnectorResult> ResizeAsync(FullPath path, int width, int height);
 
-        Task<object> RotateAsync(FullPath path, int degree);
+        Task<ConnectorResult> RotateAsync(FullPath path, int degree);
 
-        Task<object> SearchAsync(FullPath path, string query, IEnumerable<string> mimeTypes);
+        Task<ConnectorResult> SearchAsync(FullPath path, string query, IEnumerable<string> mimeTypes);
 
-        Task<object> SizeAsync(IEnumerable<FullPath> paths);
+        Task<ConnectorResult> SizeAsync(IEnumerable<FullPath> paths);
 
-        Task<object> ThumbsAsync(IEnumerable<FullPath> paths);
+        Task<ConnectorResult> ThumbsAsync(IEnumerable<FullPath> paths);
 
-        Task<object> TreeAsync(FullPath path);
+        Task<ConnectorResult> TreeAsync(FullPath path);
 
-        Task<object> UploadAsync(FullPath path, IList<FileContent> files, bool? overwrite, IEnumerable<FullPath> uploadPaths, IEnumerable<string> renames, string suffix);
+        Task<ConnectorResult> UploadAsync(FullPath path, IList<FileContent> files, bool? overwrite, IEnumerable<FullPath> uploadPaths, IEnumerable<string> renames, string suffix);
     }
 }

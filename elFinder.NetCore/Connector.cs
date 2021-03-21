@@ -25,12 +25,12 @@ namespace elFinder.NetCore
             this.driver = driver;
         }
 
-        public async Task<object> ProcessAsync(Dictionary<string, StringValues> parameters, IList<FileContent> files = null)
+        public async Task<ConnectorResult> ProcessAsync(Dictionary<string, StringValues> parameters, IList<FileContent> files = null)
         {
             string cmd = parameters.GetValueOrDefault("cmd");
             if (string.IsNullOrEmpty(cmd))
             {
-                return Error.CommandNotFound();
+                return new ConnectorResult("errUnknownCmd");
             }
 
             switch (cmd)
@@ -170,7 +170,7 @@ namespace elFinder.NetCore
                                 return await driver.RotateAsync(path, int.Parse(parameters.GetValueOrDefault("degree")));
 
                             default:
-                                return Error.CommandNotFound();
+                                return new ConnectorResult("errUnknownCmd");
                         }
                     }
                 case "rm":
@@ -214,7 +214,7 @@ namespace elFinder.NetCore
                         var suffix = parameters.GetValueOrDefault("suffix");
                         return await driver.UploadAsync(path, files, overwrite, uploadPath, renames, suffix);
                     }
-                default: return Error.CommandNotFound();
+                default: return new ConnectorResult("errUnknownCmd");
             }
         }
 
@@ -228,7 +228,7 @@ namespace elFinder.NetCore
             return !path.IsDirectory ? path.File : null;
         }
 
-        public async Task<object> GetThumbnailAsync(/*HttpRequest request, HttpResponse response,*/ string hash)
+        public async Task<ConnectorResult> GetThumbnailAsync(/*HttpRequest request, HttpResponse response,*/ string hash)
         {
             if (hash != null)
             {
@@ -238,7 +238,7 @@ namespace elFinder.NetCore
                     //if (!await HttpCacheHelper.IsFileFromCache(path.File, request, response))
                     //{
                     var thumb = await path.GenerateThumbnailAsync();
-                    return thumb;
+                    return new ConnectorResult(thumb);
                     //}
                     //else
                     //{
@@ -247,7 +247,7 @@ namespace elFinder.NetCore
                     //}
                 }
             }
-            return new { error = "errInvName" };
+            return new ConnectorResult("errInvName");
         }
 
         private bool CanCreateThumbnail(FullPath path, IPictureEditor pictureEditor)
