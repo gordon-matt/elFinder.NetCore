@@ -152,7 +152,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
                         if (!foundNewName)
                         {
-                            new ConnectorResult($"Unable to create new file with name {parentPath}{Path.DirectorySeparatorChar}{name} copy");
+                            return new ConnectorResult($"Unable to create new file with name {parentPath}{Path.DirectorySeparatorChar}{name} copy");
                         }
                     }
 
@@ -186,7 +186,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
                         if (!foundNewName)
                         {
-                            new ConnectorResult($"Unable to create new file with name {parentPath}{Path.DirectorySeparatorChar}{name} copy{ext}");
+                            return new ConnectorResult($"Unable to create new file with name {parentPath}{Path.DirectorySeparatorChar}{name} copy{ext}");
                         }
                     }
                     response.Added.Add(await BaseModel.CreateAsync(new FileSystemFile(newName), path.RootVolume));
@@ -767,7 +767,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 {
                     if (file.Length > path.RootVolume.MaxUploadSize.Value)
                     {
-                        new ConnectorResult("errFileMaxSize");
+                        return new ConnectorResult("errFileMaxSize");
                     }
                 }
             }
