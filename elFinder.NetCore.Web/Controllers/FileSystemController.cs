@@ -48,21 +48,20 @@ namespace elFinder.NetCore.Web.Controllers
                 //    Read = false,
                 //    Write = false
                 //},
-                ItemAttributes = new HashSet<NamedItemAttribute>()
-                {
-                    new NamedItemAttribute("readonly.txt")
-                    {
-                        Locked = true,
-                        Write = false
-                    },
-                    new NamedItemAttribute("Prohibited")
-                    {
-                        Read = false,
-                        Write = false,
-                        Locked = true
-                    }
-                }
+                ItemAttributes = new HashSet<SpecificItemAttribute>()
             };
+
+            root.AddItemAttribute("readonly.txt", new ItemAttribute()
+            {
+                Locked = true,
+                Write = false
+            });
+            root.AddItemAttribute("Prohibited", new ItemAttribute()
+            {
+                Read = false,
+                Write = false,
+                Locked = true
+            });
 
             driver.AddRoot(root);
 

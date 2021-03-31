@@ -31,6 +31,7 @@ namespace elFinder.NetCore
                 throw new ArgumentNullException("rootDirectory", "Root directory cannot be null");
             }
 
+            rootDirectory = Path.TrimEndingDirectorySeparator(Path.GetFullPath(rootDirectory));
             Alias = Path.GetFileNameWithoutExtension(rootDirectory);
             RootDirectory = rootDirectory;
             Url = url;
@@ -74,12 +75,12 @@ namespace elFinder.NetCore
         public bool IsShowOnly { get; }
 
         /// <summary>
-        /// Set of named item attributes used for permissions, access control.
+        /// Set of specific item attributes used for permissions, access control.
         /// </summary>
-        public ISet<NamedItemAttribute> ItemAttributes { get; set; }
+        public ISet<SpecificItemAttribute> ItemAttributes { get; set; }
 
         /// <summary>
-        /// Default attribute for files/directories if not any named item attribute detected. 
+        /// Default attribute for files/directories if not any specific item attribute detected. 
         /// Note: This can not be null
         /// </summary>
         private ItemAttribute _defaultAttribute = new ItemAttribute();
@@ -132,7 +133,9 @@ namespace elFinder.NetCore
         /// <summary>
         /// Get or sets a subfolder of root diretory, which will be start
         /// </summary>
-        public string StartDirectory { get => _startDirectory; set
+        public string StartDirectory
+        {
+            get => _startDirectory; set
             {
                 if (value == null) return;
                 _startDirectory = Path.Combine(RootDirectory, value);
@@ -256,6 +259,18 @@ namespace elFinder.NetCore
             string relativePath = originalDirectory.FullName.Substring(RootDirectory.Length);
             string thumbDir = ThumbnailDirectory + relativePath;
             return thumbDir;
+        }
+
+        public bool AddItemAttribute(string relativePath, ItemAttribute attribute)
+        {
+            if (ItemAttributes == null) ItemAttributes = new HashSet<SpecificItemAttribute>();
+
+            return ItemAttributes.Add(new SpecificItemAttribute(relativePath, RootDirectory)
+            {
+                Locked = attribute.Locked,
+                Read = attribute.Read,
+                Write = attribute.Write
+            });
         }
     }
 }
