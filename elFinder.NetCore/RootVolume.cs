@@ -88,7 +88,6 @@ namespace elFinder.NetCore
             get => _defaultAttribute; set
             {
                 if (value == null) throw new ArgumentNullException(nameof(DefaultAttribute));
-
                 _defaultAttribute = value;
             }
         }
