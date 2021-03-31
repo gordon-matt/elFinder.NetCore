@@ -8,7 +8,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 {
     public class FileSystemDirectory : IDirectory
     {
-        private readonly DirectoryInfo directoryInfo;
+        private DirectoryInfo directoryInfo;
 
         #region Constructors
 
@@ -16,15 +16,9 @@ namespace elFinder.NetCore.Drivers.FileSystem
         {
         }
 
-        // Init properties values to prevent additional calls for each request. 
-        // It is safe since DirectoryInfo only reflects information about the directory at requested time.
         public FileSystemDirectory(DirectoryInfo directoryInfo)
         {
             this.directoryInfo = directoryInfo;
-            FullName = Path.TrimEndingDirectorySeparator(directoryInfo.FullName);
-            ExistsAsync = Task.FromResult(directoryInfo.Exists);
-            LastWriteTimeUtcAsync = Task.FromResult(directoryInfo.LastWriteTimeUtc);
-            Name = directoryInfo.Name;
         }
 
         #endregion Constructors
@@ -37,13 +31,13 @@ namespace elFinder.NetCore.Drivers.FileSystem
             set => directoryInfo.Attributes = value;
         }
 
-        public Task<bool> ExistsAsync { get; }
+        public Task<bool> ExistsAsync => Task.FromResult(directoryInfo.Exists);
 
-        public string FullName { get; }
+        public string FullName => Path.TrimEndingDirectorySeparator(directoryInfo.FullName);
 
-        public Task<DateTime> LastWriteTimeUtcAsync { get; }
+        public Task<DateTime> LastWriteTimeUtcAsync => Task.FromResult(directoryInfo.LastWriteTimeUtc);
 
-        public string Name { get; }
+        public string Name => directoryInfo.Name;
 
         private IDirectory _parent;
         public IDirectory Parent
@@ -110,6 +104,12 @@ namespace elFinder.NetCore.Drivers.FileSystem
         public void MoveTo(string destDirName)
         {
             directoryInfo.MoveTo(destDirName);
+        }
+
+        public Task RefreshAsync()
+        {
+            directoryInfo = new DirectoryInfo(directoryInfo.FullName);
+            return Task.CompletedTask;
         }
     }
 }

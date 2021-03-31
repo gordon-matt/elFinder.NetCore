@@ -488,15 +488,9 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
             string volumePrefix = null;
             string pathHash = null;
-            for (int i = 0; i < target.Length; i++)
-            {
-                if (target[i] == '_')
-                {
-                    pathHash = target.Substring(i + 1);
-                    volumePrefix = target.Substring(0, i + 1);
-                    break;
-                }
-            }
+            var underscoreIdx = target.IndexOf('_');
+            pathHash = target.Substring(underscoreIdx + 1);
+            volumePrefix = target.Substring(0, underscoreIdx + 1);
 
             var root = Roots.First(r => r.VolumeId == volumePrefix);
             var rootDirectory = new DirectoryInfo(root.RootDirectory);

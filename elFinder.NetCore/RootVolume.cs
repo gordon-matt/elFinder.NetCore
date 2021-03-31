@@ -138,7 +138,7 @@ namespace elFinder.NetCore
             get => _startDirectory; set
             {
                 if (value == null) return;
-                _startDirectory = Path.Combine(RootDirectory, value);
+                _startDirectory = RootDirectory + DirectorySeparatorChar + value;
             }
         }
 

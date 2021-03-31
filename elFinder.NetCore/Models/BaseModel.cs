@@ -65,6 +65,8 @@ namespace elFinder.NetCore.Models
         {
             if (file == null) throw new ArgumentNullException("file");
             if (volume == null) throw new ArgumentNullException("volume");
+            
+            await file.RefreshAsync();
 
             string parentPath = file.DirectoryName.Substring(volume.RootDirectory.Length);
             string relativePath = file.FullName.Substring(volume.RootDirectory.Length);
@@ -121,6 +123,8 @@ namespace elFinder.NetCore.Models
             {
                 throw new ArgumentNullException("volume");
             }
+
+            await directory.RefreshAsync();
 
             if (volume.RootDirectory == directory.FullName)
             {

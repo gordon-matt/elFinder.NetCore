@@ -8,7 +8,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 {
     public class FileSystemFile : IFile
     {
-        private readonly FileInfo fileInfo;
+        private FileInfo fileInfo;
 
         #region Constructors
 
@@ -19,15 +19,6 @@ namespace elFinder.NetCore.Drivers.FileSystem
         public FileSystemFile(FileInfo fileInfo)
         {
             this.fileInfo = fileInfo;
-            Name = fileInfo.Name;
-            FullName = Path.TrimEndingDirectorySeparator(fileInfo.FullName);
-            DirectoryName = Path.TrimEndingDirectorySeparator(fileInfo.DirectoryName);
-            Extension = fileInfo.Extension;
-            Directory = new FileSystemDirectory(fileInfo.Directory);
-            ExistsAsync = Task.FromResult(fileInfo.Exists);
-            LastWriteTimeUtcAsync = Task.FromResult(fileInfo.LastWriteTimeUtc);
-            LengthAsync = Task.FromResult(fileInfo.Length);
-            MimeType = MimeHelper.GetMimeType(Extension);
         }
 
         #endregion Constructors
@@ -40,23 +31,32 @@ namespace elFinder.NetCore.Drivers.FileSystem
             set => fileInfo.Attributes = value;
         }
 
-        public IDirectory Directory { get; }
+        private IDirectory _directory;
+        public IDirectory Directory
+        {
+            get
+            {
+                if (_directory == null)
+                    _directory = new FileSystemDirectory(fileInfo.Directory);
+                return _directory;
+            }
+        }
 
-        public string DirectoryName { get; private set; }
+        public string DirectoryName => Path.TrimEndingDirectorySeparator(fileInfo.DirectoryName);
 
-        public Task<bool> ExistsAsync { get; }
+        public Task<bool> ExistsAsync => Task.FromResult(fileInfo.Exists);
 
-        public string Extension { get; private set; }
+        public string Extension => fileInfo.Extension;
 
-        public string FullName { get; private set; }
+        public string FullName => Path.TrimEndingDirectorySeparator(fileInfo.FullName);
 
-        public Task<DateTime> LastWriteTimeUtcAsync { get; }
+        public Task<DateTime> LastWriteTimeUtcAsync => Task.FromResult(fileInfo.LastWriteTimeUtc);
 
-        public Task<long> LengthAsync { get; }
+        public Task<long> LengthAsync => Task.FromResult(fileInfo.Length);
 
-        public string Name { get; private set; }
+        public string Name => fileInfo.Name;
 
-        public MimeType MimeType { get; }
+        public MimeType MimeType => MimeHelper.GetMimeType(Extension);
 
         public IFile Open(string path)
         {
@@ -113,6 +113,12 @@ namespace elFinder.NetCore.Drivers.FileSystem
         {
             GC.Collect();
             GC.WaitForPendingFinalizers();
+        }
+
+        public Task RefreshAsync()
+        {
+            fileInfo = new FileInfo(fileInfo.FullName);
+            return Task.CompletedTask;
         }
     }
 }
