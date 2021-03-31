@@ -20,9 +20,7 @@ namespace elFinder.NetCore.Extensions
                 if (specificAttr != null) return specificAttr.Locked ? (byte)1 : (byte)0;
 
                 var currentParent = file.Directory;
-                var rootPath = Path.GetFullPath(volume.RootDirectory);
-
-                while (currentParent != null && currentParent.FullName != rootPath)
+                while (currentParent != null && currentParent.FullName != volume.RootDirectory)
                 {
                     specificAttr = volume.ItemAttributes.FirstOrDefault(attr => attr.FullName == currentParent.FullName);
 
@@ -44,9 +42,7 @@ namespace elFinder.NetCore.Extensions
                 if (specificAttr != null) return specificAttr.Read ? (byte)1 : (byte)0;
 
                 var currentParent = file.Directory;
-                var rootPath = Path.GetFullPath(volume.RootDirectory);
-
-                while (currentParent != null && currentParent.FullName != rootPath)
+                while (currentParent != null && currentParent.FullName != volume.RootDirectory)
                 {
                     specificAttr = volume.ItemAttributes.FirstOrDefault(attr => attr.FullName == currentParent.FullName);
 
@@ -70,9 +66,7 @@ namespace elFinder.NetCore.Extensions
                 if (specificAttr != null) return specificAttr.Write ? (byte)1 : (byte)0;
 
                 var currentParent = file.Directory;
-                var rootPath = Path.GetFullPath(volume.RootDirectory);
-
-                while (currentParent != null && currentParent.FullName != rootPath)
+                while (currentParent != null && currentParent.FullName != volume.RootDirectory)
                 {
                     specificAttr = volume.ItemAttributes.FirstOrDefault(attr => attr.FullName == currentParent.FullName);
 

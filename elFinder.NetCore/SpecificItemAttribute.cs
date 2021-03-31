@@ -5,14 +5,10 @@ namespace elFinder.NetCore
 {
     public class SpecificItemAttribute : ItemAttribute
     {
-        public SpecificItemAttribute(string relativePath, string fromRootDirectoryPath) : base()
+        public SpecificItemAttribute(string fullName) : base()
         {
-            if (relativePath == null) throw new ArgumentNullException(nameof(relativePath));
-            if (fromRootDirectoryPath == null) throw new ArgumentNullException(nameof(fromRootDirectoryPath));
-
-            FullName = Path.TrimEndingDirectorySeparator(
-                Path.GetFullPath(
-                    Path.Combine(fromRootDirectoryPath, relativePath)));
+            if (fullName == null) throw new ArgumentNullException(nameof(fullName));
+            FullName = fullName;
         }
 
         public string FullName { get; }

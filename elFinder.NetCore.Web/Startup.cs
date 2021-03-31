@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using elFinder.NetCore.Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -19,7 +20,7 @@ namespace elFinder.NetCore.Web
             }
 
             path = path.Replace("~/", "").TrimStart('/').Replace('/', '\\');
-            return Path.Combine(basePath, path);
+            return PathHelper.GetFullPathNormalized(Path.Combine(basePath, path));
         }
 
         public Startup(IConfiguration configuration)

@@ -31,7 +31,6 @@ namespace elFinder.NetCore
                 throw new ArgumentNullException("rootDirectory", "Root directory cannot be null");
             }
 
-            rootDirectory = Path.TrimEndingDirectorySeparator(Path.GetFullPath(rootDirectory));
             Alias = Path.GetFileNameWithoutExtension(rootDirectory);
             RootDirectory = rootDirectory;
             Url = url;
@@ -261,11 +260,11 @@ namespace elFinder.NetCore
             return thumbDir;
         }
 
-        public bool AddItemAttribute(string relativePath, ItemAttribute attribute)
+        public bool AddItemAttribute(string fullName, ItemAttribute attribute)
         {
             if (ItemAttributes == null) ItemAttributes = new HashSet<SpecificItemAttribute>();
 
-            return ItemAttributes.Add(new SpecificItemAttribute(relativePath, RootDirectory)
+            return ItemAttributes.Add(new SpecificItemAttribute(fullName)
             {
                 Locked = attribute.Locked,
                 Read = attribute.Read,
