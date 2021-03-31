@@ -16,7 +16,9 @@ namespace elFinder.NetCore
 
         public string GetFullName(string fromRoot)
         {
-            return Path.Combine(fromRoot, Name);
+            return Path.TrimEndingDirectorySeparator(
+                Path.GetFullPath(
+                    Path.Combine(fromRoot, Name)));
         }
 
         public override bool Equals(object obj)

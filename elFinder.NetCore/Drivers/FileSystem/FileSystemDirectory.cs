@@ -12,14 +12,19 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
         #region Constructors
 
-        public FileSystemDirectory(string dirName)
+        public FileSystemDirectory(string dirName) : this(new DirectoryInfo(dirName))
         {
-            directoryInfo = new DirectoryInfo(dirName);
         }
 
+        // Init properties values to prevent additional calls for each request. 
+        // It is safe since DirectoryInfo only reflects information about the directory at requested time.
         public FileSystemDirectory(DirectoryInfo directoryInfo)
         {
             this.directoryInfo = directoryInfo;
+            FullName = Path.TrimEndingDirectorySeparator(directoryInfo.FullName);
+            ExistsAsync = Task.FromResult(directoryInfo.Exists);
+            LastWriteTimeUtcAsync = Task.FromResult(directoryInfo.LastWriteTimeUtc);
+            Name = directoryInfo.Name;
         }
 
         #endregion Constructors
@@ -32,15 +37,24 @@ namespace elFinder.NetCore.Drivers.FileSystem
             set => directoryInfo.Attributes = value;
         }
 
-        public Task<bool> ExistsAsync => Task.FromResult(directoryInfo.Exists);
+        public Task<bool> ExistsAsync { get; }
 
-        public string FullName => directoryInfo.FullName;
+        public string FullName { get; }
 
-        public Task<DateTime> LastWriteTimeUtcAsync => Task.FromResult(directoryInfo.LastWriteTimeUtc);
+        public Task<DateTime> LastWriteTimeUtcAsync { get; }
 
-        public string Name => directoryInfo.Name;
+        public string Name { get; }
 
-        public IDirectory Parent => new FileSystemDirectory(directoryInfo.Parent);
+        private IDirectory _parent;
+        public IDirectory Parent
+        {
+            get
+            {
+                if (_parent == null && directoryInfo.Parent != null)
+                    _parent = new FileSystemDirectory(directoryInfo.Parent);
+                return _parent;
+            }
+        }
 
         public Task CreateAsync()
         {
