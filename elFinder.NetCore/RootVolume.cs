@@ -74,9 +74,24 @@ namespace elFinder.NetCore
         public bool IsShowOnly { get; }
 
         /// <summary>
-        /// Gets or sets a list of root subfolders that should be locked (user can't remove, rename)
+        /// Set of named item attributes used for permissions, access control.
         /// </summary>
-        public List<string> LockedFolders { get; set; }
+        public ISet<NamedItemAttribute> ItemAttributes { get; set; }
+
+        /// <summary>
+        /// Default attribute for files/directories if not any named item attribute detected. 
+        /// Note: This can not be null
+        /// </summary>
+        private ItemAttribute _defaultAttribute = new ItemAttribute();
+        public ItemAttribute DefaultAttribute
+        {
+            get => _defaultAttribute; set
+            {
+                if (value == null) throw new ArgumentNullException(nameof(DefaultAttribute));
+
+                _defaultAttribute = value;
+            }
+        }
 
         /// <summary>
         /// Get or sets maximum upload file size. This size is per files in bytes.
@@ -114,10 +129,16 @@ namespace elFinder.NetCore
         /// </summary>
         public string RootDirectory { get; }
 
+        private string _startDirectory;
         /// <summary>
         /// Get or sets a subfolder of root diretory, which will be start
         /// </summary>
-        public string StartDirectory { get; }
+        public string StartDirectory { get => _startDirectory; set
+            {
+                if (value == null) return;
+                _startDirectory = Path.Combine(RootDirectory, value);
+            }
+        }
 
         /// <summary>
         /// Get ot sets thumbnals directory

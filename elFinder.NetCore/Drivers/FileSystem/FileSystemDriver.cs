@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using elFinder.NetCore.Drawing;
+using elFinder.NetCore.Extensions;
 using elFinder.NetCore.Helpers;
 using elFinder.NetCore.Models;
 using elFinder.NetCore.Models.Commands;
@@ -302,7 +303,11 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     root = Roots.First();
                 }
 
-                path = new FullPath(root, new FileSystemDirectory(root.StartDirectory ?? root.RootDirectory), null);
+                if (Directory.Exists(root.StartDirectory))
+                    path = new FullPath(root, new FileSystemDirectory(root.StartDirectory), null);
+
+                if (path == null || path.Directory.GetReadFlag(root) == 0)
+                    path = new FullPath(root, new FileSystemDirectory(root.RootDirectory), null);
             }
 
             var response = new InitResponseModel(await BaseModel.CreateAsync(path.Directory, path.RootVolume), new Options(path));
