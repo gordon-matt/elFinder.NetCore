@@ -31,7 +31,20 @@ namespace elFinder.NetCore.Helpers
 
         public static JsonResult NewNameSelectionException(string name)
         {
-            return new JsonResult(new { error = $"Unable to create new file with name {name}" });
+            return new JsonResult(new
+            {
+                error = new[] { "errNewNameSelection", name }
+            });
+        }
+
+        public static JsonResult FolderNotFound()
+        {
+            return FormatSimpleError("errFolderNotFound");
+        }
+
+        public static JsonResult FileNotFound()
+        {
+            return FormatSimpleError("errFileNotFound");
         }
 
         private static JsonResult FormatSimpleError(string message)
