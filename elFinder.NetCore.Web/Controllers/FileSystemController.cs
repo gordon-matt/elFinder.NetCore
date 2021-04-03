@@ -36,7 +36,7 @@ namespace elFinder.NetCore.Web.Controllers
                 $"{uri.Scheme}://{uri.Authority}/Files/",
                 $"{uri.Scheme}://{uri.Authority}/el-finder/file-system/thumb/")
             {
-                StartDirectory = "LastDir", // will fallback to root if not found or user don't have permission
+                StartDirectory = Startup.MapPath("~/Files/LastDir"), // will fallback to root if not found or user don't have permission
                 //IsReadOnly = !User.IsInRole("Administrators")
                 IsReadOnly = false, // Can be readonly according to user's membership permission
                 IsLocked = false, // If locked, files and directories cannot be deleted, renamed or moved

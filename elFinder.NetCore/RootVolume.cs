@@ -128,18 +128,10 @@ namespace elFinder.NetCore
         /// </summary>
         public string RootDirectory { get; }
 
-        private string _startDirectory;
         /// <summary>
         /// Get or sets a subfolder of root diretory, which will be start
         /// </summary>
-        public string StartDirectory
-        {
-            get => _startDirectory; set
-            {
-                if (value == null) return;
-                _startDirectory = RootDirectory + DirectorySeparatorChar + value;
-            }
-        }
+        public string StartDirectory { get; set; }
 
         /// <summary>
         /// Get ot sets thumbnals directory
