@@ -251,17 +251,5 @@ namespace elFinder.NetCore
             string thumbDir = ThumbnailDirectory + relativePath;
             return thumbDir;
         }
-
-        public bool AddItemAttribute(string fullName, ItemAttribute attribute)
-        {
-            if (ItemAttributes == null) ItemAttributes = new HashSet<SpecificItemAttribute>();
-
-            return ItemAttributes.Add(new SpecificItemAttribute(fullName)
-            {
-                Locked = attribute.Locked,
-                Read = attribute.Read,
-                Write = attribute.Write
-            });
-        }
     }
 }

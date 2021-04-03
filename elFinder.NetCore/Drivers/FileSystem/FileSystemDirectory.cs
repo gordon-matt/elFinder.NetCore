@@ -109,6 +109,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
         public Task RefreshAsync()
         {
             directoryInfo = new DirectoryInfo(directoryInfo.FullName);
+            _parent = null;
             return Task.CompletedTask;
         }
     }
