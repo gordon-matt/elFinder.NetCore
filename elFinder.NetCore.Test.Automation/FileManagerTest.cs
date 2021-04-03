@@ -38,7 +38,7 @@ namespace elFinder.NetCore.Test.Automation
             try
             {
                 var errDialog = _driver.FindElement(
-                    By.CssSelector(".elfinder-dialog-title"));
+                    By.CssSelector(".elfinder-dialog-error"));
 
                 var isVisible = errDialog.Displayed;
 
@@ -50,7 +50,7 @@ namespace elFinder.NetCore.Test.Automation
             }
         }
 
-        public Task<bool> CreateNewFolder()
+        public Task<bool> CreateNewFolderAsync(string folderName)
         {
             var elFinder = ElementVisible(".elfinder-cwd-wrapper");
 
@@ -64,6 +64,10 @@ namespace elFinder.NetCore.Test.Automation
             clickNewFolder.Perform();
             Wait(1);
 
+            var inputName = ElementVisible(".elfinder-cwd-file textarea");
+            inputName.SendKeys(folderName);
+            Wait(1);
+
             var clickElfinder = new Actions(_driver).Click(elFinder);
             clickElfinder.Perform();
             Wait(1);
@@ -72,6 +76,70 @@ namespace elFinder.NetCore.Test.Automation
             Wait(2);
 
             return Task.FromResult(true);
+        }
+
+        public Task<bool> RenameAsync(string oldFolderName, string newFolderName)
+        {
+            var testFolder = ElementsVisible(".elfinder-cwd-file", filter:
+                ele => ele.GetAttribute("innerHTML").Contains(oldFolderName)).FirstOrDefault();
+
+            var rightClickTestFolder = new Actions(_driver).ContextClick(testFolder);
+            rightClickTestFolder.Perform();
+            Wait(1);
+
+            var renameOption = ElementsVisible(".elfinder-contextmenu-item span",
+                filter: ele => ele.GetAttribute("innerHTML").Contains("Rename")).FirstOrDefault();
+            var clickRename = new Actions(_driver).Click(renameOption);
+            clickRename.Perform();
+            Wait(1);
+
+            var inputName = ElementVisible(".elfinder-cwd-file textarea");
+            inputName.SendKeys(newFolderName);
+            Wait(1);
+
+            var clickElfinder = new Actions(_driver).Click(testFolder);
+            clickElfinder.Perform();
+            Wait(1);
+
+            try
+            {
+                var result = ElementVisible(".elfinder-dialog-error", 1);
+                return Task.FromResult(false);
+            }
+            catch (Exception)
+            {
+                return Task.FromResult(true);
+            }
+        }
+
+        public Task<bool> DeleteFolderAsync(string folderName)
+        {
+            var testFolder = ElementsVisible(".elfinder-cwd-file", filter:
+                ele => ele.GetAttribute("innerHTML").Contains(folderName)).FirstOrDefault();
+
+            var rightClickTestFolder = new Actions(_driver).ContextClick(testFolder);
+            rightClickTestFolder.Perform();
+            Wait(1);
+
+            var renameOption = ElementsVisible(".elfinder-contextmenu-item span",
+                filter: ele => ele.GetAttribute("innerHTML").Contains("Delete")).FirstOrDefault();
+            var clickRename = new Actions(_driver).Click(renameOption);
+            clickRename.Perform();
+            Wait(1);
+
+            var acceptBtn = ElementVisible(".elfinder-confirm-accept", 2);
+            acceptBtn.Click();
+            Wait(1);
+
+            try
+            {
+                var result = ElementVisible(".elfinder-dialog-error", 1);
+                return Task.FromResult(false);
+            }
+            catch (Exception)
+            {
+                return Task.FromResult(true);
+            }
         }
 
         private void Wait(double sec)
