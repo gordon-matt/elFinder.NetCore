@@ -36,7 +36,7 @@ namespace elFinder.NetCore.Test
                 .AddJsonFile(Config.AppSettingFile, optional: false)
                 .Build();
 
-            var host = config.GetSection(Config.HostKey).Value;
+            var baseUrl = config.GetSection(Config.BaseUrlKey).Value;
             var driver = config.GetSection(Config.DriverKey).Value;
             var driverDir = config.GetSection(Config.DriverDirectoryKey).Value;
 
@@ -53,7 +53,7 @@ namespace elFinder.NetCore.Test
                     throw new NotImplementedException();
             }
 
-            _fileManagerTest = new FileManagerTest(webDriver, $"{host}/file-manager");
+            _fileManagerTest = new FileManagerTest(webDriver, $"{baseUrl}/file-manager");
 
             #region Dependencies
             _dependencies[nameof(Rename)] = new List<string>()
