@@ -284,4 +284,4 @@ __pycache__/
 
 ### VisualStudio Patch ###
 build/
-elFinder.NetCore.Test.Automation/*.exe
+*.exe
