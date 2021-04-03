@@ -17,6 +17,7 @@ Current supported drivers:
 
 ## About
 
-These tests use Selenium.NET to automate the process.
+These tests use NUnit and Selenium.NET to automate the process.
++ About NUnit: [NUnit.org](https://nunit.org/)
 + About Selenium: [SeleniumHQ Browser Automation](https://www.selenium.dev/)
 + Download Selenium: [Downloads (selenium.dev)](https://www.selenium.dev/downloads/)
