@@ -149,7 +149,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
                         if (!foundNewName)
                         {
-                            return Error.NewNameSelectionException($"{parentPath}{Path.DirectorySeparatorChar}{name} copy");
+                            return Error.NewNameSelectionException($"{name} copy");
                         }
                     }
 
@@ -183,7 +183,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
                         if (!foundNewName)
                         {
-                            return Error.NewNameSelectionException($"{parentPath}{Path.DirectorySeparatorChar}{name} copy{ext}");
+                            return Error.NewNameSelectionException($"{name} copy{ext}");
                         }
                     }
                     response.Added.Add(await BaseModel.CreateAsync(new FileSystemFile(newName), path.RootVolume));
