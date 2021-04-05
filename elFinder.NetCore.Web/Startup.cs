@@ -1,5 +1,4 @@
-﻿using System.IO;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,17 +9,6 @@ namespace elFinder.NetCore.Web
     public class Startup
     {
         public static string WebRootPath { get; private set; }
-
-        public static string MapPath(string path, string basePath = null)
-        {
-            if (string.IsNullOrEmpty(basePath))
-            {
-                basePath = WebRootPath;
-            }
-
-            path = path.Replace("~/", "").TrimStart('/').Replace('/', '\\');
-            return Path.Combine(basePath, path);
-        }
 
         public Startup(IConfiguration configuration)
         {

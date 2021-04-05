@@ -8,22 +8,18 @@ namespace elFinder.NetCore.Drivers.FileSystem
 {
     public class FileSystemFile : IFile
     {
-        private readonly string filePath;
+        private FileInfo fileInfo;
+        private IDirectory directory;
 
         #region Constructors
 
-        public FileSystemFile(string filePath)
-            : this(new FileInfo(filePath))
+        public FileSystemFile(string filePath) : this(new FileInfo(filePath))
         {
         }
 
         public FileSystemFile(FileInfo fileInfo)
         {
-            filePath = fileInfo.FullName;
-            Name = fileInfo.Name;
-            FullName = fileInfo.FullName;
-            DirectoryName = fileInfo.DirectoryName;
-            Extension = fileInfo.Extension;
+            this.fileInfo = fileInfo;
         }
 
         #endregion Constructors
@@ -32,25 +28,35 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
         public FileAttributes Attributes
         {
-            get => File.GetAttributes(filePath);
-            set => File.SetAttributes(filePath, value);
+            get => fileInfo.Attributes;
+            set => fileInfo.Attributes = value;
         }
 
-        public IDirectory Directory => new FileSystemDirectory(new FileInfo(filePath).Directory);
+        public IDirectory Directory
+        {
+            get
+            {
+                if (directory == null)
+                {
+                    directory = new FileSystemDirectory(fileInfo.Directory);
+                }
+                return directory;
+            }
+        }
 
-        public string DirectoryName { get; private set; }
+        public string DirectoryName => Path.TrimEndingDirectorySeparator(fileInfo.DirectoryName);
 
-        public Task<bool> ExistsAsync => Task.FromResult(File.Exists(filePath));
+        public Task<bool> ExistsAsync => Task.FromResult(fileInfo.Exists);
 
-        public string Extension { get; private set; }
+        public string Extension => fileInfo.Extension;
 
-        public string FullName { get; private set; }
+        public string FullName => Path.TrimEndingDirectorySeparator(fileInfo.FullName);
 
-        public Task<DateTime> LastWriteTimeUtcAsync => Task.FromResult(File.GetLastWriteTimeUtc(filePath));
+        public Task<DateTime> LastWriteTimeUtcAsync => Task.FromResult(fileInfo.LastWriteTimeUtc);
 
-        public Task<long> LengthAsync => Task.FromResult(new FileInfo(filePath).Length);
+        public Task<long> LengthAsync => Task.FromResult(fileInfo.Length);
 
-        public string Name { get; private set; }
+        public string Name => fileInfo.Name;
 
         public MimeType MimeType => MimeHelper.GetMimeType(Extension);
 
@@ -62,46 +68,46 @@ namespace elFinder.NetCore.Drivers.FileSystem
         public Task<Stream> CreateAsync()
         {
             EnsureGarbageCollectorCalled();
-            using var stream = File.Create(filePath);
+            using var stream = File.Create(fileInfo.FullName);
             return Task.FromResult(stream as Stream);
         }
 
         public Task DeleteAsync()
         {
             EnsureGarbageCollectorCalled();
-            File.Delete(filePath);
-            return Task.FromResult(0);
+            fileInfo.Delete();
+            return Task.CompletedTask;
         }
 
         public Task<Stream> OpenReadAsync()
         {
             EnsureGarbageCollectorCalled();
-            return Task.FromResult(File.OpenRead(filePath) as Stream);
+            return Task.FromResult<Stream>(fileInfo.OpenRead());
         }
 
         public Task PutAsync(string content)
         {
             EnsureGarbageCollectorCalled();
             File.WriteAllText(FullName, content);
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         public Task PutAsync(Stream stream)
         {
             EnsureGarbageCollectorCalled();
-            using (var destination = File.OpenWrite(filePath))
+            using (var destination = fileInfo.OpenWrite())
             {
                 stream.CopyTo(destination);
             }
 
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         #endregion IFile Members
 
-        public void MoveTo(string destFileName)
+        public void MoveTo(string destFileName, bool overwrite = false)
         {
-            File.Move(filePath, destFileName);
+            fileInfo.MoveTo(destFileName, overwrite);
         }
 
         // Bug Fix: https://stackoverflow.com/questions/13262548/delete-a-file-being-used-by-another-process/21137207#21137207
@@ -109,6 +115,13 @@ namespace elFinder.NetCore.Drivers.FileSystem
         {
             GC.Collect();
             GC.WaitForPendingFinalizers();
+        }
+
+        public Task RefreshAsync()
+        {
+            fileInfo = new FileInfo(fileInfo.FullName);
+            directory = null;
+            return Task.CompletedTask;
         }
     }
 }

@@ -13,4 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\elFinder.NetCore\elFinder.NetCore.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="wwwroot\Files\Prohibited\" />
+  </ItemGroup>
 </Project>
