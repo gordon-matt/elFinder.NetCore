@@ -38,5 +38,7 @@ namespace elFinder.NetCore.Drivers
         Task PutAsync(string content);
 
         Task PutAsync(Stream stream);
+
+        Task RefreshAsync();
     }
 }

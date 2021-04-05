@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using elFinder.NetCore.Drawing;
+using elFinder.NetCore.Extensions;
 using elFinder.NetCore.Helpers;
 using elFinder.NetCore.Models;
 using elFinder.NetCore.Models.Commands;
@@ -302,7 +303,15 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     root = Roots.First();
                 }
 
-                path = new FullPath(root, new FileSystemDirectory(root.StartDirectory ?? root.RootDirectory), null);
+                if (Directory.Exists(root.StartDirectory))
+                {
+                    path = new FullPath(root, new FileSystemDirectory(root.StartDirectory), null);
+                }
+
+                if (path == null || path.Directory.GetReadFlag(root) == 0)
+                {
+                    path = new FullPath(root, new FileSystemDirectory(root.RootDirectory), null);
+                }
             }
 
             var response = new InitResponseModel(await BaseModel.CreateAsync(path.Directory, path.RootVolume), new Options(path));
@@ -481,17 +490,9 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 return null;
             }
 
-            string volumePrefix = null;
-            string pathHash = null;
-            for (int i = 0; i < target.Length; i++)
-            {
-                if (target[i] == '_')
-                {
-                    pathHash = target.Substring(i + 1);
-                    volumePrefix = target.Substring(0, i + 1);
-                    break;
-                }
-            }
+            int underscoreIndex = target.IndexOf('_');
+            string pathHash = target.Substring(underscoreIndex + 1);
+            string volumePrefix = target.Substring(0, underscoreIndex + 1);
 
             var root = Roots.First(r => r.VolumeId == volumePrefix);
             var rootDirectory = new DirectoryInfo(root.RootDirectory);

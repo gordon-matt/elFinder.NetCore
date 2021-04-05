@@ -13,6 +13,8 @@ namespace elFinder.NetCore
     /// </summary>
     public class RootVolume
     {
+        private AccessControlAttributeSet defaultAccessControlAttributes = new AccessControlAttributeSet();
+
         /// <summary>
         ///
         /// </summary>
@@ -24,7 +26,7 @@ namespace elFinder.NetCore
             string rootDirectory,
             string url,
             string thumbnailsUrl = null,
-            char directorySeparatorChar = default(char))
+            char directorySeparatorChar = default)
         {
             if (rootDirectory == null)
             {
@@ -74,9 +76,19 @@ namespace elFinder.NetCore
         public bool IsShowOnly { get; }
 
         /// <summary>
-        /// Gets or sets a list of root subfolders that should be locked (user can't remove, rename)
+        /// Set of named item attributes used for permissions, access control.
         /// </summary>
-        public List<string> LockedFolders { get; }
+        public ICollection<NamedAccessControlAttributeSet> AccessControlAttributes { get; set; }
+
+        /// <summary>
+        /// Default attribute for files/directories if not any named item attribute detected.
+        /// Note: This can not be null
+        /// </summary>
+        public AccessControlAttributeSet DefaultAccessControlAttributes
+        {
+            get => defaultAccessControlAttributes;
+            set => defaultAccessControlAttributes = value ?? throw new ArgumentNullException(nameof(DefaultAccessControlAttributes));
+        }
 
         /// <summary>
         /// Get or sets maximum upload file size. This size is per files in bytes.
@@ -117,7 +129,7 @@ namespace elFinder.NetCore
         /// <summary>
         /// Get or sets a subfolder of root diretory, which will be start
         /// </summary>
-        public string StartDirectory { get; }
+        public string StartDirectory { get; set; }
 
         /// <summary>
         /// Get ot sets thumbnals directory

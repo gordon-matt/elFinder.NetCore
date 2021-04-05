@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using elFinder.NetCore.Drivers;
+using elFinder.NetCore.Extensions;
 using elFinder.NetCore.Helpers;
 
 namespace elFinder.NetCore.Models
@@ -65,6 +66,8 @@ namespace elFinder.NetCore.Models
             if (file == null) throw new ArgumentNullException("file");
             if (volume == null) throw new ArgumentNullException("volume");
 
+            await file.RefreshAsync();
+
             string parentPath = file.DirectoryName.Substring(volume.RootDirectory.Length);
             string relativePath = file.FullName.Substring(volume.RootDirectory.Length);
 
@@ -97,9 +100,9 @@ namespace elFinder.NetCore.Models
                 response = new FileModel();
             }
 
-            response.Read = 1;
-            response.Write = volume.IsReadOnly ? (byte)0 : (byte)1;
-            response.Locked = ((volume.LockedFolders != null && volume.LockedFolders.Any(f => f == file.Directory.Name)) || volume.IsLocked) ? (byte)1 : (byte)0;
+            response.Read = file.GetReadFlag(volume);
+            response.Write = file.GetWriteFlag(volume);
+            response.Locked = file.GetLockedFlag(volume);
             response.Name = file.Name;
             response.Size = fileLength;
             response.UnixTimeStamp = (long)(await file.LastWriteTimeUtcAsync - unixOrigin).TotalSeconds;
@@ -120,6 +123,8 @@ namespace elFinder.NetCore.Models
             {
                 throw new ArgumentNullException("volume");
             }
+
+            await directory.RefreshAsync();
 
             if (volume.RootDirectory == directory.FullName)
             {
@@ -158,9 +163,9 @@ namespace elFinder.NetCore.Models
                     Mime = "directory",
                     Dirs = (await directory.GetDirectoriesAsync()).Count() > 0 ? (byte)1 : (byte)0,
                     Hash = volume.VolumeId + HttpEncoder.EncodePath(relativePath),
-                    Read = 1,
-                    Write = volume.IsReadOnly ? (byte)0 : (byte)1,
-                    Locked = ((volume.LockedFolders != null && volume.LockedFolders.Any(f => f == directory.Name)) || volume.IsLocked) ? (byte)1 : (byte)0,
+                    Read = directory.GetReadFlag(volume),
+                    Write = directory.GetWriteFlag(volume),
+                    Locked = directory.GetLockedFlag(volume),
                     Size = 0,
                     Name = directory.Name,
                     UnixTimeStamp = (long)(await directory.LastWriteTimeUtcAsync - unixOrigin).TotalSeconds,
