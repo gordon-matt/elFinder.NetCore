@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -27,6 +28,22 @@ namespace elFinder.NetCore
         }
 
         public async Task<IActionResult> ProcessAsync(HttpRequest request)
+        {
+            try
+            {
+                return await ProcessCoreAsync(request);
+            }
+            catch (FileNotFoundException)
+            {
+                return Error.FileNotFound();
+            }
+            catch (DirectoryNotFoundException)
+            {
+                return Error.FolderNotFound();
+            }
+        }
+
+        protected async Task<IActionResult> ProcessCoreAsync(HttpRequest request)
         {
             var parameters = request.Query.Any()
                 ? request.Query.ToDictionary(k => k.Key, v => v.Value)
