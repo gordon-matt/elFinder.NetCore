@@ -19,6 +19,16 @@ namespace elFinder.NetCore.Helpers
             return FormatSimpleError("errUnknownCmd");
         }
 
+        public static JsonResult FileNotFound()
+        {
+            return FormatSimpleError("errFileNotFound");
+        }
+
+        public static JsonResult FolderNotFound()
+        {
+            return FormatSimpleError("errFolderNotFound");
+        }
+
         public static JsonResult MaxUploadFileSize()
         {
             return FormatSimpleError("errFileMaxSize");
@@ -35,16 +45,6 @@ namespace elFinder.NetCore.Helpers
             {
                 error = new[] { "errNewNameSelection", name }
             });
-        }
-
-        public static JsonResult FolderNotFound()
-        {
-            return FormatSimpleError("errFolderNotFound");
-        }
-
-        public static JsonResult FileNotFound()
-        {
-            return FormatSimpleError("errFileNotFound");
         }
 
         private static JsonResult FormatSimpleError(string message)
