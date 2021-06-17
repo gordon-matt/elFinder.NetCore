@@ -206,6 +206,24 @@ namespace elFinder.NetCore
                         var suffix = parameters.GetValueOrDefault("suffix");
                         return await driver.UploadAsync(path, request.Form.Files, overwrite, uploadPath, renames, suffix);
                     }
+                case "zipdl":
+                    {
+                        var targetsStr = parameters.GetValueOrDefault("targets[]");
+                        var download = parameters.GetValueOrDefault("download");
+
+                        if (download != "1")
+                        {
+                            var targets = await GetFullPathArrayAsync(targetsStr);
+                            return await driver.ZipDownloadAsync(targets);
+                        }
+
+                        var cwdPath = await driver.ParsePathAsync(targetsStr[0]);
+                        var archiveFileKey = targetsStr[1];
+                        var downloadFileName = targetsStr[2];
+                        var mimeType = targetsStr[3];
+
+                        return await driver.ZipDownloadAsync(cwdPath, archiveFileKey, downloadFileName, mimeType);
+                    }
                 default: return Error.CommandNotFound();
             }
         }

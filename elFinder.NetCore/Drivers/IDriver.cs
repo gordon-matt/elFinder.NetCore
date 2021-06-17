@@ -56,5 +56,9 @@ namespace elFinder.NetCore
         Task<JsonResult> TreeAsync(FullPath path);
 
         Task<JsonResult> UploadAsync(FullPath path, IEnumerable<IFormFile> files, bool? overwrite, IEnumerable<FullPath> uploadPaths, IEnumerable<string> renames, string suffix);
+
+        Task<JsonResult> ZipDownloadAsync(IEnumerable<FullPath> paths);
+
+        Task<FileStreamResult> ZipDownloadAsync(FullPath cwdPath, string archivedFileKey, string downloadFileName, string mimeType);
     }
 }

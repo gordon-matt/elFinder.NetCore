@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net.Mime;
 using System.Threading.Tasks;
 using elFinder.NetCore.Drawing;
 using elFinder.NetCore.Helpers;
@@ -793,6 +794,57 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 i++;
             }
             return await Json(response);
+        }
+
+        public async Task<JsonResult> ZipDownloadAsync(IEnumerable<FullPath> paths)
+        {
+            var tempFile = Path.GetTempFileName();
+            var tempFileName = Path.GetFileName(tempFile);
+
+            using (var newFile = ZipFile.Open(tempFile, ZipArchiveMode.Update))
+            {
+                foreach (var path in paths)
+                {
+                    if (path.IsDirectory)
+                    {
+                        await AddDirectoryToArchiveAsync(newFile, path.Directory, string.Empty);
+                    }
+                    else
+                    {
+                        newFile.CreateEntryFromFile(path.File.FullName, path.File.Name);
+                    }
+                }
+            }
+
+            var zipDownloadData = new ZipDownloadResponseModel.ZipDownloadData();
+
+            zipDownloadData.Mime = MediaTypeNames.Application.Zip;
+            zipDownloadData.File = tempFileName;
+
+            return await Json(new ZipDownloadResponseModel
+            {
+                ZipDownload = zipDownloadData
+            });
+        }
+
+        public async Task<FileStreamResult> ZipDownloadAsync(FullPath cwdPath, string archivedFileKey, string downloadFileName, string mimeType)
+        {
+            var tempDirPath = Path.GetTempPath();
+            var tempFileInfo = new FileInfo(Path.Combine(tempDirPath, archivedFileKey));
+            var memStream = new MemoryStream();
+
+            using (var fileStream = tempFileInfo.OpenRead())
+            {
+                await fileStream.CopyToAsync(memStream);
+            }
+
+            tempFileInfo.Delete();
+            memStream.Position = 0;
+
+            return new FileStreamResult(memStream, mimeType)
+            {
+                FileDownloadName = downloadFileName
+            };
         }
 
         #endregion IDriver Members

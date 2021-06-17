@@ -13,7 +13,7 @@ namespace elFinder.NetCore.Models.Commands
         }
 
         [JsonPropertyName("api")]
-        public string Api => "2.1";
+        public string Api => "2.1049";
 
         [JsonPropertyName("netDrivers")]
         public IEnumerable<string> NetDrivers => empty;
