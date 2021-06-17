@@ -19,6 +19,16 @@ namespace elFinder.NetCore.Helpers
             return FormatSimpleError("errUnknownCmd");
         }
 
+        public static JsonResult FileNotFound()
+        {
+            return FormatSimpleError("errFileNotFound");
+        }
+
+        public static JsonResult FolderNotFound()
+        {
+            return FormatSimpleError("errFolderNotFound");
+        }
+
         public static JsonResult MaxUploadFileSize()
         {
             return FormatSimpleError("errFileMaxSize");
@@ -31,7 +41,10 @@ namespace elFinder.NetCore.Helpers
 
         public static JsonResult NewNameSelectionException(string name)
         {
-            return new JsonResult(new { error = $"Unable to create new file with name {name}" });
+            return new JsonResult(new
+            {
+                error = new[] { "errNewNameSelection", name }
+            });
         }
 
         private static JsonResult FormatSimpleError(string message)

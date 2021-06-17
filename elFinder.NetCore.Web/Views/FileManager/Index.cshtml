@@ -10,8 +10,9 @@
 		// https://github.com/Studio-42/elFinder/wiki/Client-configuration-options
         $(document).ready(function () {
             var myCommands = elFinder.prototype._options.commands;
-            var disabled = ['callback', 'chmod', 'editor', 'netmount', 'ping', 'search', 'help']; // Not yet implemented commands in elFinder.NetCore
+            var disabled = ['callback', 'chmod', 'editor', 'netmount', 'ping', 'help']; // Not yet implemented commands in elFinder.NetCore
             elFinder.prototype.i18.en.messages.TextArea = "Edit";
+            elFinder.prototype.i18.en.messages.errNewNameSelection = 'Unable to create new file with name "$1"';
 
             $.each(disabled, function (i, cmd) {
                 (idx = $.inArray(cmd, myCommands)) !== -1 && myCommands.splice(idx, 1);
@@ -37,7 +38,8 @@
                         ['rm'],
                         ['duplicate', 'rename', 'edit'],
                         ['selectall', 'selectnone', 'selectinvert'],
-                        ['view', 'sort']
+                        ['view', 'sort'],
+                        ['search']
                     ]
                 },
                 //onlyMimes: ["image", "text/plain"] // Get files of requested mime types only

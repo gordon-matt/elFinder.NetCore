@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using elFinder.NetCore.Drivers.FileSystem;
 using Microsoft.AspNetCore.Http.Extensions;
@@ -31,7 +32,7 @@ namespace elFinder.NetCore.Web.Controllers
             var uri = new Uri(absoluteUrl);
 
             var root = new RootVolume(
-                Startup.MapPath("~/Files"),
+                PathHelper.MapPath("~/Files"),
                 $"{uri.Scheme}://{uri.Authority}/Files/",
                 $"{uri.Scheme}://{uri.Authority}/el-finder/file-system/thumb/")
             {
@@ -40,7 +41,26 @@ namespace elFinder.NetCore.Web.Controllers
                 IsLocked = false, // If locked, files and directories cannot be deleted, renamed or moved
                 Alias = "Files", // Beautiful name given to the root/home folder
                 //MaxUploadSizeInKb = 2048, // Limit imposed to user uploaded file <= 2048 KB
-                //LockedFolders = new List<string>(new string[] { "Folder1" })
+                AccessControlAttributes = new HashSet<NamedAccessControlAttributeSet>()
+                {
+                    new NamedAccessControlAttributeSet(PathHelper.MapPath("~/Files/readonly.txt"))
+                    {
+                        Write = false,
+                        Locked = true
+                    },
+                    new NamedAccessControlAttributeSet(PathHelper.MapPath("~/Files/Prohibited"))
+                    {
+                        Read = false,
+                        Write = false,
+                        Locked = true
+                    },
+                    new NamedAccessControlAttributeSet(PathHelper.MapPath("~/Files/Parent/Children"))
+                    {
+                        Read = true,
+                        Write = false,
+                        Locked = true
+                    }
+                }
             };
 
             driver.AddRoot(root);

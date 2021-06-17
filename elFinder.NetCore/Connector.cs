@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -27,6 +28,22 @@ namespace elFinder.NetCore
         }
 
         public async Task<IActionResult> ProcessAsync(HttpRequest request)
+        {
+            try
+            {
+                return await ProcessCoreAsync(request);
+            }
+            catch (FileNotFoundException)
+            {
+                return Error.FileNotFound();
+            }
+            catch (DirectoryNotFoundException)
+            {
+                return Error.FolderNotFound();
+            }
+        }
+
+        protected async Task<IActionResult> ProcessCoreAsync(HttpRequest request)
         {
             var parameters = request.Query.Any()
                 ? request.Query.ToDictionary(k => k.Key, v => v.Value)
@@ -181,6 +198,17 @@ namespace elFinder.NetCore
                         var paths = await GetFullPathArrayAsync(parameters.GetValueOrDefault("targets[]"));
                         return await driver.RemoveAsync(paths);
                     }
+                case "search":
+                    {
+                        var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
+                        var query = parameters.GetValueOrDefault("q");
+
+                        var mimeTypes = MimeDetect == MimeDetectOption.Internal
+                            ? parameters.GetValueOrDefault("mimes[]")
+                            : default;
+
+                        return await driver.SearchAsync(path, query, mimeTypes);
+                    }
                 case "size":
                     {
                         var paths = new StringValues(parameters.Where(p => p.Key.StartsWith("target")).Select(p => (string)p.Value).ToArray());
@@ -270,15 +298,5 @@ namespace elFinder.NetCore
             var tasks = targets.Select(async t => await driver.ParsePathAsync(t));
             return await Task.WhenAll(tasks);
         }
-    }
-
-    public enum MimeDetectOption : byte
-    {
-        Auto = 0,
-        Internal = 1,
-
-        // Not supported
-        //FInfo = 2,
-        //MimeContentType = 3
     }
 }

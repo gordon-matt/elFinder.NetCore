@@ -27,6 +27,12 @@ namespace elFinder.NetCore.Drivers
 
         Task<IEnumerable<IDirectory>> GetDirectoriesAsync();
 
+        Task<IEnumerable<IDirectory>> GetDirectoriesAsync(string pattern);
+
         Task<IEnumerable<IFile>> GetFilesAsync(IEnumerable<string> mimeTypes);
+
+        Task<IEnumerable<IFile>> GetFilesAsync(IEnumerable<string> mimeTypes, string pattern);
+
+        Task RefreshAsync();
     }
 }

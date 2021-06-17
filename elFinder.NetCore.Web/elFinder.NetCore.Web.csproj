@@ -8,9 +8,12 @@
     <Description>Demo Project for elFinder ASP.NET Core backend</Description>
     <PackageProjectUrl>https://github.com/gordon-matt/elFinder.NetCore</PackageProjectUrl>
     <PackageLicenseUrl></PackageLicenseUrl>
-    <Version>1.3.3</Version>
+    <Version>1.3.5</Version>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\elFinder.NetCore\elFinder.NetCore.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="wwwroot\Files\Prohibited\" />
   </ItemGroup>
 </Project>
