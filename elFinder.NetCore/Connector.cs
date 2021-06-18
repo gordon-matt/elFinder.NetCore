@@ -83,8 +83,19 @@ namespace elFinder.NetCore
                     }
                 case "file":
                     {
+                        var cPath = parameters.GetValueOrDefault("cpath");
+                        var reqId = parameters.GetValueOrDefault("reqid");
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
-                        return await driver.FileAsync(path, parameters.GetValueOrDefault("download") == "1");
+
+                        var result = await driver.FileAsync(path, parameters.GetValueOrDefault("download") == "1");
+
+                        if (!string.IsNullOrEmpty(cPath))
+                        {
+                            // API >= 2.1.39
+                            request.HttpContext.Response.Cookies.Append($"elfdl{reqId}", "1");
+                        }
+
+                        return result;
                     }
                 case "get":
                     {
