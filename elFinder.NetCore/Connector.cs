@@ -83,8 +83,19 @@ namespace elFinder.NetCore
                     }
                 case "file":
                     {
+                        var cPath = parameters.GetValueOrDefault("cpath");
+                        var reqId = parameters.GetValueOrDefault("reqid");
                         var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
-                        return await driver.FileAsync(path, parameters.GetValueOrDefault("download") == "1");
+
+                        var result = await driver.FileAsync(path, parameters.GetValueOrDefault("download") == "1");
+
+                        if (!string.IsNullOrEmpty(cPath))
+                        {
+                            // API >= 2.1.39
+                            request.HttpContext.Response.Cookies.Append($"elfdl{reqId}", "1");
+                        }
+
+                        return result;
                     }
                 case "get":
                     {
@@ -233,6 +244,24 @@ namespace elFinder.NetCore
                         var renames = parameters.GetValueOrDefault("renames[]");
                         var suffix = parameters.GetValueOrDefault("suffix");
                         return await driver.UploadAsync(path, request.Form.Files, overwrite, uploadPath, renames, suffix);
+                    }
+                case "zipdl":
+                    {
+                        var targetsStr = parameters.GetValueOrDefault("targets[]");
+                        var download = parameters.GetValueOrDefault("download");
+
+                        if (download != "1")
+                        {
+                            var targets = await GetFullPathArrayAsync(targetsStr);
+                            return await driver.ZipDownloadAsync(targets);
+                        }
+
+                        var cwdPath = await driver.ParsePathAsync(targetsStr[0]);
+                        var archiveFileKey = targetsStr[1];
+                        var downloadFileName = targetsStr[2];
+                        var mimeType = targetsStr[3];
+
+                        return await driver.ZipDownloadAsync(cwdPath, archiveFileKey, downloadFileName, mimeType);
                     }
                 default: return Error.CommandNotFound();
             }

@@ -17,7 +17,7 @@ namespace elFinder.NetCore.Models.Commands
 
     public class Options
     {
-        private static string[] disabled = new string[] { "callback", "chmod", "editor", "netmount", "ping", "zipdl" };
+        private static string[] disabled = new string[] { "callback", "chmod", "editor", "netmount", "ping" };
         //private static string[] empty = new string[0];
         //private static Archive emptyArchives = new Archive();
 
