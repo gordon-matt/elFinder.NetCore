@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using elFinder.NetCore.Drawing;
 using elFinder.NetCore.Drivers;
+using elFinder.NetCore.Exceptions;
 using elFinder.NetCore.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -40,6 +41,10 @@ namespace elFinder.NetCore
             catch (DirectoryNotFoundException)
             {
                 return Error.FolderNotFound();
+            }
+            catch (FileTypeNotAllowException)
+            {
+                return Error.FileTypeNotAllow();
             }
         }
 

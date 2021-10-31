@@ -34,6 +34,11 @@ namespace elFinder.NetCore.Helpers
             return FormatSimpleError("errFileMaxSize");
         }
 
+        public static JsonResult FileTypeNotAllow()
+        {
+            return FormatSimpleError("errUploadMime");
+        }
+
         public static JsonResult MissedParameter(string command)
         {
             return new JsonResult(new { error = new string[] { "errCmdParams", command } });

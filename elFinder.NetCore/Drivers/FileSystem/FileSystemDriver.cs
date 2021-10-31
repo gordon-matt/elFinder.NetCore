@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Mime;
 using System.Threading.Tasks;
 using elFinder.NetCore.Drawing;
+using elFinder.NetCore.Exceptions;
 using elFinder.NetCore.Extensions;
 using elFinder.NetCore.Helpers;
 using elFinder.NetCore.Models;
@@ -763,6 +764,44 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     if (file.Length > path.RootVolume.MaxUploadSize.Value)
                     {
                         return Error.MaxUploadFileSize();
+                    }
+                }
+            }
+
+            if (path.RootVolume.UploadOrder != null)
+            {
+                foreach (var file in files)
+                {
+                    var mimeType = MimeHelper.GetMimeType(Path.GetExtension(file.FileName));
+                    var constraintMap = new Dictionary<string, IEnumerable<string>>
+                    {
+                        ["allow"] = path.RootVolume.UploadAllow,
+                        ["deny"] = path.RootVolume.UploadDeny,
+                    };
+
+                    foreach (var constraintType in path.RootVolume.UploadOrder)
+                    {
+                        var constraint = constraintMap[constraintType];
+                        if (constraint == null) continue;
+                        switch (constraintType)
+                        {
+                            case "allow":
+                                {
+                                    if (!constraint.Contains("all")
+                                        && !constraint.Contains(mimeType)
+                                        && !constraint.Contains(mimeType.Type))
+                                        throw new FileTypeNotAllowException();
+                                    break;
+                                }
+                            case "deny":
+                                {
+                                    if (constraint.Contains("all")
+                                        || constraint.Contains(mimeType)
+                                        || constraint.Contains(mimeType.Type))
+                                        throw new FileTypeNotAllowException();
+                                    break;
+                                }
+                        }
                     }
                 }
             }
