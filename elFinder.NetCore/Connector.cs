@@ -42,9 +42,9 @@ namespace elFinder.NetCore
             {
                 return Error.FolderNotFound();
             }
-            catch (FileTypeNotAllowException)
+            catch (FileTypeNotAllowedException)
             {
-                return Error.FileTypeNotAllow();
+                return Error.FileTypeNotAllowed();
             }
         }
 
@@ -57,7 +57,7 @@ namespace elFinder.NetCore
             string cmd = parameters.GetValueOrDefault("cmd");
             if (string.IsNullOrEmpty(cmd))
             {
-                return Error.CommandNotFound();
+                return Error.UnknownCommand();
             }
 
             switch (cmd)
@@ -206,7 +206,7 @@ namespace elFinder.NetCore
                                 return await driver.RotateAsync(path, int.Parse(parameters.GetValueOrDefault("degree")));
 
                             default:
-                                return Error.CommandNotFound();
+                                return Error.UnknownCommand();
                         }
                     }
                 case "rm":
@@ -252,23 +252,23 @@ namespace elFinder.NetCore
                     }
                 case "zipdl":
                     {
-                        var targetsStr = parameters.GetValueOrDefault("targets[]");
+                        var targets = parameters.GetValueOrDefault("targets[]");
                         var download = parameters.GetValueOrDefault("download");
 
                         if (download != "1")
                         {
-                            var targets = await GetFullPathArrayAsync(targetsStr);
-                            return await driver.ZipDownloadAsync(targets);
+                            var targetPaths = await GetFullPathArrayAsync(targets);
+                            return await driver.ZipDownloadAsync(targetPaths);
                         }
 
-                        var cwdPath = await driver.ParsePathAsync(targetsStr[0]);
-                        var archiveFileKey = targetsStr[1];
-                        var downloadFileName = targetsStr[2];
-                        var mimeType = targetsStr[3];
+                        var cwdPath = await driver.ParsePathAsync(targets[0]);
+                        string archiveFileKey = targets[1];
+                        string downloadFileName = targets[2];
+                        string mimeType = targets[3];
 
                         return await driver.ZipDownloadAsync(cwdPath, archiveFileKey, downloadFileName, mimeType);
                     }
-                default: return Error.CommandNotFound();
+                default: return Error.UnknownCommand();
             }
         }
 
