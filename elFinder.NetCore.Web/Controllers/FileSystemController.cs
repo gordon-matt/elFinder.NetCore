@@ -60,7 +60,11 @@ namespace elFinder.NetCore.Web.Controllers
                         Write = false,
                         Locked = true
                     }
-                }
+                },
+                // Upload file type constraints
+                //UploadAllow = new[] { "image", "text" },
+                //UploadDeny = new[] { "text/csv" },
+                //UploadOrder = new[] { "allow", "deny" }
             };
 
             driver.AddRoot(root);
