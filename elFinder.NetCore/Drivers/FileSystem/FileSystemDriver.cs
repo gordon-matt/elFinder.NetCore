@@ -763,7 +763,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 {
                     if (file.Length > path.RootVolume.MaxUploadSize.Value)
                     {
-                        return Error.MaxUploadFileSize();
+                        return Error.UploadFileTooLarge();
                     }
                 }
             }
@@ -779,26 +779,34 @@ namespace elFinder.NetCore.Drivers.FileSystem
                         ["deny"] = path.RootVolume.UploadDeny,
                     };
 
-                    foreach (var constraintType in path.RootVolume.UploadOrder)
+                    foreach (string constraintType in path.RootVolume.UploadOrder)
                     {
-                        var constraint = constraintMap[constraintType];
-                        if (constraint == null) continue;
+                        var mimeTypes = constraintMap[constraintType];
+                        if (mimeTypes == null)
+                        {
+                            continue;
+                        }
+
                         switch (constraintType)
                         {
                             case "allow":
                                 {
-                                    if (!constraint.Contains("all")
-                                        && !constraint.Contains(mimeType)
-                                        && !constraint.Contains(mimeType.Type))
-                                        throw new FileTypeNotAllowException();
+                                    if (!mimeTypes.Contains("all") &&
+                                        !mimeTypes.Contains(mimeType) &&
+                                        !mimeTypes.Contains(mimeType.Type))
+                                    {
+                                        throw new FileTypeNotAllowedException();
+                                    }
                                     break;
                                 }
                             case "deny":
                                 {
-                                    if (constraint.Contains("all")
-                                        || constraint.Contains(mimeType)
-                                        || constraint.Contains(mimeType.Type))
-                                        throw new FileTypeNotAllowException();
+                                    if (mimeTypes.Contains("all") ||
+                                        mimeTypes.Contains(mimeType) ||
+                                        mimeTypes.Contains(mimeType.Type))
+                                    {
+                                        throw new FileTypeNotAllowedException();
+                                    }
                                     break;
                                 }
                         }
@@ -867,50 +875,47 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
         public async Task<JsonResult> ZipDownloadAsync(IEnumerable<FullPath> paths)
         {
-            var tempFile = Path.GetTempFileName();
-            var tempFileName = Path.GetFileName(tempFile);
-
-            using (var newFile = ZipFile.Open(tempFile, ZipArchiveMode.Update))
+            string tempFilePath = Path.GetTempFileName();
+            using (var zipArchive = ZipFile.Open(tempFilePath, ZipArchiveMode.Update))
             {
                 foreach (var path in paths)
                 {
                     if (path.IsDirectory)
                     {
-                        await AddDirectoryToArchiveAsync(newFile, path.Directory, string.Empty);
+                        await AddDirectoryToArchiveAsync(zipArchive, path.Directory, string.Empty);
                     }
                     else
                     {
-                        newFile.CreateEntryFromFile(path.File.FullName, path.File.Name);
+                        zipArchive.CreateEntryFromFile(path.File.FullName, path.File.Name);
                     }
                 }
             }
 
-            var zipDownloadData = new ZipDownloadResponseModel.ZipDownloadData();
-
-            zipDownloadData.Mime = MediaTypeNames.Application.Zip;
-            zipDownloadData.File = tempFileName;
-
             return await Json(new ZipDownloadResponseModel
             {
-                ZipDownload = zipDownloadData
+                ZipDownload = new ZipDownloadResponseModel.ZipDownloadData
+                {
+                    Mime = MediaTypeNames.Application.Zip,
+                    File = Path.GetFileName(tempFilePath)
+                }
             });
         }
 
         public async Task<FileStreamResult> ZipDownloadAsync(FullPath cwdPath, string archivedFileKey, string downloadFileName, string mimeType)
         {
-            var tempDirPath = Path.GetTempPath();
-            var tempFileInfo = new FileInfo(Path.Combine(tempDirPath, archivedFileKey));
-            var memStream = new MemoryStream();
+            string tempPath = Path.GetTempPath();
+            var tempFile = new FileInfo(Path.Combine(tempPath, archivedFileKey));
 
-            using (var fileStream = tempFileInfo.OpenRead())
+            var memoryStream = new MemoryStream();
+            using (var fileStream = tempFile.OpenRead())
             {
-                await fileStream.CopyToAsync(memStream);
+                await fileStream.CopyToAsync(memoryStream);
             }
 
-            tempFileInfo.Delete();
-            memStream.Position = 0;
+            tempFile.Delete();
+            memoryStream.Position = 0;
 
-            return new FileStreamResult(memStream, mimeType)
+            return new FileStreamResult(memoryStream, mimeType)
             {
                 FileDownloadName = downloadFileName
             };

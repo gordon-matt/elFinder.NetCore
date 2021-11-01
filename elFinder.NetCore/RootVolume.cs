@@ -138,7 +138,7 @@ namespace elFinder.NetCore
         public string ThumbnailDirectory { get; private set; }
 
         /// <summary>
-        /// Get or sets thumbnails size
+        /// Thumbnails size in pixels. Thumbnails are square
         /// </summary>
         public int ThumbnailSize { get; set; } = 48;
 
@@ -148,12 +148,13 @@ namespace elFinder.NetCore
         public string ThumbnailUrl { get; }
 
         /// <summary>
-        /// Get or sets if files on upload will replace or give them new names. true - replace old files, false give new names like original_name-number.ext
+        /// Replace files with the same name on upload or give them new names. true - replace old files, false give new names like original_name-number.ext
         /// </summary>
         public bool UploadOverwrite { get; }
 
         /// <summary>
-        /// Get or sets url that points to path directory (also called 'root URL').
+        /// URL that points to path directory (also called 'root URL'). If not set client will not see full path to files (replacement
+        /// for old fileURL option), also all files downloads will be handled by connector.
         /// </summary>
         public string Url { get; }
 
@@ -162,8 +163,19 @@ namespace elFinder.NetCore
         /// </summary>
         public string VolumeId { get; set; }
 
+        /// <summary>
+        /// Mimetypes allowed to upload
+        /// </summary>
         public IEnumerable<string> UploadAllow { get; set; }
+
+        /// <summary>
+        /// Mimetypes not allowed to upload. Same values accepted as in uploadAllow
+        /// </summary>
         public IEnumerable<string> UploadDeny { get; set; }
+
+        /// <summary>
+        /// Order to proccess uploadAllow and uploadDeny options. Logic is the same as Apache web server options Allow, Deny, Order
+        /// </summary>
         public IEnumerable<string> UploadOrder { get; set; }
 
         public bool CanCreateThumbnail(IFile input)
