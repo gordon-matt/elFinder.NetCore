@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Mime;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using elFinder.NetCore.Drawing;
 using elFinder.NetCore.Exceptions;
@@ -22,6 +23,9 @@ namespace elFinder.NetCore.Drivers.FileSystem
     public class FileSystemDriver : BaseDriver, IDriver
     {
         private const string _volumePrefix = "v";
+        private Regex _folerValidPattern = new Regex(@"^[a-zA-Z0-9_\-]+$");
+        private char[] _pathInvalidChars = Path.GetInvalidPathChars();
+        private char[] _fileInvalidChars = Path.GetInvalidFileNameChars();
 
         #region Constructor
 
@@ -392,7 +396,13 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
             if (!string.IsNullOrEmpty(name))
             {
-                var newDir = new FileSystemDirectory(Path.Combine(path.Directory.FullName, name));
+                var newDir = new FileSystemDirectory(Path.Combine(path.Directory.FullName, RemovePossiblePathTraversal(name)));
+
+                if (!_folerValidPattern.IsMatch(name))
+                {
+                    throw new Exception("Invalid folder name");
+                }
+
                 await newDir.CreateAsync();
                 response.Added.Add(await BaseModel.CreateAsync(newDir, path.RootVolume));
             }
@@ -400,7 +410,13 @@ namespace elFinder.NetCore.Drivers.FileSystem
             foreach (string dir in dirs)
             {
                 string dirName = dir.StartsWith("/") ? dir.Substring(1) : dir;
-                var newDir = new FileSystemDirectory(Path.Combine(path.Directory.FullName, dirName));
+                var newDir = new FileSystemDirectory(Path.Combine(path.Directory.FullName, RemovePossiblePathTraversal(dirName)));
+
+                if (!_folerValidPattern.IsMatch(dirName))
+                {
+                    throw new Exception("Invalid folder name");
+                }
+
                 await newDir.CreateAsync();
 
                 response.Added.Add(await BaseModel.CreateAsync(newDir, path.RootVolume));
@@ -414,7 +430,12 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
         public async Task<JsonResult> MakeFileAsync(FullPath path, string name)
         {
-            var newFile = new FileSystemFile(Path.Combine(path.Directory.FullName, name));
+            if (name.IndexOfAny(_fileInvalidChars) >= 0)
+            {
+                throw new Exception("Invalid file name");
+            }
+
+            var newFile = new FileSystemFile(Path.Combine(path.Directory.FullName, RemovePossiblePathTraversal(name)));
             await newFile.CreateAsync();
 
             var response = new AddResponseModel();
@@ -616,16 +637,36 @@ namespace elFinder.NetCore.Drivers.FileSystem
             response.Removed.Add(path.HashedTarget);
             await RemoveThumbsAsync(path);
 
+            name = RemovePossiblePathTraversal(name);
+
             if (path.IsDirectory)
             {
+                if (name.IndexOfAny(_pathInvalidChars) >= 0 || !_folerValidPattern.IsMatch(name))
+                {
+                    throw new Exception("Invalid folder name");
+                }
+
                 var newPath = new FileSystemDirectory(Path.Combine(path.Directory.Parent.FullName, name));
-                Directory.Move(path.Directory.FullName, newPath.FullName);
+
+                if (path.Directory.FullName != newPath.FullName)
+                {
+                    Directory.Move(path.Directory.FullName, newPath.FullName);
+                }
                 response.Added.Add(await BaseModel.CreateAsync(newPath, path.RootVolume));
             }
             else
             {
+                if (name.IndexOfAny(_fileInvalidChars) >= 0)
+                {
+                    throw new Exception("Invalid file name");
+                }
+
                 var newPath = new FileSystemFile(Path.Combine(path.File.DirectoryName, name));
-                File.Move(path.File.FullName, newPath.FullName);
+
+                if (path.File.FullName != newPath.FullName)
+                {
+                    File.Move(path.File.FullName, newPath.FullName);
+                }
                 response.Added.Add(await BaseModel.CreateAsync(newPath, path.RootVolume));
             }
 
@@ -1040,6 +1081,15 @@ namespace elFinder.NetCore.Drivers.FileSystem
                     File.Delete(thumbPath);
                 }
             }
+        }
+
+        private string RemovePossiblePathTraversal(string name)
+        {
+            return name.Replace("..", "")
+                    .Replace("/", "")
+                    .Replace("\\", "")
+                    .Replace("*", "")
+                    .Replace("?", "");
         }
     }
 }
