@@ -1,9 +1,12 @@
-﻿using System.IO;
+﻿using Microsoft.AspNetCore.Hosting;
+using System.IO;
 
 namespace elFinder.NetCore.Web
 {
     public static class PathHelper
     {
+        public static string WebRootPath { get; set; }
+
         public static string GetFullPathNormalized(string path)
         {
             return Path.TrimEndingDirectorySeparator(Path.GetFullPath(path));
@@ -13,7 +16,8 @@ namespace elFinder.NetCore.Web
         {
             if (string.IsNullOrEmpty(basePath))
             {
-                basePath = Startup.WebRootPath;
+                //basePath = Startup.WebRootPath;
+                basePath = WebRootPath;
             }
 
             path = path.Replace("~/", "").TrimStart('/').Replace('/', '\\');
