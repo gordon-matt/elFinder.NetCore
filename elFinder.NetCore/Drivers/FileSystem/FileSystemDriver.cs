@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Net.Mime;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using elFinder.NetCore.Drawing;
+﻿using elFinder.NetCore.Drawing;
 using elFinder.NetCore.Exceptions;
 using elFinder.NetCore.Extensions;
 using elFinder.NetCore.Helpers;
@@ -14,6 +6,14 @@ using elFinder.NetCore.Models;
 using elFinder.NetCore.Models.Commands;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Net.Mime;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace elFinder.NetCore.Drivers.FileSystem
 {
@@ -121,7 +121,9 @@ namespace elFinder.NetCore.Drivers.FileSystem
         public async Task<JsonResult> DimAsync(FullPath path)
         {
             using var stream = new FileStream(path.File.FullName, FileMode.Open);
-            var response = new DimResponseModel(path.RootVolume.PictureEditor.ImageSize(stream));
+            var size = path.RootVolume.PictureEditor.ImageSize(stream);
+            var sizeString = $"{size.Width} x {size.Height}";
+            var response = new DimResponseModel(sizeString);
             return await Json(response);
         }
 

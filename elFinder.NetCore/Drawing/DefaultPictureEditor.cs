@@ -1,7 +1,7 @@
-﻿using System;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
+﻿using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Processing;
+using System;
 using System.IO;
 
 namespace elFinder.NetCore.Drawing
@@ -55,7 +55,7 @@ namespace elFinder.NetCore.Drawing
 
         public ImageWithMimeType Crop(Stream input, int x, int y, int width, int height)
         {
-            using (var image = Image.FromStream(input))
+            using (var image = Image.Load(input))
             {
                 return ScaleOrCrop(image, new Rectangle(x, y, width, height), new Rectangle(0, 0, width, height));
             }
@@ -63,7 +63,7 @@ namespace elFinder.NetCore.Drawing
 
         public ImageWithMimeType GenerateThumbnail(Stream input, int size, bool keepAspectRatio)
         {
-            using (var inputImage = Image.FromStream(input))
+            using (var inputImage = Image.Load(input))
             {
                 int targetWidth;
                 int targetHeight;
@@ -94,7 +94,7 @@ namespace elFinder.NetCore.Drawing
 
         public Size ImageSize(Stream input)
         {
-            using (var image = Image.FromStream(input))
+            using (var image = Image.Load(input))
             {
                 return new Size(image.Width, image.Height);
             }
@@ -102,7 +102,7 @@ namespace elFinder.NetCore.Drawing
 
         public ImageWithMimeType Resize(Stream input, int width, int height)
         {
-            using (var image = Image.FromStream(input))
+            using (var image = Image.Load(input))
             {
                 return ScaleOrCrop(image, new Rectangle(0, 0, image.Width, image.Height), new Rectangle(0, 0, width, height));
             }
@@ -110,7 +110,7 @@ namespace elFinder.NetCore.Drawing
 
         public ImageWithMimeType Rotate(Stream input, int angle)
         {
-            using (var image = Image.FromStream(input))
+            using (var image = Image.Load(input))
             {
                 return Rotate(image, angle);
             }
@@ -126,125 +126,42 @@ namespace elFinder.NetCore.Drawing
         /// <returns>A new <see cref="System.Drawing.Bitmap"/> that is just large enough to contain the rotated image without cutting any corners off.</returns>
         /// <remarks>Original code can be found at http://www.codeproject.com/Articles/58815/C-Image-PictureBox-Rotations </remarks>
         /// <exception cref="System.ArgumentNullException">Thrown if <see cref="image"/> is null.</exception>
-        private ImageWithMimeType Rotate(Image image, float degrees)
+        private ImageWithMimeType Rotate(SixLabors.ImageSharp.Image image, float degrees)
         {
             if (image == null)
             {
-                throw new ArgumentNullException("image");
+                throw new ArgumentNullException(nameof(image));
             }
 
-            const double halfPi = Math.PI / 2.0;
-            double oldWidth = image.Width;
-            double oldHeight = image.Height;
+            // Rotate the image using ImageSharp's Rotate method
+            image.Mutate(x => x.Rotate(degrees));
 
-            double theta = degrees * Math.PI / 180.0;
-            double lockedTheta = theta;
+            // Convert to a memory stream and return
+            var memoryStream = new MemoryStream();
+            image.Save(memoryStream, image.Metadata.DecodedImageFormat);
+            memoryStream.Position = 0;
 
-            while (lockedTheta < 0.0)
-            {
-                lockedTheta += 2 * Math.PI;
-            }
-
-            double newWidth, newHeight;
-            int nWidth, nHeight;
-
-            double adjacentTop;
-            double oppositeTop;
-            double adjacentBottom;
-            double oppositeBottom;
-
-            if ((lockedTheta >= 0.0 && lockedTheta < halfPi) ||
-                (lockedTheta >= Math.PI && lockedTheta < (Math.PI + halfPi)))
-            {
-                adjacentTop = Math.Abs(Math.Cos(lockedTheta)) * oldWidth;
-                oppositeTop = Math.Abs(Math.Sin(lockedTheta)) * oldWidth;
-
-                adjacentBottom = Math.Abs(Math.Cos(lockedTheta)) * oldHeight;
-                oppositeBottom = Math.Abs(Math.Sin(lockedTheta)) * oldHeight;
-            }
-            else
-            {
-                adjacentTop = Math.Abs(Math.Sin(lockedTheta)) * oldHeight;
-                oppositeTop = Math.Abs(Math.Cos(lockedTheta)) * oldHeight;
-
-                adjacentBottom = Math.Abs(Math.Sin(lockedTheta)) * oldWidth;
-                oppositeBottom = Math.Abs(Math.Cos(lockedTheta)) * oldWidth;
-            }
-
-            newWidth = adjacentTop + oppositeBottom;
-            newHeight = adjacentBottom + oppositeTop;
-
-            nWidth = (int)Math.Ceiling(newWidth);
-            nHeight = (int)Math.Ceiling(newHeight);
-
-            using (var rotatedBmp = new Bitmap(nWidth, nHeight))
-            {
-                using (var g = Graphics.FromImage(rotatedBmp))
-                {
-                    g.Clear(BackgroundColor);
-                    Point[] points;
-                    if (lockedTheta >= 0.0 && lockedTheta < halfPi)
-                    {
-                        points = new Point[]
-                        {
-                            new Point((int) oppositeBottom, 0),
-                            new Point(nWidth, (int) oppositeTop),
-                            new Point(0, (int) adjacentBottom)
-                        };
-                    }
-                    else if (lockedTheta >= halfPi && lockedTheta < Math.PI)
-                    {
-                        points = new Point[]
-                        {
-                            new Point(nWidth, (int) oppositeTop),
-                            new Point((int) adjacentTop, nHeight),
-                            new Point((int) oppositeBottom, 0)
-                        };
-                    }
-                    else if (lockedTheta >= Math.PI && lockedTheta < (Math.PI + halfPi))
-                    {
-                        points = new Point[]
-                        {
-                            new Point((int) adjacentTop, nHeight),
-                            new Point(0, (int) adjacentBottom),
-                            new Point(nWidth, (int) oppositeTop)
-                        };
-                    }
-                    else
-                    {
-                        points = new Point[]
-                        {
-                            new Point(0, (int) adjacentBottom),
-                            new Point((int) oppositeBottom, 0),
-                            new Point((int) adjacentTop, nHeight)
-                        };
-                    }
-                    g.InterpolationMode = InterpolationMode.HighQualityBilinear;
-
-                    g.DrawImage(image, points);
-                }
-                return SaveImage(rotatedBmp, image.RawFormat);
-            }
+            return new ImageWithMimeType("image/jpeg", memoryStream); // Adjust MIME type as needed
         }
 
-        private ImageWithMimeType SaveImage(Bitmap image, ImageFormat imageFormat)
+        private ImageWithMimeType SaveImage(SixLabors.ImageSharp.Image image, IImageFormat imageFormat)
         {
             var memoryStream = new MemoryStream(); // Will be disposed when "ImageWithMimeType" is disposed
 
             string mimeType;
-            if (imageFormat.Guid == ImageFormat.Jpeg.Guid)
+            if (imageFormat == SixLabors.ImageSharp.Formats.Jpeg.JpegFormat.Instance)
             {
-                image.Save(memoryStream, ImageFormat.Jpeg);
+                image.Save(memoryStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder());
                 mimeType = "image/jpeg";
             }
-            else if (imageFormat.Guid == ImageFormat.Gif.Guid)
+            else if (imageFormat == SixLabors.ImageSharp.Formats.Gif.GifFormat.Instance)
             {
-                image.Save(memoryStream, ImageFormat.Gif);
+                image.Save(memoryStream, new SixLabors.ImageSharp.Formats.Gif.GifEncoder());
                 mimeType = "image/gif";
             }
-            else
+            else // Default to PNG
             {
-                image.Save(memoryStream, ImageFormat.Png);
+                image.Save(memoryStream, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
                 mimeType = "image/png";
             }
             memoryStream.Position = 0;
@@ -253,16 +170,9 @@ namespace elFinder.NetCore.Drawing
 
         private ImageWithMimeType ScaleOrCrop(Image image, Rectangle source, Rectangle destination)
         {
-            using (var newImage = new Bitmap(destination.Width, destination.Height))
+            using (var newImage = image.Clone(ctx => ctx.Crop(source).Resize(destination.Width, destination.Height)))
             {
-                using (var g = Graphics.FromImage(newImage))
-                {
-                    g.SmoothingMode = SmoothingMode.HighQuality;
-                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                    g.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                    g.DrawImage(image, destination, source, GraphicsUnit.Pixel);
-                }
-                return SaveImage(newImage, image.RawFormat);
+                return SaveImage(newImage, image.Metadata.DecodedImageFormat);
             }
         }
     }
