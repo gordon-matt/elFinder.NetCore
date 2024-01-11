@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using elFinder.NetCore.Drawing;
+﻿using elFinder.NetCore.Drawing;
 using elFinder.NetCore.Drivers;
 using elFinder.NetCore.Exceptions;
 using elFinder.NetCore.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace elFinder.NetCore
 {
@@ -170,8 +169,8 @@ namespace elFinder.NetCore
 
                         if (encoding == "scheme")
                         {
-                            using var client = new WebClient();
-                            var data = await client.DownloadDataTaskAsync(new Uri(content));
+                            using var httpClient = new HttpClient();
+                            var data = await httpClient.GetByteArrayAsync(content);
                             return await driver.PutAsync(path, data);
                         }
                         else
