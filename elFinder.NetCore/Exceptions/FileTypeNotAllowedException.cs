@@ -20,7 +20,6 @@ namespace elFinder.NetCore.Exceptions
         }
 
         protected FileTypeNotAllowedException(SerializationInfo info, StreamingContext context)
-            : base(info, context)
         {
         }
     }
