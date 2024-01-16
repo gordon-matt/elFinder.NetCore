@@ -24,24 +24,16 @@
                 rememberLastDir: false, // Prevent elFinder saving in the Browser LocalStorage the last visited directory
                 commands: myCommands,
                 //lang: 'pt_BR', // elFinder supports UI and messages localization. Check the folder Content\elfinder\js\i18n for all available languages. Be sure to include the corresponding .js file(s) in the JavaScript bundle.
-                uiOptions: { // UI buttons available to the user
-                    toolbar: [
-                        ['back', 'forward'],
-                        ['reload'],
-                        ['home', 'up'],
-                        ['mkdir', 'mkfile', 'upload'],
-                        ['open', 'download'],
-                        ['undo', 'redo'],
-                        ['info'],
-                        ['quicklook'],
-                        ['copy', 'cut', 'paste'],
-                        ['rm'],
-                        ['duplicate', 'rename', 'edit'],
-                        ['selectall', 'selectnone', 'selectinvert'],
-                        ['view', 'sort'],
-                        ['search']
-                    ]
+                themes : {
+                    'dark-slim'   : 'https://johnfort.github.io/elFinder.themes/dark-slim/manifest.json',
+                    'mt-darkblue' : 'https://robinn1.github.io/elFinder-Material-Theme/manifests/darkblue.json',
+                    'mt-gray'     : 'https://robinn1.github.io/elFinder-Material-Theme/manifests/gray.json',
+                    'mt-light'    : 'https://robinn1.github.io/elFinder-Material-Theme/manifests/light.json',
+                    'bootstrap'   : 'https://nao-pon.github.io/elfinder-theme-manifests/bootstrap.json',
+                    'moono'       : 'https://nao-pon.github.io/elfinder-theme-manifests/moono.json',
+                    'win10'       : 'https://nao-pon.github.io/elfinder-theme-manifests/win10.json'
                 },
+                ui: ['toolbar', 'places', 'tree', 'path', 'stat'],
                 //onlyMimes: ["image", "text/plain"] // Get files of requested mime types only
                 //lang: 'vi', // Change language
             };
