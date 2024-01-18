@@ -19,5 +19,7 @@ As simple as that!
 
 Many thanks also to [Flavio Smirne](https://github.com/fsmirne) for the excellent contribution of an Azure Storage driver and the work done to allow such extensibility.
 
+#### Jan/2024:
 Migration to ASP.NET 8 Core and frontend libs upgrade by [@utilsites fork](https://github.com/utilsites/elFinder.NetCore/tree/upgrade-net8-and-clientlibs).
 Used original? [elFinder project](https://github.com/Studio-42/elFinder) to update elFinder frontend client lib files. This project claims that old version has serious problems for older versions, does the asp.net port server side still has some of the referred problems? At least the path traversal security problem was fixed using the code on this [pull request](https://github.com/gordon-matt/elFinder.NetCore/pull/73).
+Also updated tinyMCE to last version.
