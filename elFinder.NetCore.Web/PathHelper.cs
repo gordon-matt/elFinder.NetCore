@@ -16,8 +16,12 @@ namespace elFinder.NetCore.Web
         {
             if (string.IsNullOrEmpty(basePath))
             {
-                //basePath = Startup.WebRootPath;
                 basePath = WebRootPath;
+            }
+
+            if (string.IsNullOrEmpty(basePath))
+            {
+                throw new ArgumentException("elFinder PathHelper don't have WebRootPath or basePath configured.");
             }
 
             path = path.Replace("~/", "").TrimStart('/').Replace('/', '\\');
