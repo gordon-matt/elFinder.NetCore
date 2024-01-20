@@ -13,8 +13,15 @@ namespace elFinder.NetCore.Web.Controllers
         [Route("connector")]
         public async Task<IActionResult> Connector()
         {
-            var connector = GetConnector();
-            return await connector.ProcessAsync(Request);
+            try
+            {
+                var connector = GetConnector();
+                return await connector.ProcessAsync(Request);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { error = "Unable to process your request: " + ex.Message });
+            }
         }
 
         [Route("thumb/{hash}")]
