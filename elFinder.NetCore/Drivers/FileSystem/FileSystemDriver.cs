@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Mime;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using elFinder.NetCore.Drawing;
 using elFinder.NetCore.Exceptions;
@@ -22,6 +23,9 @@ namespace elFinder.NetCore.Drivers.FileSystem
     public class FileSystemDriver : BaseDriver, IDriver
     {
         private const string _volumePrefix = "v";
+        private Regex validFolderPattern = new Regex(@"^[a-zA-Z0-9_\-]+$");
+        private char[] invalidPathChars = Path.GetInvalidPathChars();
+        private char[] invalidFileNameChars = Path.GetInvalidFileNameChars();
 
         #region Constructor
 
@@ -98,16 +102,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
             await RemoveThumbsAsync(path);
 
             // Crop Image
-            ImageWithMimeType image;
-            using (var stream = new FileStream(path.File.FullName, FileMode.Open))
-            {
-                image = path.RootVolume.PictureEditor.Crop(stream, x, y, width, height);
-            }
-
-            using (var fileStream = File.Create(path.File.FullName))
-            {
-                await image.ImageStream.CopyToAsync(fileStream);
-            }
+            using var stream = new FileStream(path.File.FullName, FileMode.Open);
+            using var image = path.RootVolume.PictureEditor.Crop(stream, x, y, width, height);
+            using var fileStream = File.Create(path.File.FullName);
+            await image.ImageStream.CopyToAsync(fileStream);
 
             var output = new ChangedResponseModel();
             output.Changed.Add(await BaseModel.CreateAsync(path.File, path.RootVolume));
@@ -288,10 +286,9 @@ namespace elFinder.NetCore.Drivers.FileSystem
         public async Task<JsonResult> GetAsync(FullPath path)
         {
             var response = new GetResponseModel();
-            using (var reader = new StreamReader(await path.File.OpenReadAsync()))
-            {
-                response.Content = reader.ReadToEnd();
-            }
+            using var fileStream = await path.File.OpenReadAsync();
+            using var reader = new StreamReader(fileStream);
+            response.Content = await reader.ReadToEndAsync();
             return await Json(response);
         }
 
@@ -392,7 +389,12 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
             if (!string.IsNullOrEmpty(name))
             {
-                var newDir = new FileSystemDirectory(Path.Combine(path.Directory.FullName, name));
+                var newDir = new FileSystemDirectory(Path.Combine(path.Directory.FullName, PreventPossiblePathTraversal(name)));
+                if (!validFolderPattern.IsMatch(name))
+                {
+                    throw new InvalidPathException($"{name} is an invalid folder name.");
+                }
+
                 await newDir.CreateAsync();
                 response.Added.Add(await BaseModel.CreateAsync(newDir, path.RootVolume));
             }
@@ -400,7 +402,12 @@ namespace elFinder.NetCore.Drivers.FileSystem
             foreach (string dir in dirs)
             {
                 string dirName = dir.StartsWith("/") ? dir.Substring(1) : dir;
-                var newDir = new FileSystemDirectory(Path.Combine(path.Directory.FullName, dirName));
+                var newDir = new FileSystemDirectory(Path.Combine(path.Directory.FullName, PreventPossiblePathTraversal(dirName)));
+                if (!validFolderPattern.IsMatch(dirName))
+                {
+                    throw new InvalidPathException($"{dirName} is an invalid folder name.");
+                }
+
                 await newDir.CreateAsync();
 
                 response.Added.Add(await BaseModel.CreateAsync(newDir, path.RootVolume));
@@ -414,8 +421,13 @@ namespace elFinder.NetCore.Drivers.FileSystem
 
         public async Task<JsonResult> MakeFileAsync(FullPath path, string name)
         {
-            var newFile = new FileSystemFile(Path.Combine(path.Directory.FullName, name));
-            await newFile.CreateAsync();
+            if (name.IndexOfAny(invalidFileNameChars) >= 0)
+            {
+                throw new InvalidPathException($"{name} is an invalid file name.");
+            }
+
+            var newFile = new FileSystemFile(Path.Combine(path.Directory.FullName, PreventPossiblePathTraversal(name)));
+            using var fileStream = await newFile.CreateAsync();
 
             var response = new AddResponseModel();
             response.Added.Add(await BaseModel.CreateAsync(newFile, path.RootVolume));
@@ -616,16 +628,38 @@ namespace elFinder.NetCore.Drivers.FileSystem
             response.Removed.Add(path.HashedTarget);
             await RemoveThumbsAsync(path);
 
+            name = PreventPossiblePathTraversal(name);
+
             if (path.IsDirectory)
             {
+                if (name.IndexOfAny(invalidPathChars) >= 0 || !validFolderPattern.IsMatch(name))
+                {
+                    throw new InvalidPathException($"{name} is an invalid folder name.");
+                }
+
                 var newPath = new FileSystemDirectory(Path.Combine(path.Directory.Parent.FullName, name));
-                Directory.Move(path.Directory.FullName, newPath.FullName);
+
+                if (path.Directory.FullName != newPath.FullName)
+                {
+                    Directory.Move(path.Directory.FullName, newPath.FullName);
+                }
+
                 response.Added.Add(await BaseModel.CreateAsync(newPath, path.RootVolume));
             }
             else
             {
+                if (name.IndexOfAny(invalidFileNameChars) >= 0)
+                {
+                    throw new InvalidPathException($"{name} is an invalid file name.");
+                }
+
                 var newPath = new FileSystemFile(Path.Combine(path.File.DirectoryName, name));
-                File.Move(path.File.FullName, newPath.FullName);
+
+                if (path.File.FullName != newPath.FullName)
+                {
+                    File.Move(path.File.FullName, newPath.FullName);
+                }
+
                 response.Added.Add(await BaseModel.CreateAsync(newPath, path.RootVolume));
             }
 
@@ -637,16 +671,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
             await RemoveThumbsAsync(path);
 
             // Resize Image
-            ImageWithMimeType image;
-            using (var stream = new FileStream(path.File.FullName, FileMode.Open))
-            {
-                image = path.RootVolume.PictureEditor.Resize(stream, width, height);
-            }
-
-            using (var fileStream = File.Create(path.File.FullName))
-            {
-                await image.ImageStream.CopyToAsync(fileStream);
-            }
+            using var stream = new FileStream(path.File.FullName, FileMode.Open);
+            using var image = path.RootVolume.PictureEditor.Resize(stream, width, height);
+            using var fileStream = File.Create(path.File.FullName);
+            await image.ImageStream.CopyToAsync(fileStream);
 
             var output = new ChangedResponseModel();
             output.Changed.Add(await BaseModel.CreateAsync(path.File, path.RootVolume));
@@ -658,16 +686,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
             await RemoveThumbsAsync(path);
 
             // Rotate Image
-            ImageWithMimeType image;
-            using (var stream = new FileStream(path.File.FullName, FileMode.Open))
-            {
-                image = path.RootVolume.PictureEditor.Rotate(stream, degree);
-            }
-
-            using (var fileStream = File.Create(path.File.FullName))
-            {
-                await image.ImageStream.CopyToAsync(fileStream);
-            }
+            using var stream = new FileStream(path.File.FullName, FileMode.Open);
+            using var image = path.RootVolume.PictureEditor.Rotate(stream, degree);
+            using var fileStream = File.Create(path.File.FullName);
+            await image.ImageStream.CopyToAsync(fileStream);
 
             var output = new ChangedResponseModel();
             output.Changed.Add(await BaseModel.CreateAsync(path.File, path.RootVolume));
@@ -906,11 +928,9 @@ namespace elFinder.NetCore.Drivers.FileSystem
             string tempPath = Path.GetTempPath();
             var tempFile = new FileInfo(Path.Combine(tempPath, archivedFileKey));
 
-            var memoryStream = new MemoryStream();
-            using (var fileStream = tempFile.OpenRead())
-            {
-                await fileStream.CopyToAsync(memoryStream);
-            }
+            using var memoryStream = new MemoryStream();
+            using var fileStream = tempFile.OpenRead();
+            await fileStream.CopyToAsync(memoryStream);
 
             tempFile.Delete();
             memoryStream.Position = 0;
@@ -1041,5 +1061,12 @@ namespace elFinder.NetCore.Drivers.FileSystem
                 }
             }
         }
+
+        private string PreventPossiblePathTraversal(string path) => path
+            .Replace("..", string.Empty)
+            .Replace("/", string.Empty)
+            .Replace("\\", string.Empty)
+            .Replace("*", string.Empty)
+            .Replace("?", string.Empty);
     }
 }
