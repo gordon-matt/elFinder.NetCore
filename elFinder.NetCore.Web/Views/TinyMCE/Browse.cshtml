@@ -55,6 +55,15 @@
                         ['view', 'sort']
                     ]
                 },
+                themes: {
+                    'mt-gray': 'https://robinn1.github.io/elFinder-Material-Theme/manifests/gray.json',
+                    'dark-slim': 'https://johnfort.github.io/elFinder.themes/dark-slim/manifest.json',
+                    'mt-darkblue': 'https://robinn1.github.io/elFinder-Material-Theme/manifests/darkblue.json',
+                    'mt-light': 'https://robinn1.github.io/elFinder-Material-Theme/manifests/light.json',
+                    'bootstrap': 'https://nao-pon.github.io/elfinder-theme-manifests/bootstrap.json',
+                    'moono': 'https://nao-pon.github.io/elfinder-theme-manifests/moono.json',
+                    'win10': 'https://nao-pon.github.io/elfinder-theme-manifests/win10.json'
+                },
                 getFileCallback: function (file, fm) { // editor callback (see: https://github.com/Studio-42/elFinder/wiki/Integration-with-TinyMCE-4.x)
                     // pass selected file data to TinyMCE
                     parent.tinymce.activeEditor.windowManager.getParams().oninsert(file, fm);
