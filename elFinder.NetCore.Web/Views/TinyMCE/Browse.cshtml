@@ -55,11 +55,12 @@
                         ['view', 'sort']
                     ]
                 },
-                getFileCallback: function (file, fm) { // editor callback (see: https://github.com/Studio-42/elFinder/wiki/Integration-with-TinyMCE-4.x)
-                    // pass selected file data to TinyMCE
-                    parent.tinymce.activeEditor.windowManager.getParams().oninsert(file, fm);
-                    // close popup window
-                    parent.tinymce.activeEditor.windowManager.close();
+                getFileCallback: function (file, fm) {
+                    window.parent.postMessage({
+                        mceAction: {
+                            file
+                        }
+                    }, '*');
                 }
             };
             $('#elfinder').elfinder(options).elfinder('instance');
