@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+﻿using SixLabors.ImageSharp;
 using System.IO;
 
 namespace elFinder.NetCore.Drawing

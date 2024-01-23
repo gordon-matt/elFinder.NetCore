@@ -6,7 +6,6 @@ using System.Linq;
 using System.Net.Mime;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using elFinder.NetCore.Drawing;
 using elFinder.NetCore.Exceptions;
 using elFinder.NetCore.Extensions;
 using elFinder.NetCore.Helpers;
@@ -115,7 +114,9 @@ namespace elFinder.NetCore.Drivers.FileSystem
         public async Task<JsonResult> DimAsync(FullPath path)
         {
             using var stream = new FileStream(path.File.FullName, FileMode.Open);
-            var response = new DimResponseModel(path.RootVolume.PictureEditor.ImageSize(stream));
+            var size = path.RootVolume.PictureEditor.ImageSize(stream);
+            var sizeString = $"{size.Width} x {size.Height}";
+            var response = new DimResponseModel(sizeString);
             return await Json(response);
         }
 
