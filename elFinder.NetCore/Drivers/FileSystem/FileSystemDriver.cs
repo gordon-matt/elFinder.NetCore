@@ -102,10 +102,16 @@ namespace elFinder.NetCore.Drivers.FileSystem
             await RemoveThumbsAsync(path);
 
             // Crop Image
-            using var stream = new FileStream(path.File.FullName, FileMode.Open);
-            using var image = path.RootVolume.PictureEditor.Crop(stream, x, y, width, height);
-            using var fileStream = File.Create(path.File.FullName);
-            await image.ImageStream.CopyToAsync(fileStream);
+            ImageWithMimeType image;
+            using (var stream = new FileStream(path.File.FullName, FileMode.Open))
+            {
+                image = path.RootVolume.PictureEditor.Crop(stream, x, y, width, height);
+            }
+
+            using (var fileStream = File.Create(path.File.FullName))
+            {
+                await image.ImageStream.CopyToAsync(fileStream);
+            }
 
             var output = new ChangedResponseModel();
             output.Changed.Add(await BaseModel.CreateAsync(path.File, path.RootVolume));
@@ -286,9 +292,10 @@ namespace elFinder.NetCore.Drivers.FileSystem
         public async Task<JsonResult> GetAsync(FullPath path)
         {
             var response = new GetResponseModel();
-            using var fileStream = await path.File.OpenReadAsync();
-            using var reader = new StreamReader(fileStream);
-            response.Content = await reader.ReadToEndAsync();
+            using (var reader = new StreamReader(await path.File.OpenReadAsync()))
+            {
+                response.Content = reader.ReadToEnd();
+            }
             return await Json(response);
         }
 
@@ -427,7 +434,7 @@ namespace elFinder.NetCore.Drivers.FileSystem
             }
 
             var newFile = new FileSystemFile(Path.Combine(path.Directory.FullName, PreventPossiblePathTraversal(name)));
-            using var fileStream = await newFile.CreateAsync();
+            await newFile.CreateAsync();
 
             var response = new AddResponseModel();
             response.Added.Add(await BaseModel.CreateAsync(newFile, path.RootVolume));
@@ -671,10 +678,16 @@ namespace elFinder.NetCore.Drivers.FileSystem
             await RemoveThumbsAsync(path);
 
             // Resize Image
-            using var stream = new FileStream(path.File.FullName, FileMode.Open);
-            using var image = path.RootVolume.PictureEditor.Resize(stream, width, height);
-            using var fileStream = File.Create(path.File.FullName);
-            await image.ImageStream.CopyToAsync(fileStream);
+            ImageWithMimeType image;
+            using (var stream = new FileStream(path.File.FullName, FileMode.Open))
+            {
+                image = path.RootVolume.PictureEditor.Resize(stream, width, height);
+            }
+
+            using (var fileStream = File.Create(path.File.FullName))
+            {
+                await image.ImageStream.CopyToAsync(fileStream);
+            }
 
             var output = new ChangedResponseModel();
             output.Changed.Add(await BaseModel.CreateAsync(path.File, path.RootVolume));
@@ -686,10 +699,16 @@ namespace elFinder.NetCore.Drivers.FileSystem
             await RemoveThumbsAsync(path);
 
             // Rotate Image
-            using var stream = new FileStream(path.File.FullName, FileMode.Open);
-            using var image = path.RootVolume.PictureEditor.Rotate(stream, degree);
-            using var fileStream = File.Create(path.File.FullName);
-            await image.ImageStream.CopyToAsync(fileStream);
+            ImageWithMimeType image;
+            using (var stream = new FileStream(path.File.FullName, FileMode.Open))
+            {
+                image = path.RootVolume.PictureEditor.Rotate(stream, degree);
+            }
+
+            using (var fileStream = File.Create(path.File.FullName))
+            {
+                await image.ImageStream.CopyToAsync(fileStream);
+            }
 
             var output = new ChangedResponseModel();
             output.Changed.Add(await BaseModel.CreateAsync(path.File, path.RootVolume));
@@ -928,9 +947,11 @@ namespace elFinder.NetCore.Drivers.FileSystem
             string tempPath = Path.GetTempPath();
             var tempFile = new FileInfo(Path.Combine(tempPath, archivedFileKey));
 
-            using var memoryStream = new MemoryStream();
-            using var fileStream = tempFile.OpenRead();
-            await fileStream.CopyToAsync(memoryStream);
+            var memoryStream = new MemoryStream();
+            using (var fileStream = tempFile.OpenRead())
+            {
+                await fileStream.CopyToAsync(memoryStream);
+            }
 
             tempFile.Delete();
             memoryStream.Position = 0;
