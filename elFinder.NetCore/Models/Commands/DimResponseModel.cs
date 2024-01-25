@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+﻿using SixLabors.ImageSharp;
 using System.Text.Json.Serialization;
 
 namespace elFinder.NetCore.Models.Commands
