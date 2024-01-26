@@ -20,6 +20,7 @@ namespace elFinder.NetCore.Web.Controllers
             }
             catch (Exception ex)
             {
+                //TODO: would be good to Sanitize Exception Message at least in production, can leak server file paths
                 return Json(new { error = "Unable to process your request: " + ex.Message });
             }
         }
@@ -27,8 +28,16 @@ namespace elFinder.NetCore.Web.Controllers
         [Route("thumb/{hash}")]
         public async Task<IActionResult> Thumbs(string hash)
         {
-            var connector = GetConnector();
-            return await connector.GetThumbnailAsync(HttpContext.Request, HttpContext.Response, hash);
+            try
+            {
+                var connector = GetConnector();
+                return await connector.GetThumbnailAsync(HttpContext.Request, HttpContext.Response, hash);
+            }
+            catch (Exception ex)
+            {
+                //TODO: would be good to Sanitize Exception Message at least in production, can leak server file paths
+                return Json(new { error = "Unable to process your request: " + ex.Message });
+            }
         }
 
         private Connector GetConnector()
