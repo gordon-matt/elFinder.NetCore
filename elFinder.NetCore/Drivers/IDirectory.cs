@@ -1,38 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
+﻿namespace elFinder.NetCore.Drivers;
 
-namespace elFinder.NetCore.Drivers
+public interface IDirectory
 {
-    public interface IDirectory
-    {
-        FileAttributes Attributes { get; set; }
+    FileAttributes Attributes { get; set; }
 
-        Task<bool> ExistsAsync { get; }
+    Task<bool> ExistsAsync { get; }
 
-        string FullName { get; }
+    string FullName { get; }
 
-        Task<DateTime> LastWriteTimeUtcAsync { get; }
+    Task<DateTime> LastWriteTimeUtcAsync { get; }
 
-        // Properties
-        string Name { get; }
+    // Properties
+    string Name { get; }
 
-        IDirectory Parent { get; }
+    IDirectory Parent { get; }
 
-        // Functions
-        Task CreateAsync();
+    // Functions
+    Task CreateAsync();
 
-        Task DeleteAsync();
+    Task DeleteAsync();
 
-        Task<IEnumerable<IDirectory>> GetDirectoriesAsync();
+    Task<IEnumerable<IDirectory>> GetDirectoriesAsync();
 
-        Task<IEnumerable<IDirectory>> GetDirectoriesAsync(string pattern);
+    Task<IEnumerable<IDirectory>> GetDirectoriesAsync(string pattern);
 
-        Task<IEnumerable<IFile>> GetFilesAsync(IEnumerable<string> mimeTypes);
+    Task<IEnumerable<IFile>> GetFilesAsync(IEnumerable<string> mimeTypes);
 
-        Task<IEnumerable<IFile>> GetFilesAsync(IEnumerable<string> mimeTypes, string pattern);
+    Task<IEnumerable<IFile>> GetFilesAsync(IEnumerable<string> mimeTypes, string pattern);
 
-        Task RefreshAsync();
-    }
+    Task RefreshAsync();
 }

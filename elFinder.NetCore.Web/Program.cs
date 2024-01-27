@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using elFinder.NetCore.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,7 +26,6 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-
-elFinder.NetCore.Web.PathHelper.WebRootPath = app.Environment.WebRootPath;
+PathHelper.WebRootPath = app.Environment.WebRootPath;
 
 app.Run();

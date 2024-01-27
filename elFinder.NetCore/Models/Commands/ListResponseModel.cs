@@ -1,16 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Text.Json.Serialization;
+﻿namespace elFinder.NetCore.Models.Commands;
 
-namespace elFinder.NetCore.Models.Commands
+public class ListResponseModel
 {
-    public class ListResponseModel
+    public ListResponseModel()
     {
-        public ListResponseModel()
-        {
-            List = new List<string>();
-        }
-
-        [JsonPropertyName("list")]
-        public List<string> List { get; private set; }
+        List = new List<string>();
     }
+
+    [JsonPropertyName("list")]
+    public List<string> List { get; private set; }
 }

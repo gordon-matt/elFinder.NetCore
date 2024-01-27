@@ -1,13 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿namespace elFinder.NetCore.Web.Controllers;
 
-namespace elFinder.NetCore.Web.Controllers
+[Route("file-manager")]
+public class FileManagerController : Controller
 {
-    [Route("file-manager")]
-    public class FileManagerController : Controller
+    public IActionResult Index()
     {
-        public IActionResult Index()
-        {
-            return View();
-        }
+        return View();
     }
 }

@@ -1,19 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿namespace elFinder.NetCore.Web.Controllers;
 
-namespace elFinder.NetCore.Web.Controllers
+public class HomeController : Controller
 {
-    public class HomeController : Controller
+    [Route("")]
+    public IActionResult Index()
     {
-        [Route("")]
-        public IActionResult Index()
-        {
-            return View();
-        }
+        return View();
+    }
 
-        [Route("error")]
-        public IActionResult Error()
-        {
-            return View();
-        }
+    [Route("error")]
+    public IActionResult Error()
+    {
+        return View();
     }
 }

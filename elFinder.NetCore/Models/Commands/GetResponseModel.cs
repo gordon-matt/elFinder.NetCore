@@ -1,10 +1,7 @@
-﻿using System.Text.Json.Serialization;
+﻿namespace elFinder.NetCore.Models.Commands;
 
-namespace elFinder.NetCore.Models.Commands
+public class GetResponseModel
 {
-    public class GetResponseModel
-    {
-        [JsonPropertyName("content")]
-        public string Content { get; set; }
-    }
+    [JsonPropertyName("content")]
+    public string Content { get; set; }
 }
