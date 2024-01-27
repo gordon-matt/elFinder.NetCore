@@ -11,6 +11,7 @@
     </PackageLicenseUrl>
     <OutputType>Library</OutputType>
     <IsPackable>true</IsPackable>
+	<ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="MimeTypes.txt" />

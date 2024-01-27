@@ -1,51 +1,47 @@
-﻿using System.Collections.Generic;
-using System.IO.Compression;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using System.IO.Compression;
 
-namespace elFinder.NetCore.Drivers
+namespace elFinder.NetCore.Drivers;
+
+/// <summary>
+/// Represents a Base elFinder Driver
+/// </summary>
+public abstract class BaseDriver
 {
+    public ICollection<RootVolume> Roots { get; protected set; }
+
+    public string VolumePrefix { get; protected set; }
+
     /// <summary>
-    /// Represents a Base elFinder Driver
+    /// Adds an object to the end of the roots.
     /// </summary>
-    public abstract class BaseDriver
+    /// <param name="item"></param>
+    public void AddRoot(RootVolume item)
     {
-        public ICollection<RootVolume> Roots { get; protected set; }
+        Roots.Add(item);
+        item.VolumeId = $"{VolumePrefix}{Roots.Count}_";
+    }
 
-        public string VolumePrefix { get; protected set; }
+    protected virtual async Task AddDirectoryToArchiveAsync(ZipArchive zipFile, IDirectory directoryInfo, string root)
+    {
+        string entryName = $"{root}{directoryInfo.Name}/";
 
-        /// <summary>
-        /// Adds an object to the end of the roots.
-        /// </summary>
-        /// <param name="item"></param>
-        public void AddRoot(RootVolume item)
+        zipFile.CreateEntry(entryName);
+        var dirs = await directoryInfo.GetDirectoriesAsync();
+
+        foreach (var dir in dirs)
         {
-            Roots.Add(item);
-            item.VolumeId = $"{VolumePrefix}{Roots.Count}_";
+            await AddDirectoryToArchiveAsync(zipFile, dir, entryName);
         }
 
-        protected virtual async Task AddDirectoryToArchiveAsync(ZipArchive zipFile, IDirectory directoryInfo, string root)
+        var files = await directoryInfo.GetFilesAsync(null);
+        foreach (var file in files)
         {
-            string entryName = $"{root}{directoryInfo.Name}/";
-
-            zipFile.CreateEntry(entryName);
-            var dirs = await directoryInfo.GetDirectoriesAsync();
-
-            foreach (var dir in dirs)
-            {
-                await AddDirectoryToArchiveAsync(zipFile, dir, entryName);
-            }
-
-            var files = await directoryInfo.GetFilesAsync(null);
-            foreach (var file in files)
-            {
-                zipFile.CreateEntryFromFile(file.FullName, entryName + file.Name);
-            }
+            zipFile.CreateEntryFromFile(file.FullName, entryName + file.Name);
         }
+    }
 
-        protected Task<JsonResult> Json(object data)
-        {
-            return Task.FromResult(new JsonResult(data) { ContentType = "text/html" });
-        }
+    protected Task<JsonResult> Json(object data)
+    {
+        return Task.FromResult(new JsonResult(data) { ContentType = "text/html" });
     }
 }
