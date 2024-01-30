@@ -1,6 +1,4 @@
-﻿using System.Runtime.Serialization;
-
-namespace elFinder.NetCore.Exceptions;
+﻿namespace elFinder.NetCore.Exceptions;
 
 public class FileTypeNotAllowedException : ApplicationException
 {
@@ -15,11 +13,6 @@ public class FileTypeNotAllowedException : ApplicationException
 
     public FileTypeNotAllowedException(string message, Exception innerException)
         : base(message, innerException)
-    {
-    }
-
-    protected FileTypeNotAllowedException(SerializationInfo info, StreamingContext context)
-        : base(info, context)
     {
     }
 }

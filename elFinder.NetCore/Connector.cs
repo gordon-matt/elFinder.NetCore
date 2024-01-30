@@ -163,8 +163,13 @@ public class Connector
 
                     if (encoding == "scheme")
                     {
-                        using var client = new WebClient();
-                        var data = await client.DownloadDataTaskAsync(new Uri(content));
+                        //TODO: It's worth noting that for optimal performance and resource management,
+                        //  HttpClient should not be instantiated for each request in a real-world application.
+                        //  Instead, it's typically best to create a single or few long-lived HttpClient instances and reuse
+                        //  them for all HTTP calls. This can be achieved through dependency injection or a static/singleton
+                        //  instance, depending on your application's architecture.
+                        using var client = new HttpClient();
+                        var data = await client.GetByteArrayAsync(new Uri(content));
                         return await driver.PutAsync(path, data);
                     }
                     else
