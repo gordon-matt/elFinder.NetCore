@@ -1,6 +1,4 @@
-﻿using System.Runtime.Serialization;
-
-namespace elFinder.NetCore.Exceptions;
+﻿namespace elFinder.NetCore.Exceptions;
 
 public class InvalidPathException : ApplicationException
 {
@@ -15,11 +13,6 @@ public class InvalidPathException : ApplicationException
 
     public InvalidPathException(string message, Exception innerException)
         : base(message, innerException)
-    {
-    }
-
-    protected InvalidPathException(SerializationInfo info, StreamingContext context)
-        : base(info, context)
     {
     }
 }
