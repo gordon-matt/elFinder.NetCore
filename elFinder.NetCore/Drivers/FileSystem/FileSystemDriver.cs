@@ -425,6 +425,49 @@ public class FileSystemDriver : BaseDriver, IDriver
             throw new InvalidPathException($"{name} is an invalid file name.");
         }
 
+        if (path.RootVolume.UploadOrder != null)
+        {
+            var mimeType = MimeHelper.GetMimeType(Path.GetExtension(name));
+            var constraintMap = new Dictionary<string, IEnumerable<string>>
+            {
+                ["allow"] = path.RootVolume.UploadAllow,
+                ["deny"] = path.RootVolume.UploadDeny,
+            };
+
+            foreach (string constraintType in path.RootVolume.UploadOrder)
+            {
+                var mimeTypes = constraintMap[constraintType];
+                if (mimeTypes == null)
+                {
+                    continue;
+                }
+
+                switch (constraintType)
+                {
+                    case "allow":
+                        {
+                            if (!mimeTypes.Contains("all") &&
+                                !mimeTypes.Contains(mimeType) &&
+                                !mimeTypes.Contains(mimeType.Type))
+                            {
+                                throw new FileTypeNotAllowedException();
+                            }
+                            break;
+                        }
+                    case "deny":
+                        {
+                            if (mimeTypes.Contains("all") ||
+                                mimeTypes.Contains(mimeType) ||
+                                mimeTypes.Contains(mimeType.Type))
+                            {
+                                throw new FileTypeNotAllowedException();
+                            }
+                            break;
+                        }
+                }
+            }
+        }
+
         var newFile = new FileSystemFile(Path.Combine(path.Directory.FullName, PreventPossiblePathTraversal(name)));
         await newFile.CreateAsync();
 
@@ -650,6 +693,49 @@ public class FileSystemDriver : BaseDriver, IDriver
             if (name.IndexOfAny(invalidFileNameChars) >= 0)
             {
                 throw new InvalidPathException($"{name} is an invalid file name.");
+            }
+
+            if (path.RootVolume.UploadOrder != null)
+            {
+                var mimeType = MimeHelper.GetMimeType(Path.GetExtension(name));
+                var constraintMap = new Dictionary<string, IEnumerable<string>>
+                {
+                    ["allow"] = path.RootVolume.UploadAllow,
+                    ["deny"] = path.RootVolume.UploadDeny,
+                };
+
+                foreach (string constraintType in path.RootVolume.UploadOrder)
+                {
+                    var mimeTypes = constraintMap[constraintType];
+                    if (mimeTypes == null)
+                    {
+                        continue;
+                    }
+
+                    switch (constraintType)
+                    {
+                        case "allow":
+                            {
+                                if (!mimeTypes.Contains("all") &&
+                                    !mimeTypes.Contains(mimeType) &&
+                                    !mimeTypes.Contains(mimeType.Type))
+                                {
+                                    throw new FileTypeNotAllowedException();
+                                }
+                                break;
+                            }
+                        case "deny":
+                            {
+                                if (mimeTypes.Contains("all") ||
+                                    mimeTypes.Contains(mimeType) ||
+                                    mimeTypes.Contains(mimeType.Type))
+                                {
+                                    throw new FileTypeNotAllowedException();
+                                }
+                                break;
+                            }
+                    }
+                }
             }
 
             var newPath = new FileSystemFile(Path.Combine(path.File.DirectoryName, name));
