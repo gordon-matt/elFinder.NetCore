@@ -4,6 +4,7 @@ using elFinder.NetCore.Extensions;
 using elFinder.NetCore.Helpers;
 using elFinder.NetCore.Models;
 using elFinder.NetCore.Models.Commands;
+using System.IO;
 using System.IO.Compression;
 using System.Net.Mime;
 
@@ -15,10 +16,9 @@ namespace elFinder.NetCore.Drivers.FileSystem;
 public class FileSystemDriver : BaseDriver, IDriver
 {
     private const string _volumePrefix = "v";
-    private Regex validFolderPattern = new Regex(@"^[a-zA-Z0-9_\-]+$");
-    private char[] invalidPathChars = Path.GetInvalidPathChars();
     private char[] invalidFileNameChars = Path.GetInvalidFileNameChars();
-
+    private char[] invalidPathChars = Path.GetInvalidPathChars();
+    private Regex validFolderPattern = new Regex(@"^[a-zA-Z0-9_\-]+$");
     #region Constructor
 
     /// <summary>
@@ -427,45 +427,7 @@ public class FileSystemDriver : BaseDriver, IDriver
 
         if (path.RootVolume.UploadOrder != null)
         {
-            var mimeType = MimeHelper.GetMimeType(Path.GetExtension(name));
-            var constraintMap = new Dictionary<string, IEnumerable<string>>
-            {
-                ["allow"] = path.RootVolume.UploadAllow,
-                ["deny"] = path.RootVolume.UploadDeny,
-            };
-
-            foreach (string constraintType in path.RootVolume.UploadOrder)
-            {
-                var mimeTypes = constraintMap[constraintType];
-                if (mimeTypes == null)
-                {
-                    continue;
-                }
-
-                switch (constraintType)
-                {
-                    case "allow":
-                        {
-                            if (!mimeTypes.Contains("all") &&
-                                !mimeTypes.Contains(mimeType) &&
-                                !mimeTypes.Contains(mimeType.Type))
-                            {
-                                throw new FileTypeNotAllowedException();
-                            }
-                            break;
-                        }
-                    case "deny":
-                        {
-                            if (mimeTypes.Contains("all") ||
-                                mimeTypes.Contains(mimeType) ||
-                                mimeTypes.Contains(mimeType.Type))
-                            {
-                                throw new FileTypeNotAllowedException();
-                            }
-                            break;
-                        }
-                }
-            }
+            CheckConstraints(path.RootVolume, name);
         }
 
         var newFile = new FileSystemFile(Path.Combine(path.Directory.FullName, PreventPossiblePathTraversal(name)));
@@ -697,45 +659,7 @@ public class FileSystemDriver : BaseDriver, IDriver
 
             if (path.RootVolume.UploadOrder != null)
             {
-                var mimeType = MimeHelper.GetMimeType(Path.GetExtension(name));
-                var constraintMap = new Dictionary<string, IEnumerable<string>>
-                {
-                    ["allow"] = path.RootVolume.UploadAllow,
-                    ["deny"] = path.RootVolume.UploadDeny,
-                };
-
-                foreach (string constraintType in path.RootVolume.UploadOrder)
-                {
-                    var mimeTypes = constraintMap[constraintType];
-                    if (mimeTypes == null)
-                    {
-                        continue;
-                    }
-
-                    switch (constraintType)
-                    {
-                        case "allow":
-                            {
-                                if (!mimeTypes.Contains("all") &&
-                                    !mimeTypes.Contains(mimeType) &&
-                                    !mimeTypes.Contains(mimeType.Type))
-                                {
-                                    throw new FileTypeNotAllowedException();
-                                }
-                                break;
-                            }
-                        case "deny":
-                            {
-                                if (mimeTypes.Contains("all") ||
-                                    mimeTypes.Contains(mimeType) ||
-                                    mimeTypes.Contains(mimeType.Type))
-                                {
-                                    throw new FileTypeNotAllowedException();
-                                }
-                                break;
-                            }
-                    }
-                }
+                CheckConstraints(path.RootVolume, name);
             }
 
             var newPath = new FileSystemFile(Path.Combine(path.File.DirectoryName, name));
@@ -891,45 +815,7 @@ public class FileSystemDriver : BaseDriver, IDriver
         {
             foreach (var file in files)
             {
-                var mimeType = MimeHelper.GetMimeType(Path.GetExtension(file.FileName));
-                var constraintMap = new Dictionary<string, IEnumerable<string>>
-                {
-                    ["allow"] = path.RootVolume.UploadAllow,
-                    ["deny"] = path.RootVolume.UploadDeny,
-                };
-
-                foreach (string constraintType in path.RootVolume.UploadOrder)
-                {
-                    var mimeTypes = constraintMap[constraintType];
-                    if (mimeTypes == null)
-                    {
-                        continue;
-                    }
-
-                    switch (constraintType)
-                    {
-                        case "allow":
-                            {
-                                if (!mimeTypes.Contains("all") &&
-                                    !mimeTypes.Contains(mimeType) &&
-                                    !mimeTypes.Contains(mimeType.Type))
-                                {
-                                    throw new FileTypeNotAllowedException();
-                                }
-                                break;
-                            }
-                        case "deny":
-                            {
-                                if (mimeTypes.Contains("all") ||
-                                    mimeTypes.Contains(mimeType) ||
-                                    mimeTypes.Contains(mimeType.Type))
-                                {
-                                    throw new FileTypeNotAllowedException();
-                                }
-                                break;
-                            }
-                    }
-                }
+                CheckConstraints(path.RootVolume, file.FileName);
             }
         }
 
@@ -1040,6 +926,48 @@ public class FileSystemDriver : BaseDriver, IDriver
         };
     }
 
+    private void CheckConstraints(RootVolume rootVolume, string fileName)
+    {
+        var mimeType = MimeHelper.GetMimeType(Path.GetExtension(fileName));
+        var constraintMap = new Dictionary<string, IEnumerable<string>>
+        {
+            ["allow"] = rootVolume.UploadAllow,
+            ["deny"] = rootVolume.UploadDeny,
+        };
+
+        foreach (string constraintType in rootVolume.UploadOrder)
+        {
+            var mimeTypes = constraintMap[constraintType];
+            if (mimeTypes == null)
+            {
+                continue;
+            }
+
+            switch (constraintType)
+            {
+                case "allow":
+                    {
+                        if (!mimeTypes.Contains("all") &&
+                            !mimeTypes.Contains(mimeType) &&
+                            !mimeTypes.Contains(mimeType.Type))
+                        {
+                            throw new FileTypeNotAllowedException();
+                        }
+                        break;
+                    }
+                case "deny":
+                    {
+                        if (mimeTypes.Contains("all") ||
+                            mimeTypes.Contains(mimeType) ||
+                            mimeTypes.Contains(mimeType.Type))
+                        {
+                            throw new FileTypeNotAllowedException();
+                        }
+                        break;
+                    }
+            }
+        }
+    }
     #endregion IDriver Members
 
     private static string CreateNameForCopy(FileInfo file, string suffix)
@@ -1141,6 +1069,13 @@ public class FileSystemDriver : BaseDriver, IDriver
         return response;
     }
 
+    private string PreventPossiblePathTraversal(string path) => path
+        .Replace("..", string.Empty)
+        .Replace("/", string.Empty)
+        .Replace("\\", string.Empty)
+        .Replace("*", string.Empty)
+        .Replace("?", string.Empty);
+
     private async Task RemoveThumbsAsync(FullPath path)
     {
         if (path.IsDirectory)
@@ -1160,11 +1095,4 @@ public class FileSystemDriver : BaseDriver, IDriver
             }
         }
     }
-
-    private string PreventPossiblePathTraversal(string path) => path
-        .Replace("..", string.Empty)
-        .Replace("/", string.Empty)
-        .Replace("\\", string.Empty)
-        .Replace("*", string.Empty)
-        .Replace("?", string.Empty);
 }
