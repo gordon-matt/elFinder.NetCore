@@ -20,7 +20,7 @@
     <EmbeddedResource Include="MimeTypes.txt" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
 </Project>
