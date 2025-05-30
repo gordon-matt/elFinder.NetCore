@@ -1,6 +1,6 @@
+[![NuGet](https://img.shields.io/nuget/v/elFinder.NetCore?style=flat-square&logo=nuget&label=Version)](https://www.nuget.org/packages/elFinder.NetCore)
+[![NuGet](https://img.shields.io/nuget/dt/elFinder.NetCore?style=flat-square&logo=nuget&label=Downloads)](https://www.nuget.org/packages/elFinder.NetCore)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=gordon_matt%40live%2ecom&lc=AU&currency_code=AUD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted)
-
-[![NuGet](https://img.shields.io/nuget/v/elFinder.NetCore?style=flat-square&logo=nuget&label=Version)](https://www.nuget.org/packages/elFinder.NetCore) [![NuGet](https://img.shields.io/nuget/dt/elFinder.NetCore?style=flat-square&logo=nuget&label=Downloads)](https://www.nuget.org/packages/elFinder.NetCore)
 
 <img src="https://github.com/gordon-matt/elFinder.NetCore/blob/master/_Misc/Logo.png" alt="Logo" width="350" />
 
