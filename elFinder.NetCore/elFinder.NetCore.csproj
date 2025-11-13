@@ -6,7 +6,7 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <Description>elFinder ASP.NET Core backend</Description>
     <PackageProjectUrl>https://github.com/gordon-matt/elFinder.NetCore</PackageProjectUrl>
-    <Version>1.5.0</Version>
+    <Version>1.5.5</Version>
     <PackageLicenseUrl>
     </PackageLicenseUrl>
     <OutputType>Library</OutputType>
@@ -20,7 +20,7 @@
     <EmbeddedResource Include="MimeTypes.txt" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />
-    <PackageReference Include="System.Text.Json" Version="9.0.3" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <PackageReference Include="System.Text.Json" Version="9.0.11" />
   </ItemGroup>
 </Project>
