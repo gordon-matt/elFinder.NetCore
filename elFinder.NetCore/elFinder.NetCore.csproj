@@ -1,26 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
-  <PropertyGroup>
-    <TargetFrameworks>net9.0</TargetFrameworks>
-    <Authors>Yevhen Noskov, Leniel Macaferi, Matt Gordon, Flavio Smirne</Authors>
-    <Company>N/A</Company>
-    <NeutralLanguage>en-US</NeutralLanguage>
-    <Description>elFinder ASP.NET Core backend</Description>
-    <PackageProjectUrl>https://github.com/gordon-matt/elFinder.NetCore</PackageProjectUrl>
-    <Version>1.5.5</Version>
-    <PackageLicenseUrl>
-    </PackageLicenseUrl>
-    <OutputType>Library</OutputType>
-    <IsPackable>true</IsPackable>
-	<ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
-  <ItemGroup>
-    <None Remove="MimeTypes.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="MimeTypes.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
-    <PackageReference Include="System.Text.Json" Version="9.0.11" />
-  </ItemGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Authors>Yevhen Noskov, Leniel Macaferi, Matt Gordon, Flavio Smirne</Authors>
+		<Company>N/A</Company>
+		<NeutralLanguage>en-US</NeutralLanguage>
+		<Description>elFinder ASP.NET Core backend</Description>
+		<PackageProjectUrl>https://github.com/gordon-matt/elFinder.NetCore</PackageProjectUrl>
+		<Version>1.6.0</Version>
+		<PackageLicenseUrl>
+		</PackageLicenseUrl>
+		<OutputType>Library</OutputType>
+		<IsPackable>true</IsPackable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+	<ItemGroup>
+		<None Remove="MimeTypes.txt" />
+	</ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Include="MimeTypes.txt" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+	</ItemGroup>
 </Project>

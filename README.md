@@ -4,6 +4,10 @@
 
 <img src="https://github.com/gordon-matt/elFinder.NetCore/blob/master/_Misc/Logo.png" alt="Logo" width="350" />
 
+## About
+
+elFinder.NetCore is a .NET Core backend implementation of [elFinder](github.com/Studio-42/elFinder), a popular open-source file manager for web applications.
+
 ## Instructions
 
 1. Install the NuGet package: https://www.nuget.org/packages/elFinder.NetCore/
