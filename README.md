@@ -6,7 +6,7 @@
 
 ## About
 
-elFinder.NetCore is a .NET Core backend implementation of [elFinder](github.com/Studio-42/elFinder), a popular open-source file manager for web applications.
+elFinder.NetCore is a .NET Core backend implementation of [elFinder](https://github.com/Studio-42/elFinder), a popular open-source file manager for web applications.
 
 ## Instructions
 
