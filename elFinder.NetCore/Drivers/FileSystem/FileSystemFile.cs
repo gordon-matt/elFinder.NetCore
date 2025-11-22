@@ -6,7 +6,6 @@ namespace elFinder.NetCore.Drivers.FileSystem;
 public class FileSystemFile : IFile
 {
     private FileInfo fileInfo;
-    private IDirectory directory;
 
     #region Constructors
 
@@ -33,12 +32,11 @@ public class FileSystemFile : IFile
     {
         get
         {
-            if (directory == null)
-            {
-                directory = new FileSystemDirectory(fileInfo.Directory);
-            }
-            return directory;
+            field ??= new FileSystemDirectory(fileInfo.Directory);
+            return field;
         }
+
+        private set;
     }
 
     public string DirectoryName => Path.TrimEndingDirectorySeparator(fileInfo.DirectoryName);
@@ -57,10 +55,7 @@ public class FileSystemFile : IFile
 
     public MimeType MimeType => MimeHelper.GetMimeType(Extension);
 
-    public IFile Open(string path)
-    {
-        return new FileSystemFile(path);
-    }
+    public IFile Open(string path) => new FileSystemFile(path);
 
     public Task<Stream> CreateAsync()
     {
@@ -102,10 +97,7 @@ public class FileSystemFile : IFile
 
     #endregion IFile Members
 
-    public void MoveTo(string destFileName, bool overwrite = false)
-    {
-        fileInfo.MoveTo(destFileName, overwrite);
-    }
+    public void MoveTo(string destFileName, bool overwrite = false) => fileInfo.MoveTo(destFileName, overwrite);
 
     // Bug Fix: https://stackoverflow.com/questions/13262548/delete-a-file-being-used-by-another-process/21137207#21137207
     private static void EnsureGarbageCollectorCalled()
@@ -117,7 +109,7 @@ public class FileSystemFile : IFile
     public Task RefreshAsync()
     {
         fileInfo = new FileInfo(fileInfo.FullName);
-        directory = null;
+        Directory = null;
         return Task.CompletedTask;
     }
 }

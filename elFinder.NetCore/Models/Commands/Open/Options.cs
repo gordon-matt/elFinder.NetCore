@@ -14,24 +14,26 @@ public class Archive
 
 public class Options
 {
-    private static string[] disabled = new string[] { "callback", "chmod", "editor", "netmount", "ping" };
+    private static readonly string[] disabled = ["callback", "chmod", "editor", "netmount", "ping"];
     //private static string[] empty = new string[0];
     //private static Archive emptyArchives = new Archive();
 
     public Options(FullPath fullPath)
     {
         Path = fullPath.RootVolume.Alias;
+
         if (fullPath.RelativePath != string.Empty)
         {
             Path += Separator + fullPath.RelativePath.Replace('\\', Separator);
         }
+
         Url = fullPath.RootVolume.Url ?? string.Empty;
         ThumbnailsUrl = fullPath.RootVolume.ThumbnailUrl ?? string.Empty;
         //ThumbnailsUrl = fullPath.Root.ThumbnailUrl ?? fullPath.Root.Url + "/.tmb/";
         Archivers = new Archive
         {
-            Create = new[] { "application/zip" },
-            Extract = new[] { "application/zip" },
+            Create = ["application/zip"],
+            Extract = ["application/zip"],
             CreateExt = new Dictionary<string, string>
             {
                 {"application/zip" ,"zip"}

@@ -3,14 +3,8 @@
 [Route("tiny-mce")]
 public class TinyMCEController : Controller
 {
-    public IActionResult Index()
-    {
-        return View();
-    }
+    public IActionResult Index() => View();
 
     [Route("browse")]
-    public IActionResult Browse()
-    {
-        return View();
-    }
+    public IActionResult Browse() => View();
 }

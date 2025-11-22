@@ -6,7 +6,7 @@ namespace elFinder.NetCore.Models;
 
 public abstract class BaseModel
 {
-    protected static readonly DateTime unixOrigin = new DateTime(1970, 1, 1, 0, 0, 0);
+    protected static readonly DateTime unixOrigin = new(1970, 1, 1, 0, 0, 0);
 
     /// <summary>
     ///  Name of file/dir. Required
@@ -58,36 +58,34 @@ public abstract class BaseModel
 
     public static async Task<FileModel> CreateAsync(IFile file, RootVolume volume)
     {
-        if (file == null) throw new ArgumentNullException("file");
-        if (volume == null) throw new ArgumentNullException("volume");
+        ArgumentNullException.ThrowIfNull(file);
+        ArgumentNullException.ThrowIfNull(volume);
 
         await file.RefreshAsync();
 
-        string parentPath = file.DirectoryName.Substring(volume.RootDirectory.Length);
-        string relativePath = file.FullName.Substring(volume.RootDirectory.Length);
+        string parentPath = file.DirectoryName[volume.RootDirectory.Length..];
+        string relativePath = file.FullName[volume.RootDirectory.Length..];
 
-        var fileLength = await file.LengthAsync;
+        long fileLength = await file.LengthAsync;
 
         FileModel response;
         if (volume.CanCreateThumbnail(file) && fileLength > 0)
         {
-            using (var stream = await file.OpenReadAsync())
+            using var stream = await file.OpenReadAsync();
+            try
             {
-                try
+                var dim = volume.PictureEditor.ImageSize(stream);
+                response = new ImageModel
                 {
-                    var dim = volume.PictureEditor.ImageSize(stream);
-                    response = new ImageModel
-                    {
-                        Thumbnail = await volume.GenerateThumbHashAsync(file),
-                        Dimension = $"{dim.Width}x{dim.Height}"
-                    };
-                }
-                catch
-                {
-                    // Fix for non-standard formats
-                    // https://github.com/gordon-matt/elFinder.NetCore/issues/36
-                    response = new FileModel();
-                }
+                    Thumbnail = await volume.GenerateThumbHashAsync(file),
+                    Dimension = $"{dim.Width}x{dim.Height}"
+                };
+            }
+            catch
+            {
+                // Fix for non-standard formats
+                // https://github.com/gordon-matt/elFinder.NetCore/issues/36
+                response = new FileModel();
             }
         }
         else
@@ -109,15 +107,8 @@ public abstract class BaseModel
 
     public static async Task<DirectoryModel> CreateAsync(IDirectory directory, RootVolume volume)
     {
-        if (directory == null)
-        {
-            throw new ArgumentNullException("directory");
-        }
-
-        if (volume == null)
-        {
-            throw new ArgumentNullException("volume");
-        }
+        ArgumentNullException.ThrowIfNull(directory);
+        ArgumentNullException.ThrowIfNull(volume);
 
         await directory.RefreshAsync();
 
@@ -151,12 +142,12 @@ public abstract class BaseModel
         }
         else
         {
-            string parentPath = directory.Parent.FullName.Substring(volume.RootDirectory.Length);
-            string relativePath = directory.FullName.Substring(volume.RootDirectory.Length).TrimEnd(Path.DirectorySeparatorChar);
+            string parentPath = directory.Parent.FullName[volume.RootDirectory.Length..];
+            string relativePath = directory.FullName[volume.RootDirectory.Length..].TrimEnd(Path.DirectorySeparatorChar);
             var response = new DirectoryModel
             {
                 Mime = "directory",
-                Dirs = (await directory.GetDirectoriesAsync()).Count() > 0 ? (byte)1 : (byte)0,
+                Dirs = (await directory.GetDirectoriesAsync()).Any() ? (byte)1 : (byte)0,
                 Hash = volume.VolumeId + HttpEncoder.EncodePath(relativePath),
                 Read = directory.GetReadFlag(volume),
                 Write = directory.GetWriteFlag(volume),

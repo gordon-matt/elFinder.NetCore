@@ -8,47 +8,35 @@ public static class Error
     /// Access denied.
     /// </summary>
     /// <returns></returns>
-    public static JsonResult AccessDenied()
-    {
-        return FormatSimpleError("errAccess");
-    }
+    public static JsonResult AccessDenied() => FormatSimpleError("errAccess");
 
     /// <summary>
     /// File not found.
     /// </summary>
     /// <returns></returns>
-    public static JsonResult FileNotFound()
-    {
-        return FormatSimpleError("errFileNotFound");
-    }
+    public static JsonResult FileNotFound() => FormatSimpleError("errFileNotFound");
 
     /// <summary>
     /// File type not allowed.
     /// </summary>
     /// <returns></returns>
-    public static JsonResult FileTypeNotAllowed()
-    {
-        return FormatSimpleError("errUploadMime");
-    }
+    public static JsonResult FileTypeNotAllowed() => FormatSimpleError("errUploadMime");
 
     /// <summary>
     /// Folder not found.
     /// </summary>
     /// <returns></returns>
-    public static JsonResult FolderNotFound()
-    {
-        return FormatSimpleError("errFolderNotFound");
-    }
+    public static JsonResult FolderNotFound() => FormatSimpleError("errFolderNotFound");
 
     /// <summary>
     /// Invalid parameters for command "$1".
     /// </summary>
     /// <param name="command"></param>
     /// <returns></returns>
-    public static JsonResult InvalidCommandParams(string command)
+    public static JsonResult InvalidCommandParams(string command) => new(new
     {
-        return new JsonResult(new { error = new string[] { "errCmdParams", command } });
-    }
+        error = new string[] { "errCmdParams", command }
+    });
 
     // NOTE: This is a custom error (not out-of-the-box) defined on client side.
     /// <summary>
@@ -56,43 +44,28 @@ public static class Error
     /// </summary>
     /// <param name="name"></param>
     /// <returns></returns>
-    public static JsonResult NewNameSelectionException(string name)
+    public static JsonResult NewNameSelectionException(string name) => new(new
     {
-        return new JsonResult(new
-        {
-            error = new[] { "errNewNameSelection", name }
-        });
-    }
+        error = new[] { "errNewNameSelection", name }
+    });
 
     /// <summary>
     /// Unable to upload "$1".
     /// </summary>
     /// <returns></returns>
-    public static JsonResult UnableToUpload()
-    {
-        return FormatSimpleError("errUploadFile");
-    }
+    public static JsonResult UnableToUpload() => FormatSimpleError("errUploadFile");
 
     /// <summary>
     /// Unknown command.
     /// </summary>
     /// <returns></returns>
-    public static JsonResult UnknownCommand()
-    {
-        return FormatSimpleError("errUnknownCmd");
-    }
+    public static JsonResult UnknownCommand() => FormatSimpleError("errUnknownCmd");
 
     /// <summary>
     /// File exceeds maximum allowed size.
     /// </summary>
     /// <returns></returns>
-    public static JsonResult UploadFileTooLarge()
-    {
-        return FormatSimpleError("errUploadFileSize"); // old name - errFileMaxSize
-    }
+    public static JsonResult UploadFileTooLarge() => FormatSimpleError("errUploadFileSize"); // old name - errFileMaxSize
 
-    private static JsonResult FormatSimpleError(string message)
-    {
-        return new JsonResult(new { error = message });
-    }
+    private static JsonResult FormatSimpleError(string message) => new(new { error = message });
 }

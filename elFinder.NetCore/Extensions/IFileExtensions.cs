@@ -4,29 +4,16 @@ namespace elFinder.NetCore.Extensions;
 
 public static class IFileExtensions
 {
-    public static byte GetLockedFlag(this IFile file, RootVolume volume)
+    extension(IFile file)
     {
-        if (volume.IsLocked)
-        {
-            return 1;
-        }
+        public byte GetLockedFlag(RootVolume volume) =>
+            volume.IsLocked ? (byte)1 : GetFlag(file, volume, x => x.Locked);
 
-        return GetFlag(file, volume, x => x.Locked);
-    }
+        public byte GetReadFlag(RootVolume volume) =>
+            GetFlag(file, volume, x => x.Read);
 
-    public static byte GetReadFlag(this IFile file, RootVolume volume)
-    {
-        return GetFlag(file, volume, x => x.Read);
-    }
-
-    public static byte GetWriteFlag(this IFile file, RootVolume volume)
-    {
-        if (volume.IsReadOnly)
-        {
-            return 0;
-        }
-
-        return GetFlag(file, volume, x => x.Write);
+        public byte GetWriteFlag(RootVolume volume) =>
+            volume.IsReadOnly ? (byte)0 : GetFlag(file, volume, x => x.Write);
     }
 
     private static byte GetFlag(this IFile file, RootVolume volume, Func<AccessControlAttributeSet, bool> fieldSelector)

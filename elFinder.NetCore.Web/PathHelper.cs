@@ -4,10 +4,7 @@ public static class PathHelper
 {
     public static string WebRootPath { get; set; }
 
-    public static string GetFullPathNormalized(string path)
-    {
-        return Path.TrimEndingDirectorySeparator(Path.GetFullPath(path));
-    }
+    public static string GetFullPathNormalized(string path) => Path.TrimEndingDirectorySeparator(Path.GetFullPath(path));
 
     public static string MapPath(string path, string basePath = null)
     {

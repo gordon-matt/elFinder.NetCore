@@ -2,9 +2,10 @@
 
 public class InitResponseModel : BaseOpenResponseModel
 {
-    private static string[] empty = new string[0];
+    private static readonly string[] empty = [];
 
-    public InitResponseModel(DirectoryModel currentWorkingDirectory, Options options) : base(currentWorkingDirectory)
+    public InitResponseModel(DirectoryModel currentWorkingDirectory, Options options)
+        : base(currentWorkingDirectory)
     {
         Options = options;
     }

@@ -4,29 +4,16 @@ namespace elFinder.NetCore.Extensions;
 
 public static class IDirectoryExtensions
 {
-    public static byte GetLockedFlag(this IDirectory directory, RootVolume volume)
+    extension(IDirectory directory)
     {
-        if (volume.IsLocked)
-        {
-            return 1;
-        }
+        public byte GetLockedFlag(RootVolume volume) =>
+            volume.IsLocked ? (byte)1 : GetFlag(directory, volume, x => x.Locked);
 
-        return GetFlag(directory, volume, x => x.Locked);
-    }
+        public byte GetReadFlag(RootVolume volume) =>
+            GetFlag(directory, volume, x => x.Read);
 
-    public static byte GetReadFlag(this IDirectory directory, RootVolume volume)
-    {
-        return GetFlag(directory, volume, x => x.Read);
-    }
-
-    public static byte GetWriteFlag(this IDirectory directory, RootVolume volume)
-    {
-        if (volume.IsReadOnly)
-        {
-            return 0;
-        }
-
-        return GetFlag(directory, volume, x => x.Write);
+        public byte GetWriteFlag(RootVolume volume) =>
+            volume.IsReadOnly ? (byte)0 : GetFlag(directory, volume, x => x.Write);
     }
 
     private static byte GetFlag(this IDirectory directory, RootVolume volume, Func<AccessControlAttributeSet, bool> fieldSelector)

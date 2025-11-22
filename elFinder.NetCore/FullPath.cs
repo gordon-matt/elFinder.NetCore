@@ -10,31 +10,23 @@ public class FullPath
 
     public FullPath(RootVolume root, IFile file, string hashedTarget) : this(root, file.FullName, hashedTarget, false)
     {
-        File = file ?? throw new ArgumentNullException("file", "IFile cannot be null");
+        File = file ?? throw new ArgumentNullException(nameof(file), "IFile cannot be null");
     }
 
     public FullPath(RootVolume root, IDirectory dir, string hashedTarget) : this(root, dir.FullName, hashedTarget, true)
     {
-        Directory = dir ?? throw new ArgumentNullException("dir", "IDirectory cannot be null");
+        Directory = dir ?? throw new ArgumentNullException(nameof(dir), "IDirectory cannot be null");
     }
 
     public FullPath(RootVolume root, string path, string hashedTarget, bool isDirectory)
     {
-        RootVolume = root ?? throw new ArgumentNullException("root", "RootVolume cannot be null");
+        RootVolume = root ?? throw new ArgumentNullException(nameof(root), "RootVolume cannot be null");
         HashedTarget = hashedTarget;
         IsDirectory = isDirectory;
 
-        if (path.StartsWith(root.RootDirectory))
-        {
-            if (path.Length == root.RootDirectory.Length)
-                RelativePath = string.Empty;
-            else
-                RelativePath = path.Substring(root.RootDirectory.Length + 1);
-        }
-        else
-        {
-            throw new InvalidOperationException("path must be in the root directory or a subdirectory thereof");
-        }
+        RelativePath = path.StartsWith(root.RootDirectory)
+            ? path.Length == root.RootDirectory.Length ? string.Empty : path[(root.RootDirectory.Length + 1)..]
+            : throw new InvalidOperationException("path must be in the root directory or a subdirectory thereof");
     }
 
     #endregion Constructors
@@ -60,7 +52,7 @@ public class FullPath
         {
             if (name[i] == '_')
             {
-                name = name.Substring(0, i);
+                name = name[..i];
                 break;
             }
         }
@@ -69,16 +61,9 @@ public class FullPath
 
         if (RootVolume.ThumbnailDirectory != null)
         {
-            IFile thumbFile;
-            if (File.FullName.StartsWith(RootVolume.ThumbnailDirectory))
-            {
-                thumbFile = File;
-            }
-            else
-            {
-                thumbFile = File.Open($"{RootVolume.ThumbnailDirectory}{RootVolume.DirectorySeparatorChar}{RelativePath}");
-            }
-
+            var thumbFile = File.FullName.StartsWith(RootVolume.ThumbnailDirectory)
+                ? File
+                : File.Open($"{RootVolume.ThumbnailDirectory}{RootVolume.DirectorySeparatorChar}{RelativePath}");
             if (!await thumbFile.ExistsAsync)
             {
                 var thumbDir = thumbFile.Directory;
@@ -88,13 +73,11 @@ public class FullPath
                     thumbDir.Attributes = FileAttributes.Hidden;
                 }
 
-                using (var original = await File.Open(fullPath).OpenReadAsync())
-                {
-                    var thumb = RootVolume.PictureEditor.GenerateThumbnail(original, RootVolume.ThumbnailSize, true);
-                    await thumbFile.PutAsync(thumb.ImageStream);
-                    thumb.ImageStream.Position = 0;
-                    return thumb;
-                }
+                using var original = await File.Open(fullPath).OpenReadAsync();
+                var thumb = RootVolume.PictureEditor.GenerateThumbnail(original, RootVolume.ThumbnailSize, true);
+                await thumbFile.PutAsync(thumb.ImageStream);
+                thumb.ImageStream.Position = 0;
+                return thumb;
             }
             else
             {
@@ -104,10 +87,8 @@ public class FullPath
         }
         else
         {
-            using (var original = await File.Open(fullPath).OpenReadAsync())
-            {
-                return RootVolume.PictureEditor.GenerateThumbnail(original, RootVolume.ThumbnailSize, true);
-            }
+            using var original = await File.Open(fullPath).OpenReadAsync();
+            return RootVolume.PictureEditor.GenerateThumbnail(original, RootVolume.ThumbnailSize, true);
         }
     }
 }

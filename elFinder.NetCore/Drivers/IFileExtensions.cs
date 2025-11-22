@@ -11,11 +11,11 @@ public static class IFileExtensions
     public static async Task<string> GetFileMd5Async(this IFile file)
     {
         string fileName = file.Name;
-        DateTime modified = await file.LastWriteTimeUtcAsync;
+        var modified = await file.LastWriteTimeUtcAsync;
 
         fileName += modified.ToFileTimeUtc();
-        var bytes = Encoding.UTF8.GetBytes(fileName);
-        return BitConverter.ToString(md5.ComputeHash(bytes)).Replace("-", string.Empty);
+        byte[] bytes = Encoding.UTF8.GetBytes(fileName);
+        return Convert.ToHexString(md5.ComputeHash(bytes));
 
         // OLD
         //char[] fileNameChars = fileName.ToCharArray();

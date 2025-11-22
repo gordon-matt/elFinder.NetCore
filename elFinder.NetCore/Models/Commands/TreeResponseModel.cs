@@ -2,11 +2,6 @@
 
 public class TreeResponseModel
 {
-    public TreeResponseModel()
-    {
-        Tree = new List<object>();
-    }
-
     [JsonPropertyName("tree")]
-    public List<object> Tree { get; private set; }
+    public List<object> Tree { get; private set; } = [];
 }

@@ -33,88 +33,70 @@ public class DefaultPictureEditor : IPictureEditor
     public bool CanProcessFile(string fileExtension)
     {
         string ext = fileExtension.ToLower();
-        return ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".gif" || ext == ".tiff";
+        return ext is ".png" or ".jpg" or ".jpeg" or ".gif" or ".tiff";
     }
 
     public string ConvertThumbnailExtension(string originalImageExtension)
     {
         string ext = originalImageExtension.ToLower();
-        if (ext == ".tiff")
-        {
-            return ".png";
-        }
-
-        if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".gif")
-        {
-            return ext;
-        }
-        else
-        {
-            throw new ArgumentException(typeof(DefaultPictureEditor).FullName + " does not support thumbnails for '" + originalImageExtension + "' files.");
-        }
+        return ext == ".tiff"
+            ? ".png"
+            : ext is ".png" or ".jpg" or ".jpeg" or ".gif"
+                ? ext
+                : throw new ArgumentException($"{typeof(DefaultPictureEditor).FullName} does not support thumbnails for '{originalImageExtension}' files.");
     }
 
     public ImageWithMimeType Crop(Stream input, int x, int y, int width, int height)
     {
-        using (var image = Image.Load(input))
-        {
-            return ScaleOrCrop(image, new Rectangle(x, y, width, height), new Rectangle(0, 0, width, height));
-        }
+        using var image = Image.Load(input);
+        return ScaleOrCrop(image, new Rectangle(x, y, width, height), new Rectangle(0, 0, width, height));
     }
 
     public ImageWithMimeType GenerateThumbnail(Stream input, int size, bool keepAspectRatio)
     {
-        using (var inputImage = Image.Load(input))
+        using var inputImage = Image.Load(input);
+        int targetWidth;
+        int targetHeight;
+
+        if (keepAspectRatio)
         {
-            int targetWidth;
-            int targetHeight;
+            double width = inputImage.Width;
+            double height = inputImage.Height;
+            double percentWidth = width != 0 ? size / width : 0;
+            double percentHeight = height != 0 ? size / height : 0;
+            double percent = percentHeight < percentWidth ? percentHeight : percentWidth;
 
-            if (keepAspectRatio)
-            {
-                double width = inputImage.Width;
-                double height = inputImage.Height;
-                double percentWidth = width != 0 ? size / width : 0;
-                double percentHeight = height != 0 ? size / height : 0;
-                double percent = percentHeight < percentWidth ? percentHeight : percentWidth;
-
-                targetWidth = (int)(width * percent);
-                targetHeight = (int)(height * percent);
-            }
-            else
-            {
-                targetWidth = size;
-                targetHeight = size;
-            }
-
-            return ScaleOrCrop(
-                inputImage,
-                new Rectangle(0, 0, inputImage.Width, inputImage.Height),
-                new Rectangle(0, 0, targetWidth, targetHeight));
+            targetWidth = (int)(width * percent);
+            targetHeight = (int)(height * percent);
         }
+        else
+        {
+            targetWidth = size;
+            targetHeight = size;
+        }
+
+        return ScaleOrCrop(
+            inputImage,
+            new Rectangle(0, 0, inputImage.Width, inputImage.Height),
+            new Rectangle(0, 0, targetWidth, targetHeight));
     }
 
     public Size ImageSize(Stream input)
     {
-        using (var image = Image.Load(input))
-        {
-            return new Size(image.Width, image.Height);
-        }
+        using var image = Image.Load(input);
+        return new Size(image.Width, image.Height);
     }
 
     public ImageWithMimeType Resize(Stream input, int width, int height)
     {
-        using (var image = Image.Load(input))
-        {
-            return ScaleOrCrop(image, new Rectangle(0, 0, image.Width, image.Height), new Rectangle(0, 0, width, height));
-        }
+        using var image = Image.Load(input);
+        return ScaleOrCrop(image, new Rectangle(0, 0, image.Width, image.Height), new Rectangle(0, 0, width, height));
     }
 
     public ImageWithMimeType Rotate(Stream input, int angle)
     {
-        using (var image = Image.Load(input))
-        {
-            return Rotate(image, angle);
-        }
+        using var image = Image.Load(input);
+        return Rotate(image, angle);
     }
 
     #endregion IPictureEditor Members
@@ -171,9 +153,7 @@ public class DefaultPictureEditor : IPictureEditor
 
     private ImageWithMimeType ScaleOrCrop(Image image, Rectangle source, Rectangle destination)
     {
-        using (var newImage = image.Clone(ctx => ctx.Crop(source).Resize(destination.Width, destination.Height)))
-        {
-            return SaveImage(newImage, image.Metadata.DecodedImageFormat);
-        }
+        using var newImage = image.Clone(ctx => ctx.Crop(source).Resize(destination.Width, destination.Height));
+        return SaveImage(newImage, image.Metadata.DecodedImageFormat);
     }
 }

@@ -40,8 +40,6 @@ public abstract class BaseDriver
         }
     }
 
-    protected Task<JsonResult> Json(object data)
-    {
-        return Task.FromResult(new JsonResult(data) { ContentType = "text/html" });
-    }
+    protected Task<JsonResult> Json(object data) =>
+        Task.FromResult(new JsonResult(data) { ContentType = "text/html" });
 }

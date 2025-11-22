@@ -3,14 +3,8 @@
 public class HomeController : Controller
 {
     [Route("")]
-    public IActionResult Index()
-    {
-        return View();
-    }
+    public IActionResult Index() => View();
 
     [Route("error")]
-    public IActionResult Error()
-    {
-        return View();
-    }
+    public IActionResult Error() => View();
 }

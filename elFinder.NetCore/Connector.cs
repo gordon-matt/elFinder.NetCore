@@ -3,7 +3,6 @@ using elFinder.NetCore.Drivers;
 using elFinder.NetCore.Exceptions;
 using elFinder.NetCore.Helpers;
 using Microsoft.Extensions.Primitives;
-using System.Net;
 
 namespace elFinder.NetCore;
 
@@ -12,13 +11,45 @@ namespace elFinder.NetCore;
 /// </summary>
 public class Connector
 {
-    public MimeDetectOption MimeDetect { get; set; } = MimeDetectOption.Auto;
-
     private readonly IDriver driver;
 
     public Connector(IDriver driver)
     {
         this.driver = driver;
+    }
+
+    public MimeDetectOption MimeDetect { get; set; } = MimeDetectOption.Auto;
+
+    /// <summary>
+    /// Get actual filesystem path by hash
+    /// </summary>
+    /// <param name="hash">Hash of file or directory</param>
+    public async Task<IFile> GetFileByHashAsync(string hash)
+    {
+        var path = await driver.ParsePathAsync(hash);
+        return !path.IsDirectory ? path.File : null;
+    }
+
+    public async Task<IActionResult> GetThumbnailAsync(HttpRequest request, HttpResponse response, string hash)
+    {
+        if (hash != null)
+        {
+            var path = await driver.ParsePathAsync(hash);
+            if (!path.IsDirectory && CanCreateThumbnail(path, path.RootVolume.PictureEditor))
+            {
+                //if (!await HttpCacheHelper.IsFileFromCache(path.File, request, response))
+                //{
+                var thumb = await path.GenerateThumbnailAsync();
+                return new FileStreamResult(thumb.ImageStream, thumb.MimeType);
+                //}
+                //else
+                //{
+                //	response.ContentType = Utils.GetMimeType(path.RootVolume.PictureEditor.ConvertThumbnailExtension(path.File.Extension));
+                //response.End();
+                //}
+            }
+        }
+        return new EmptyResult();
     }
 
     public async Task<IActionResult> ProcessAsync(HttpRequest request)
@@ -132,14 +163,9 @@ public class Connector
                         ? parameters.GetValueOrDefault("mimes[]")
                         : default;
 
-                    if (parameters.GetValueOrDefault("init") == "1")
-                    {
-                        return await driver.InitAsync(path, mimeTypes);
-                    }
-                    else
-                    {
-                        return await driver.OpenAsync(path, parameters.GetValueOrDefault("tree") == "1", mimeTypes);
-                    }
+                    return parameters.GetValueOrDefault("init") == "1"
+                        ? await driver.InitAsync(path, mimeTypes)
+                        : await driver.OpenAsync(path, parameters.GetValueOrDefault("tree") == "1", mimeTypes);
                 }
             case "parents":
                 {
@@ -169,11 +195,13 @@ public class Connector
                         //  them for all HTTP calls. This can be achieved through dependency injection or a static/singleton
                         //  instance, depending on your application's architecture.
                         using var client = new HttpClient();
-                        var data = await client.GetByteArrayAsync(new Uri(content));
+                        byte[] data = await client.GetByteArrayAsync(new Uri(content));
                         return await driver.PutAsync(path, data);
                     }
                     else
+                    {
                         return await driver.PutAsync(path, content);
+                    }
                 }
             case "rename":
                 {
@@ -184,28 +212,23 @@ public class Connector
             case "resize":
                 {
                     var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
-                    switch (parameters.GetValueOrDefault("mode"))
+                    return (string)parameters.GetValueOrDefault("mode") switch
                     {
-                        case "resize":
-                            return await driver.ResizeAsync(
-                                path,
-                                int.Parse(parameters.GetValueOrDefault("width")),
-                                int.Parse(parameters.GetValueOrDefault("height")));
+                        "resize" => await driver.ResizeAsync(
+                            path,
+                            int.Parse(parameters.GetValueOrDefault("width")),
+                            int.Parse(parameters.GetValueOrDefault("height"))),
 
-                        case "crop":
-                            return await driver.CropAsync(
-                                path,
-                                int.Parse(parameters.GetValueOrDefault("x")),
-                                int.Parse(parameters.GetValueOrDefault("y")),
-                                int.Parse(parameters.GetValueOrDefault("width")),
-                                int.Parse(parameters.GetValueOrDefault("height")));
+                        "crop" => await driver.CropAsync(
+                            path,
+                            int.Parse(parameters.GetValueOrDefault("x")),
+                            int.Parse(parameters.GetValueOrDefault("y")),
+                            int.Parse(parameters.GetValueOrDefault("width")),
+                            int.Parse(parameters.GetValueOrDefault("height"))),
 
-                        case "rotate":
-                            return await driver.RotateAsync(path, int.Parse(parameters.GetValueOrDefault("degree")));
-
-                        default:
-                            return Error.UnknownCommand();
-                    }
+                        "rotate" => await driver.RotateAsync(path, int.Parse(parameters.GetValueOrDefault("degree"))),
+                        _ => Error.UnknownCommand(),
+                    };
                 }
             case "rm":
                 {
@@ -270,46 +293,12 @@ public class Connector
         }
     }
 
-    /// <summary>
-    /// Get actual filesystem path by hash
-    /// </summary>
-    /// <param name="hash">Hash of file or directory</param>
-    public async Task<IFile> GetFileByHashAsync(string hash)
-    {
-        var path = await driver.ParsePathAsync(hash);
-        return !path.IsDirectory ? path.File : null;
-    }
-
-    public async Task<IActionResult> GetThumbnailAsync(HttpRequest request, HttpResponse response, string hash)
-    {
-        if (hash != null)
-        {
-            var path = await driver.ParsePathAsync(hash);
-            if (!path.IsDirectory && CanCreateThumbnail(path, path.RootVolume.PictureEditor))
-            {
-                //if (!await HttpCacheHelper.IsFileFromCache(path.File, request, response))
-                //{
-                var thumb = await path.GenerateThumbnailAsync();
-                return new FileStreamResult(thumb.ImageStream, thumb.MimeType);
-                //}
-                //else
-                //{
-                //	response.ContentType = Utils.GetMimeType(path.RootVolume.PictureEditor.ConvertThumbnailExtension(path.File.Extension));
-                //response.End();
-                //}
-            }
-        }
-        return new EmptyResult();
-    }
-
-    private bool CanCreateThumbnail(FullPath path, IPictureEditor pictureEditor)
-    {
-        return !string.IsNullOrEmpty(path.RootVolume.ThumbnailUrl) && pictureEditor.CanProcessFile(path.File.Extension);
-    }
+    private static bool CanCreateThumbnail(FullPath path, IPictureEditor pictureEditor) =>
+        !string.IsNullOrEmpty(path.RootVolume.ThumbnailUrl) && pictureEditor.CanProcessFile(path.File.Extension);
 
     private async Task<IEnumerable<FullPath>> GetFullPathArrayAsync(StringValues targets)
     {
-        var tasks = targets.Select(async t => await driver.ParsePathAsync(t));
+        var tasks = targets.Select(driver.ParsePathAsync);
         return await Task.WhenAll(tasks);
     }
 }

@@ -1,24 +1,23 @@
-﻿using elFinder.NetCore.Drawing;
+﻿using System.IO.Compression;
+using System.Net.Mime;
+using elFinder.NetCore.Drawing;
 using elFinder.NetCore.Exceptions;
 using elFinder.NetCore.Extensions;
 using elFinder.NetCore.Helpers;
 using elFinder.NetCore.Models;
 using elFinder.NetCore.Models.Commands;
-using System.IO;
-using System.IO.Compression;
-using System.Net.Mime;
 
 namespace elFinder.NetCore.Drivers.FileSystem;
 
 /// <summary>
 /// Represents a driver for local file system
 /// </summary>
-public class FileSystemDriver : BaseDriver, IDriver
+public partial class FileSystemDriver : BaseDriver, IDriver
 {
     private const string _volumePrefix = "v";
-    private char[] invalidFileNameChars = Path.GetInvalidFileNameChars();
-    private char[] invalidPathChars = Path.GetInvalidPathChars();
-    private Regex validFolderPattern = new Regex(@"^[a-zA-Z0-9_\-]+$");
+    private readonly char[] invalidFileNameChars = Path.GetInvalidFileNameChars();
+    private readonly char[] invalidPathChars = Path.GetInvalidPathChars();
+
     #region Constructor
 
     /// <summary>
@@ -27,7 +26,7 @@ public class FileSystemDriver : BaseDriver, IDriver
     public FileSystemDriver()
     {
         VolumePrefix = _volumePrefix;
-        Roots = new List<RootVolume>();
+        Roots = [];
     }
 
     #endregion Constructor
@@ -157,7 +156,7 @@ public class FileSystemDriver : BaseDriver, IDriver
             else
             {
                 string parentPath = path.File.Directory.FullName;
-                string name = path.File.Name.Substring(0, path.File.Name.Length - path.File.Extension.Length);
+                string name = path.File.Name[..^path.File.Extension.Length];
                 string ext = path.File.Extension;
 
                 string newName = $"{parentPath}{Path.DirectorySeparatorChar}{name} copy{ext}";
@@ -216,7 +215,7 @@ public class FileSystemDriver : BaseDriver, IDriver
         using (var archive = ZipFile.OpenRead(fullPath.File.FullName))
         {
             string separator = Path.DirectorySeparatorChar.ToString();
-            foreach (ZipArchiveEntry entry in archive.Entries)
+            foreach (var entry in archive.Entries)
             {
                 try
                 {
@@ -296,10 +295,7 @@ public class FileSystemDriver : BaseDriver, IDriver
         if (path == null)
         {
             var root = Roots.FirstOrDefault(r => r.StartDirectory != null);
-            if (root == null)
-            {
-                root = Roots.First();
-            }
+            root ??= Roots.First();
 
             if (Directory.Exists(root.StartDirectory))
             {
@@ -389,7 +385,7 @@ public class FileSystemDriver : BaseDriver, IDriver
         if (!string.IsNullOrEmpty(name))
         {
             var newDir = new FileSystemDirectory(Path.Combine(path.Directory.FullName, PreventPossiblePathTraversal(name)));
-            if (!validFolderPattern.IsMatch(name))
+            if (!ValidFolderRegex().IsMatch(name))
             {
                 throw new InvalidPathException($"{name} is an invalid folder name.");
             }
@@ -400,9 +396,9 @@ public class FileSystemDriver : BaseDriver, IDriver
 
         foreach (string dir in dirs)
         {
-            string dirName = dir.StartsWith("/") ? dir.Substring(1) : dir;
+            string dirName = dir.StartsWith("/") ? dir[1..] : dir;
             var newDir = new FileSystemDirectory(Path.Combine(path.Directory.FullName, PreventPossiblePathTraversal(dirName)));
-            if (!validFolderPattern.IsMatch(dirName))
+            if (!ValidFolderRegex().IsMatch(dirName))
             {
                 throw new InvalidPathException($"{dirName} is an invalid folder name.");
             }
@@ -411,7 +407,7 @@ public class FileSystemDriver : BaseDriver, IDriver
 
             response.Added.Add(await BaseModel.CreateAsync(newDir, path.RootVolume));
 
-            string relativePath = newDir.FullName.Substring(path.RootVolume.RootDirectory.Length);
+            string relativePath = newDir.FullName[path.RootVolume.RootDirectory.Length..];
             response.Hashes.Add($"/{dirName}", path.RootVolume.VolumeId + HttpEncoder.EncodePath(relativePath));
         }
 
@@ -509,8 +505,8 @@ public class FileSystemDriver : BaseDriver, IDriver
         }
 
         int underscoreIndex = target.IndexOf('_');
-        string pathHash = target.Substring(underscoreIndex + 1);
-        string volumePrefix = target.Substring(0, underscoreIndex + 1);
+        string pathHash = target[(underscoreIndex + 1)..];
+        string volumePrefix = target[..(underscoreIndex + 1)];
 
         var root = Roots.First(r => r.VolumeId == volumePrefix);
         var rootDirectory = new DirectoryInfo(root.RootDirectory);
@@ -636,7 +632,7 @@ public class FileSystemDriver : BaseDriver, IDriver
 
         if (path.IsDirectory)
         {
-            if (name.IndexOfAny(invalidPathChars) >= 0 || !validFolderPattern.IsMatch(name))
+            if (name.IndexOfAny(invalidPathChars) >= 0 || !ValidFolderRegex().IsMatch(name))
             {
                 throw new InvalidPathException($"{name} is an invalid folder name.");
             }
@@ -968,6 +964,7 @@ public class FileSystemDriver : BaseDriver, IDriver
             }
         }
     }
+
     #endregion IDriver Members
 
     private static string CreateNameForCopy(FileInfo file, string suffix)
@@ -1001,10 +998,10 @@ public class FileSystemDriver : BaseDriver, IDriver
         return $"{parentPath}{Path.DirectorySeparatorChar}{name} {suffix} {Guid.NewGuid()}{extension}";
     }
 
-    private void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)
+    private static void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)
     {
-        DirectoryInfo sourceDir = new DirectoryInfo(sourceDirName);
-        DirectoryInfo[] dirs = sourceDir.GetDirectories();
+        var sourceDir = new DirectoryInfo(sourceDirName);
+        var dirs = sourceDir.GetDirectories();
 
         // If the source directory does not exist, throw an exception.
         if (!sourceDir.Exists)
@@ -1019,9 +1016,9 @@ public class FileSystemDriver : BaseDriver, IDriver
         }
 
         // Get the file contents of the directory to copy.
-        FileInfo[] files = sourceDir.GetFiles();
+        var files = sourceDir.GetFiles();
 
-        foreach (FileInfo file in files)
+        foreach (var file in files)
         {
             // Create the path to the new copy of the file.
             string temppath = Path.Combine(destDirName, file.Name);
@@ -1033,7 +1030,7 @@ public class FileSystemDriver : BaseDriver, IDriver
         // If copySubDirs is true, copy the subdirectories.
         if (copySubDirs)
         {
-            foreach (DirectoryInfo subdir in dirs)
+            foreach (var subdir in dirs)
             {
                 // Create the subdirectory.
                 string temppath = Path.Combine(destDirName, subdir.Name);
@@ -1044,7 +1041,7 @@ public class FileSystemDriver : BaseDriver, IDriver
         }
     }
 
-    private SizeResponseModel DirectorySizeAndCount(DirectoryInfo d)
+    private static SizeResponseModel DirectorySizeAndCount(DirectoryInfo d)
     {
         var response = new SizeResponseModel();
 
@@ -1069,14 +1066,14 @@ public class FileSystemDriver : BaseDriver, IDriver
         return response;
     }
 
-    private string PreventPossiblePathTraversal(string path) => path
+    private static string PreventPossiblePathTraversal(string path) => path
         .Replace("..", string.Empty)
         .Replace("/", string.Empty)
         .Replace("\\", string.Empty)
         .Replace("*", string.Empty)
         .Replace("?", string.Empty);
 
-    private async Task RemoveThumbsAsync(FullPath path)
+    private static async Task RemoveThumbsAsync(FullPath path)
     {
         if (path.IsDirectory)
         {
@@ -1095,4 +1092,7 @@ public class FileSystemDriver : BaseDriver, IDriver
             }
         }
     }
+
+    [GeneratedRegex(@"^[a-zA-Z0-9_\-]+$")]
+    private static partial Regex ValidFolderRegex();
 }

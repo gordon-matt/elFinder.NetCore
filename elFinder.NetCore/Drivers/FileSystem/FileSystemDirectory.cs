@@ -3,7 +3,6 @@
 public class FileSystemDirectory : IDirectory
 {
     private DirectoryInfo directoryInfo;
-    private IDirectory parent;
 
     #region Constructors
 
@@ -38,12 +37,14 @@ public class FileSystemDirectory : IDirectory
     {
         get
         {
-            if (parent == null && directoryInfo.Parent != null)
+            if (field == null && directoryInfo.Parent != null)
             {
-                parent = new FileSystemDirectory(directoryInfo.Parent);
+                field = new FileSystemDirectory(directoryInfo.Parent);
             }
-            return parent;
+            return field;
         }
+
+        private set;
     }
 
     public Task CreateAsync()
@@ -87,7 +88,7 @@ public class FileSystemDirectory : IDirectory
     {
         var files = directoryInfo.GetFiles(pattern, SearchOption.AllDirectories).Select(f => new FileSystemFile(f) as IFile);
 
-        if (mimeTypes != null && mimeTypes.Count() > 0)
+        if (mimeTypes != null && mimeTypes.Any())
         {
             files = files.Where(f => mimeTypes.Contains(f.MimeType) || mimeTypes.Contains(f.MimeType.Type));
         }
@@ -97,15 +98,12 @@ public class FileSystemDirectory : IDirectory
 
     #endregion IDirectory Members
 
-    public void MoveTo(string destDirName)
-    {
-        directoryInfo.MoveTo(destDirName);
-    }
+    public void MoveTo(string destDirName) => directoryInfo.MoveTo(destDirName);
 
     public Task RefreshAsync()
     {
         directoryInfo = new DirectoryInfo(directoryInfo.FullName);
-        parent = null;
+        Parent = null;
         return Task.CompletedTask;
     }
 }

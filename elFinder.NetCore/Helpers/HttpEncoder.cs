@@ -5,34 +5,25 @@ namespace elFinder.NetCore.Helpers;
 
 public static class HttpEncoder
 {
-    public static string DecodePath(string path)
-    {
-        return Encoding.UTF8.GetString(UrlTokenDecode(path));
-    }
+    public static string DecodePath(string path) => Encoding.UTF8.GetString(UrlTokenDecode(path));
 
-    public static string EncodePath(string path)
-    {
-        return UrlTokenEncode(Encoding.UTF8.GetBytes(path));
-    }
+    public static string EncodePath(string path) => UrlTokenEncode(Encoding.UTF8.GetBytes(path));
 
     private static byte[] UrlTokenDecode(string input)
     {
-        if (input == null)
-        {
-            throw new ArgumentNullException("input");
-        }
+        ArgumentNullException.ThrowIfNull(input);
 
         int len = input.Length;
         if (len < 1)
         {
-            return new byte[0];
+            return [];
         }
 
         ///////////////////////////////////////////////////////////////////
         // Step 1: Calculate the number of padding chars to append to this string.
         //         The number of padding chars to append is stored in the last char of the string.
         int numPadChars = input[len - 1] - '0';
-        if (numPadChars < 0 || numPadChars > 10)
+        if (numPadChars is < 0 or > 10)
         {
             return null;
         }
@@ -48,12 +39,12 @@ public static class HttpEncoder
         {
             char c = input[iter];
 
-            switch (c)
+            base64Chars[iter] = c switch
             {
-                case '-': base64Chars[iter] = '+'; break;
-                case '_': base64Chars[iter] = '/'; break;
-                default: base64Chars[iter] = c; break;
-            }
+                '-' => '+',
+                '_' => '/',
+                _ => c,
+            };
         }
 
         ////////////////////////////////////////////////////////
@@ -69,27 +60,23 @@ public static class HttpEncoder
 
     private static string UrlTokenEncode(byte[] input)
     {
-        if (input == null)
-        {
-            throw new ArgumentNullException("input");
-        }
+        ArgumentNullException.ThrowIfNull(input);
+
         if (input.Length < 1)
         {
             return string.Empty;
         }
 
-        string base64Str = null;
-        int endPos = 0;
-        char[] base64Chars = null;
-
         ////////////////////////////////////////////////////////
         // Step 1: Do a Base64 encoding
-        base64Str = Convert.ToBase64String(input);
-        if (base64Str == null)
+        string base64Str = Convert.ToBase64String(input);
+        if (base64Str is null)
         {
             return null;
         }
 
+
+        int endPos;
         ////////////////////////////////////////////////////////
         // Step 2: Find how many padding chars are present in the end
         for (endPos = base64Str.Length; endPos > 0; endPos--)
@@ -103,7 +90,7 @@ public static class HttpEncoder
         ////////////////////////////////////////////////////////
         // Step 3: Create char array to store all non-padding chars,
         //      plus a char to indicate how many padding chars are needed
-        base64Chars = new char[endPos + 1];
+        char[] base64Chars = new char[endPos + 1];
         base64Chars[endPos] = (char)('0' + base64Str.Length - endPos); // Store a char at the end, to indicate how many padding chars are needed
 
         ////////////////////////////////////////////////////////

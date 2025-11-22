@@ -2,11 +2,6 @@
 
 public class RemoveResponseModel
 {
-    public RemoveResponseModel()
-    {
-        Removed = new List<string>();
-    }
-
     [JsonPropertyName("removed")]
-    public List<string> Removed { get; }
+    public List<string> Removed { get; } = [];
 }

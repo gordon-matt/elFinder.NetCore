@@ -22,13 +22,7 @@ public class NamedAccessControlAttributeSet : AccessControlAttributeSet
 
     public string FullName { get; }
 
-    public override bool Equals(object obj)
-    {
-        return (obj as NamedAccessControlAttributeSet)?.FullName == FullName;
-    }
+    public override bool Equals(object obj) => (obj as NamedAccessControlAttributeSet)?.FullName == FullName;
 
-    public override int GetHashCode()
-    {
-        return FullName.GetHashCode();
-    }
+    public override int GetHashCode() => FullName.GetHashCode();
 }

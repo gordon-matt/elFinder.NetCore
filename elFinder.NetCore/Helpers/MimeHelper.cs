@@ -1,6 +1,6 @@
-﻿namespace elFinder.NetCore.Helpers;
+﻿using elFinder.NetCore.Models;
 
-using elFinder.NetCore.Models;
+namespace elFinder.NetCore.Helpers;
 
 public static class MimeHelper
 {

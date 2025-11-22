@@ -55,18 +55,18 @@ public class FileSystemController : Controller
             //MaxUploadSizeInKb = 2048, // Limit imposed to user uploaded file <= 2048 KB
             AccessControlAttributes = new HashSet<NamedAccessControlAttributeSet>()
             {
-                new NamedAccessControlAttributeSet(PathHelper.MapPath("~/Files/readonly.txt"))
+                new(PathHelper.MapPath("~/Files/readonly.txt"))
                 {
                     Write = false,
                     Locked = true
                 },
-                new NamedAccessControlAttributeSet(PathHelper.MapPath("~/Files/Prohibited"))
+                new(PathHelper.MapPath("~/Files/Prohibited"))
                 {
                     Read = false,
                     Write = false,
                     Locked = true
                 },
-                new NamedAccessControlAttributeSet(PathHelper.MapPath("~/Files/Parent/Children"))
+                new(PathHelper.MapPath("~/Files/Parent/Children"))
                 {
                     Read = true,
                     Write = false,

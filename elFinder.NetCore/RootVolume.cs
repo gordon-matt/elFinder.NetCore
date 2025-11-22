@@ -9,8 +9,6 @@ namespace elFinder.NetCore;
 /// </summary>
 public class RootVolume
 {
-    private AccessControlAttributeSet defaultAccessControlAttributes = new AccessControlAttributeSet();
-
     /// <summary>
     ///
     /// </summary>
@@ -41,9 +39,12 @@ public class RootVolume
             ThumbnailUrl = thumbnailsUrl;
         }
 
-        DirectorySeparatorChar = directorySeparatorChar == default(char) ? Path.DirectorySeparatorChar : directorySeparatorChar; // Can be changed for other providers
+        DirectorySeparatorChar = directorySeparatorChar == default(char)
+            ? Path.DirectorySeparatorChar
+            : directorySeparatorChar; // Can be changed for other providers
+
         ThumbnailDirectory = $"{rootDirectory}{DirectorySeparatorChar}.tmb";
-        UploadOrder = new[] { "deny", "allow" };
+        UploadOrder = ["deny", "allow"];
     }
 
     /// <summary>
@@ -83,9 +84,9 @@ public class RootVolume
     /// </summary>
     public AccessControlAttributeSet DefaultAccessControlAttributes
     {
-        get => defaultAccessControlAttributes;
-        set => defaultAccessControlAttributes = value ?? throw new ArgumentNullException(nameof(DefaultAccessControlAttributes));
-    }
+        get;
+        set => field = value ?? throw new ArgumentNullException(nameof(DefaultAccessControlAttributes));
+    } = new AccessControlAttributeSet();
 
     /// <summary>
     /// Get or sets maximum upload file size. This size is per files in bytes.
@@ -99,8 +100,8 @@ public class RootVolume
     /// </summary>
     public double? MaxUploadSizeInKb
     {
-        get { return MaxUploadSize.HasValue ? (double?)(MaxUploadSize.Value / 1024.0) : null; }
-        set { MaxUploadSize = value.HasValue ? (int?)(value * 1024) : null; }
+        get => MaxUploadSize.HasValue ? MaxUploadSize.Value / 1024.0 : null;
+        set => MaxUploadSize = value.HasValue ? (int?)(value * 1024) : null;
     }
 
     /// <summary>
@@ -109,8 +110,8 @@ public class RootVolume
     /// </summary>
     public double? MaxUploadSizeInMb
     {
-        get { return MaxUploadSizeInKb.HasValue ? (double?)(MaxUploadSizeInKb.Value / 1024.0) : null; }
-        set { MaxUploadSizeInKb = value.HasValue ? (int?)(value * 1024) : null; }
+        get => MaxUploadSizeInKb.HasValue ? MaxUploadSizeInKb.Value / 1024.0 : null;
+        set => MaxUploadSizeInKb = value.HasValue ? (int?)(value * 1024) : null;
     }
 
     /// <summary>
@@ -174,10 +175,7 @@ public class RootVolume
     /// </summary>
     public IEnumerable<string> UploadOrder { get; set; }
 
-    public bool CanCreateThumbnail(IFile input)
-    {
-        return ThumbnailUrl != null && PictureEditor.CanProcessFile(input.Extension);
-    }
+    public bool CanCreateThumbnail(IFile input) => ThumbnailUrl != null && PictureEditor.CanProcessFile(input.Extension);
 
     public async Task<string> GenerateThumbHashAsync(IFile originalImage)
     {
@@ -185,13 +183,13 @@ public class RootVolume
         {
             string md5 = await originalImage.GetFileMd5Async();
             string thumbName = $"{Path.GetFileNameWithoutExtension(originalImage.Name)}_{md5}{originalImage.Extension}";
-            string relativePath = originalImage.DirectoryName.Substring(RootDirectory.Length);
+            string relativePath = originalImage.DirectoryName[RootDirectory.Length..];
             return VolumeId + HttpEncoder.EncodePath($"{relativePath}{DirectorySeparatorChar}{thumbName}");
         }
         else
         {
             string thumbPath = await GenerateThumbPathAsync(originalImage);
-            string relativePath = thumbPath.Substring(ThumbnailDirectory.Length);
+            string relativePath = thumbPath[ThumbnailDirectory.Length..];
             return VolumeId + HttpEncoder.EncodePath(relativePath);
         }
     }
@@ -202,7 +200,7 @@ public class RootVolume
         {
             return null;
         }
-        string relativePath = originalImage.FullName.Substring(RootDirectory.Length);
+        string relativePath = originalImage.FullName[RootDirectory.Length..];
         string thumbDir = GetDirectoryName($"{ThumbnailDirectory}{relativePath}");
         string md5 = await originalImage.GetFileMd5Async();
         string thumbName = $"{Path.GetFileNameWithoutExtension(originalImage.Name)}_{md5}{originalImage.Extension}";
@@ -215,7 +213,7 @@ public class RootVolume
         {
             return null;
         }
-        string relativePath = originalDirectory.FullName.Substring(RootDirectory.Length);
+        string relativePath = originalDirectory.FullName[RootDirectory.Length..];
         return ThumbnailDirectory + relativePath;
     }
 
@@ -228,7 +226,7 @@ public class RootVolume
             char ch = file[startIndex];
             if (ch == DirectorySeparatorChar)
             {
-                return file.Substring(0, startIndex);
+                return file[..startIndex];
             }
         }
         return string.Empty;
@@ -241,7 +239,7 @@ public class RootVolume
         {
             return null;
         }
-        string relativePath = thumbPath.Substring(ThumbnailDirectory.Length);
+        string relativePath = thumbPath[ThumbnailDirectory.Length..];
         return VolumeId + HttpEncoder.EncodePath(relativePath);
     }
 
@@ -258,7 +256,7 @@ public class RootVolume
             return null;
         }
 
-        string relativePath = originalDirectory.FullName.Substring(RootDirectory.Length);
+        string relativePath = originalDirectory.FullName[RootDirectory.Length..];
         string thumbDir = ThumbnailDirectory + relativePath;
         return thumbDir;
     }
