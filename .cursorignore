@@ -1,0 +1,14 @@
+# Build and generated output for this repo. Does not hide other repos.
+bin/
+obj/
+*.dll
+*.pdb
+.vs/
+TestResults/
+publish/
+*.nupkg
+**/wwwroot/lib/
+logs/
+*.log
+*.mdf
+*.ldf
