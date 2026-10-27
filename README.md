@@ -4,6 +4,12 @@
 
 <img src="https://github.com/gordon-matt/elFinder.NetCore/blob/master/_Misc/Logo.png" alt="Logo" width="350" />
 
+> [!IMPORTANT]
+>
+> Thank you to everyone who has used, contributed to, or supported this project! While this repository will continue to be maintained, it is unlikely to be updated much beyond the occasional bug fix.
+>
+> **Looking for an alternative?** I recommend checking out [WebFilez](https://github.com/gordon-matt/WebFilez), which is what I will be more focused on going forward.
+
 ## About
 
 elFinder.NetCore is a .NET Core backend implementation of [elFinder](https://github.com/Studio-42/elFinder), a popular open-source file manager for web applications.
