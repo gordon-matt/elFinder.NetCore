@@ -1,4 +1,4 @@
-﻿using SixLabors.ImageSharp;
+using System.Drawing;
 
 namespace elFinder.NetCore.Models.Commands;
 
@@ -11,7 +11,7 @@ public class DimResponseModel
 
     public DimResponseModel(Size size)
     {
-        Dimension = string.Format("{0}x{1}", size.Width, size.Height);
+        Dimension = $"{size.Width}x{size.Height}";
     }
 
     [JsonPropertyName("dim")]

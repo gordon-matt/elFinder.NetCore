@@ -1,44 +1,30 @@
-﻿using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp.Formats.Gif;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.Processing;
+using ImageMagick;
+using System.Drawing;
 
 namespace elFinder.NetCore.Drawing;
 
 /// <summary>
-/// Represents default pictures editor
+/// Represents the default picture editor.
 /// </summary>
 public class DefaultPictureEditor : IPictureEditor
 {
-    #region Constructors
+    public DefaultPictureEditor(Color backgroundColor) => BackgroundColor = backgroundColor;
 
-    public DefaultPictureEditor(Color backgroundColor)
-    {
-        BackgroundColor = backgroundColor;
-    }
-
-    public DefaultPictureEditor()
-        : this(Color.Transparent)
+    public DefaultPictureEditor() : this(Color.Transparent)
     {
     }
-
-    #endregion Constructors
-
-    #region IPictureEditor Members
 
     public Color BackgroundColor { get; set; }
 
     public bool CanProcessFile(string fileExtension)
     {
-        string ext = fileExtension.ToLower();
+        string ext = fileExtension.ToLowerInvariant();
         return ext is ".png" or ".jpg" or ".jpeg" or ".gif" or ".tiff";
     }
 
     public string ConvertThumbnailExtension(string originalImageExtension)
     {
-        string ext = originalImageExtension.ToLower();
+        string ext = originalImageExtension.ToLowerInvariant();
         return ext == ".tiff"
             ? ".png"
             : ext is ".png" or ".jpg" or ".jpeg" or ".gif"
@@ -48,112 +34,62 @@ public class DefaultPictureEditor : IPictureEditor
 
     public ImageWithMimeType Crop(Stream input, int x, int y, int width, int height)
     {
-        using var image = Image.Load(input);
-        return ScaleOrCrop(image, new Rectangle(x, y, width, height), new Rectangle(0, 0, width, height));
+        using var image = new MagickImage(input);
+        image.Crop(new MagickGeometry(x, y, (uint)width, (uint)height));
+        image.ResetPage();
+        return SaveImage(image);
     }
 
     public ImageWithMimeType GenerateThumbnail(Stream input, int size, bool keepAspectRatio)
     {
-        using var inputImage = Image.Load(input);
-        int targetWidth;
-        int targetHeight;
-
-        if (keepAspectRatio)
-        {
-            double width = inputImage.Width;
-            double height = inputImage.Height;
-            double percentWidth = width != 0 ? size / width : 0;
-            double percentHeight = height != 0 ? size / height : 0;
-            double percent = percentHeight < percentWidth ? percentHeight : percentWidth;
-
-            targetWidth = (int)(width * percent);
-            targetHeight = (int)(height * percent);
-        }
-        else
-        {
-            targetWidth = size;
-            targetHeight = size;
-        }
-
-        return ScaleOrCrop(
-            inputImage,
-            new Rectangle(0, 0, inputImage.Width, inputImage.Height),
-            new Rectangle(0, 0, targetWidth, targetHeight));
+        using var image = new MagickImage(input);
+        image.Resize(new MagickGeometry((uint)size, (uint)size) { IgnoreAspectRatio = !keepAspectRatio });
+        return SaveImage(image);
     }
 
     public Size ImageSize(Stream input)
     {
-        using var image = Image.Load(input);
-        return new Size(image.Width, image.Height);
+        using var image = new MagickImage(input);
+        return new Size((int)image.Width, (int)image.Height);
     }
 
     public ImageWithMimeType Resize(Stream input, int width, int height)
     {
-        using var image = Image.Load(input);
-        return ScaleOrCrop(image, new Rectangle(0, 0, image.Width, image.Height), new Rectangle(0, 0, width, height));
+        using var image = new MagickImage(input);
+        image.Resize(new MagickGeometry((uint)width, (uint)height) { IgnoreAspectRatio = true });
+        return SaveImage(image);
     }
 
-    public ImageWithMimeType Rotate(Stream input, int angle)
+    public ImageWithMimeType Rotate(Stream input, int degrees)
     {
-        using var image = Image.Load(input);
-        return Rotate(image, angle);
-    }
-
-    #endregion IPictureEditor Members
-
-    /// <summary>
-    /// Creates a new Image containing the same image, only rotated
-    /// </summary>
-    /// <param name="image">The <see cref="System.Drawing.Image"/> to rotate</param>
-    /// <param name="degrees">The amount to rotate the image, clockwise, in degrees</param>
-    /// <returns>A new <see cref="System.Drawing.Bitmap"/> that is just large enough to contain the rotated image without cutting any corners off.</returns>
-    /// <remarks>Original code can be found at http://www.codeproject.com/Articles/58815/C-Image-PictureBox-Rotations </remarks>
-    /// <exception cref="System.ArgumentNullException">Thrown if <see cref="image"/> is null.</exception>
-    private ImageWithMimeType Rotate(Image image, float degrees)
-    {
-        if (image == null)
+        using var image = new MagickImage(input)
         {
-            throw new ArgumentNullException(nameof(image));
-        }
+            BackgroundColor = new MagickColor(BackgroundColor.R, BackgroundColor.G, BackgroundColor.B, BackgroundColor.A)
+        };
+        image.Rotate(degrees);
+        image.ResetPage();
+        return SaveImage(image);
+    }
 
-        // Rotate the image using ImageSharp's Rotate method
-        image.Mutate(x => x.Rotate(degrees));
+    private static ImageWithMimeType SaveImage(MagickImage image)
+    {
+        MagickFormat outputFormat = image.Format switch
+        {
+            MagickFormat.Jpeg or MagickFormat.Jpg => MagickFormat.Jpeg,
+            MagickFormat.Gif => MagickFormat.Gif,
+            _ => MagickFormat.Png
+        };
 
-        // Convert to a memory stream and return
         var memoryStream = new MemoryStream();
-        image.Save(memoryStream, image.Metadata.DecodedImageFormat);
+        image.Write(memoryStream, outputFormat);
         memoryStream.Position = 0;
 
-        return new ImageWithMimeType("image/jpeg", memoryStream); // Adjust MIME type as needed
-    }
-
-    private ImageWithMimeType SaveImage(Image image, IImageFormat imageFormat)
-    {
-        var memoryStream = new MemoryStream(); // Will be disposed when "ImageWithMimeType" is disposed
-
-        string mimeType;
-        if (imageFormat == JpegFormat.Instance)
+        string mimeType = outputFormat switch
         {
-            image.Save(memoryStream, new JpegEncoder());
-            mimeType = "image/jpeg";
-        }
-        else if (imageFormat == GifFormat.Instance)
-        {
-            image.Save(memoryStream, new GifEncoder());
-            mimeType = "image/gif";
-        }
-        else // Default to PNG
-        {
-            image.Save(memoryStream, new PngEncoder());
-            mimeType = "image/png";
-        }
-        memoryStream.Position = 0;
+            MagickFormat.Jpeg => "image/jpeg",
+            MagickFormat.Gif => "image/gif",
+            _ => "image/png"
+        };
         return new ImageWithMimeType(mimeType, memoryStream);
-    }
-
-    private ImageWithMimeType ScaleOrCrop(Image image, Rectangle source, Rectangle destination)
-    {
-        using var newImage = image.Clone(ctx => ctx.Crop(source).Resize(destination.Width, destination.Height));
-        return SaveImage(newImage, image.Metadata.DecodedImageFormat);
     }
 }
