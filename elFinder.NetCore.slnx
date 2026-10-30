@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="elFinder.NetCore.Tests/elFinder.NetCore.Tests.csproj" />
   <Project Path="elFinder.NetCore.Web/elFinder.NetCore.Web.csproj" />
   <Project Path="elFinder.NetCore/elFinder.NetCore.csproj" />
 </Solution>
