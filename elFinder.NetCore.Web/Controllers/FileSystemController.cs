@@ -81,10 +81,17 @@ public class FileSystemController : Controller
 
         driver.AddRoot(root);
 
-        return new Connector(driver)
+        var connector = new Connector(driver)
         {
             // This allows support for the "onlyMimes" option on the client.
             MimeDetect = MimeDetectOption.Internal
         };
+
+        // Remote fetching for the "put" command (encoding=scheme, used by some online editors) is disabled by default
+        // to prevent SSRF. Opt in by adding the trusted hosts, e.g.:
+        //connector.AllowedPutSchemeHosts.Add("cdn.example.com");
+        //connector.MaxPutSchemeBytes = 5 * 1024 * 1024;
+
+        return connector;
     }
 }

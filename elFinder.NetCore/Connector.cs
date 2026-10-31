@@ -11,6 +11,7 @@ namespace elFinder.NetCore;
 /// </summary>
 public class Connector
 {
+    private static readonly HttpClient httpClient = new() { Timeout = TimeSpan.FromSeconds(30) };
     private readonly IDriver driver;
 
     public Connector(IDriver driver)
@@ -19,6 +20,18 @@ public class Connector
     }
 
     public MimeDetectOption MimeDetect { get; set; } = MimeDetectOption.Auto;
+
+    /// <summary>
+    /// Hosts from which the connector is allowed to fetch remote content for the "put" command when
+    /// encoding is "scheme" (e.g. saving an image from the online editors). Empty by default, which
+    /// disables remote fetching entirely to prevent SSRF. Host names are matched case-insensitively.
+    /// </summary>
+    public ICollection<string> AllowedPutSchemeHosts { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Maximum number of bytes that will be downloaded for a "put" command with encoding "scheme". Defaults to 10 MB.
+    /// </summary>
+    public long MaxPutSchemeBytes { get; set; } = 10 * 1024 * 1024;
 
     /// <summary>
     /// Get actual filesystem path by hash
@@ -118,6 +131,8 @@ public class Connector
 
                     var result = await driver.FileAsync(path, parameters.GetValueOrDefault("download") == "1");
 
+                    request.HttpContext.Response.Headers["X-Content-Type-Options"] = "nosniff";
+
                     if (!string.IsNullOrEmpty(cPath))
                     {
                         // API >= 2.1.39
@@ -189,13 +204,19 @@ public class Connector
 
                     if (encoding == "scheme")
                     {
-                        //TODO: It's worth noting that for optimal performance and resource management,
-                        //  HttpClient should not be instantiated for each request in a real-world application.
-                        //  Instead, it's typically best to create a single or few long-lived HttpClient instances and reuse
-                        //  them for all HTTP calls. This can be achieved through dependency injection or a static/singleton
-                        //  instance, depending on your application's architecture.
-                        using var client = new HttpClient();
-                        byte[] data = await client.GetByteArrayAsync(new Uri(content));
+                        if (!Uri.TryCreate(content, UriKind.Absolute, out var uri)
+                            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
+                            || !AllowedPutSchemeHosts.Contains(uri.Host))
+                        {
+                            return Error.AccessDenied();
+                        }
+
+                        byte[] data = await DownloadWithLimitAsync(uri, MaxPutSchemeBytes);
+                        if (data == null)
+                        {
+                            return Error.UploadFileTooLarge();
+                        }
+
                         return await driver.PutAsync(path, data);
                     }
                     else
@@ -212,23 +233,37 @@ public class Connector
             case "resize":
                 {
                     var path = await driver.ParsePathAsync(parameters.GetValueOrDefault("target"));
-                    return (string)parameters.GetValueOrDefault("mode") switch
+                    switch ((string)parameters.GetValueOrDefault("mode"))
                     {
-                        "resize" => await driver.ResizeAsync(
-                            path,
-                            int.Parse(parameters.GetValueOrDefault("width")),
-                            int.Parse(parameters.GetValueOrDefault("height"))),
-
-                        "crop" => await driver.CropAsync(
-                            path,
-                            int.Parse(parameters.GetValueOrDefault("x")),
-                            int.Parse(parameters.GetValueOrDefault("y")),
-                            int.Parse(parameters.GetValueOrDefault("width")),
-                            int.Parse(parameters.GetValueOrDefault("height"))),
-
-                        "rotate" => await driver.RotateAsync(path, int.Parse(parameters.GetValueOrDefault("degree"))),
-                        _ => Error.UnknownCommand(),
-                    };
+                        case "resize":
+                            {
+                                if (!TryGetInt(parameters, "width", out int width) || !TryGetInt(parameters, "height", out int height) || width <= 0 || height <= 0)
+                                {
+                                    return Error.InvalidCommandParams(cmd);
+                                }
+                                return await driver.ResizeAsync(path, width, height);
+                            }
+                        case "crop":
+                            {
+                                if (!TryGetInt(parameters, "x", out int x) || !TryGetInt(parameters, "y", out int y)
+                                    || !TryGetInt(parameters, "width", out int width) || !TryGetInt(parameters, "height", out int height)
+                                    || x < 0 || y < 0 || width <= 0 || height <= 0)
+                                {
+                                    return Error.InvalidCommandParams(cmd);
+                                }
+                                return await driver.CropAsync(path, x, y, width, height);
+                            }
+                        case "rotate":
+                            {
+                                if (!TryGetInt(parameters, "degree", out int degree))
+                                {
+                                    return Error.InvalidCommandParams(cmd);
+                                }
+                                return await driver.RotateAsync(path, degree);
+                            }
+                        default:
+                            return Error.UnknownCommand();
+                    }
                 }
             case "rm":
                 {
@@ -300,5 +335,34 @@ public class Connector
     {
         var tasks = targets.Select(driver.ParsePathAsync);
         return await Task.WhenAll(tasks);
+    }
+
+    private static bool TryGetInt(Dictionary<string, StringValues> parameters, string key, out int value) =>
+        int.TryParse(parameters.GetValueOrDefault(key).ToString(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out value);
+
+    private static async Task<byte[]> DownloadWithLimitAsync(Uri uri, long maxBytes)
+    {
+        using var response = await httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead);
+        response.EnsureSuccessStatusCode();
+
+        if (response.Content.Headers.ContentLength > maxBytes)
+        {
+            return null;
+        }
+
+        using var source = await response.Content.ReadAsStreamAsync();
+        using var destination = new MemoryStream();
+        var buffer = new byte[81920];
+        int read;
+        while ((read = await source.ReadAsync(buffer)) > 0)
+        {
+            if (destination.Length + read > maxBytes)
+            {
+                return null;
+            }
+            destination.Write(buffer, 0, read);
+        }
+
+        return destination.ToArray();
     }
 }
