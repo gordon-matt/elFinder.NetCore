@@ -18,6 +18,17 @@ public partial class FileSystemDriver : BaseDriver, IDriver
     private readonly char[] invalidFileNameChars = Path.GetInvalidFileNameChars();
     private readonly char[] invalidPathChars = Path.GetInvalidPathChars();
 
+    private static readonly HashSet<string> unsafeInlineExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".htm", ".html", ".xhtml", ".shtml", ".mht", ".mhtml", ".svg", ".svgz", ".xml", ".xsl", ".xslt", ".js", ".mjs"
+    };
+
+    private static readonly HashSet<string> unsafeInlineMimeTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "text/html", "application/xhtml+xml", "image/svg+xml", "text/xml", "application/xml",
+        "application/javascript", "text/javascript", "application/x-javascript", "application/ecmascript", "text/ecmascript"
+    };
+
     #region Constructor
 
     /// <summary>
@@ -55,12 +66,25 @@ public partial class FileSystemDriver : BaseDriver, IDriver
         {
             filename ??= "newfile";
 
-            if (filename.EndsWith(".zip"))
+            if (filename.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
             {
-                filename = filename.Replace(".zip", "");
+                filename = filename[..^4];
             }
 
-            string newPath = Path.Combine(directoryInfo.FullName, filename + ".zip");
+            filename = PreventPossiblePathTraversal(filename);
+
+            if (string.IsNullOrWhiteSpace(filename) || filename.IndexOfAny(invalidFileNameChars) >= 0)
+            {
+                throw new InvalidPathException($"{filename} is an invalid file name.");
+            }
+
+            string rootFull = Path.GetFullPath(parentPath.RootVolume.RootDirectory).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            string newPath = Path.GetFullPath(Path.Combine(directoryInfo.FullName, filename + ".zip"));
+
+            if (!newPath.StartsWith(rootFull, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidPathException($"{filename} is an invalid file name.");
+            }
 
             if (File.Exists(newPath))
             {
@@ -71,6 +95,12 @@ public partial class FileSystemDriver : BaseDriver, IDriver
             {
                 foreach (var tg in paths)
                 {
+                    string targetFull = Path.GetFullPath(tg.IsDirectory ? tg.Directory.FullName : tg.File.FullName);
+                    if (!targetFull.StartsWith(rootFull, StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidPathException("Archive target is outside of the volume.");
+                    }
+
                     if (tg.IsDirectory)
                     {
                         await AddDirectoryToArchiveAsync(newFile, tg.Directory, "");
@@ -214,16 +244,41 @@ public partial class FileSystemDriver : BaseDriver, IDriver
 
         using (var archive = ZipFile.OpenRead(fullPath.File.FullName))
         {
-            string separator = Path.DirectorySeparatorChar.ToString();
+            char separator = Path.DirectorySeparatorChar;
+            string rootFull = Path.GetFullPath(rootPath).TrimEnd(separator, Path.AltDirectorySeparatorChar) + separator;
+            var warnings = new List<string>();
+
             foreach (var entry in archive.Entries)
             {
+                // Replace zip entry path separator by system path separator
+                string entryName = entry.FullName.Replace('/', separator).Replace('\\', separator);
+                string file = Path.GetFullPath(Path.Combine(rootFull, entryName));
+
+                // Zip-Slip protection: every entry must resolve inside the destination directory
+                if (!file.StartsWith(rootFull, StringComparison.OrdinalIgnoreCase))
+                {
+                    warnings.Add($"Skipped '{entry.FullName}': path is outside of the extraction directory.");
+                    continue;
+                }
+
+                bool isDirectory = entryName.EndsWith(separator) || string.IsNullOrEmpty(entry.Name);
+
+                if (!isDirectory && fullPath.RootVolume.UploadOrder != null)
+                {
+                    try
+                    {
+                        CheckConstraints(fullPath.RootVolume, entry.Name);
+                    }
+                    catch (FileTypeNotAllowedException)
+                    {
+                        warnings.Add($"Skipped '{entry.FullName}': file type is not allowed.");
+                        continue;
+                    }
+                }
+
                 try
                 {
-                    //Replce zip entry path separator by system path separator
-                    string file = Path.Combine(rootPath, entry.FullName)
-                         .Replace("/", separator).Replace("\\", separator);
-
-                    if (file.EndsWith(separator)) //directory
+                    if (isDirectory)
                     {
                         var dir = new FileSystemDirectory(file);
 
@@ -238,6 +293,7 @@ public partial class FileSystemDriver : BaseDriver, IDriver
                     }
                     else
                     {
+                        Directory.CreateDirectory(Path.GetDirectoryName(file));
                         entry.ExtractToFile(file, true);
                         if (!newFolder)
                         {
@@ -245,10 +301,19 @@ public partial class FileSystemDriver : BaseDriver, IDriver
                         }
                     }
                 }
-                catch //(Exception ex)
+                catch (IOException ex)
                 {
-                    //throw new Exception(entry.FullName, ex);
+                    warnings.Add($"Skipped '{entry.FullName}': {ex.Message}");
                 }
+                catch (UnauthorizedAccessException ex)
+                {
+                    warnings.Add($"Skipped '{entry.FullName}': {ex.Message}");
+                }
+            }
+
+            if (warnings.Count > 0)
+            {
+                response.Warning = warnings;
             }
         }
 
@@ -274,8 +339,21 @@ public partial class FileSystemDriver : BaseDriver, IDriver
             return new ForbidResult();
         }
 
-        string contentType = download ? "application/octet-stream" : MimeHelper.GetMimeType(path.File.Extension);
-        result = new PhysicalFileResult(path.File.FullName, contentType);
+        string extension = path.File.Extension;
+        string contentType = download ? MediaTypeNames.Application.Octet : MimeHelper.GetMimeType(extension);
+
+        // Never render active content (HTML/SVG/XML/JS) inline from the connector's origin to prevent stored XSS
+        bool forceAttachment = download || unsafeInlineExtensions.Contains(extension) || unsafeInlineMimeTypes.Contains(contentType);
+
+        if (forceAttachment)
+        {
+            contentType = MediaTypeNames.Application.Octet;
+        }
+
+        result = new PhysicalFileResult(path.File.FullName, contentType)
+        {
+            FileDownloadName = forceAttachment ? path.File.Name : null
+        };
 
         return await Task.FromResult(result);
     }

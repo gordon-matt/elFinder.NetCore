@@ -27,7 +27,7 @@
       "destination": "wwwroot/lib/jquery-ui"
     },
     {
-      "library": "elfinder@2.1.66",
+      "library": "elfinder@2.1.70",
       "destination": "wwwroot/lib/elfinder"
     }
   ]
