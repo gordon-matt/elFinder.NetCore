@@ -14,7 +14,7 @@ public class Archive
 
 public class Options
 {
-    private static readonly string[] disabled = ["callback", "chmod", "editor", "netmount", "ping"];
+    private static readonly string[] disabled = ["callback", "chmod", "editor", "netmount", "netunmount", "ping", "restore"];
     //private static string[] empty = new string[0];
     //private static Archive emptyArchives = new Archive();
 

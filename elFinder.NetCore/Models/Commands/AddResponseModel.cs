@@ -7,4 +7,8 @@ public class AddResponseModel
 
     [JsonPropertyName("hashes")]
     public Dictionary<string, string> Hashes { get; protected set; } = [];
+
+    [JsonPropertyName("warning")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<string> Warning { get; set; }
 }

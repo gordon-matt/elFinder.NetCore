@@ -22,12 +22,9 @@
     <script type="text/javascript">
 
         $(function () {
-            var myCommands = elFinder.prototype._options.commands;
-
-            var disabled = ['extract', 'archive', 'resize', 'help', 'select']; // Not yet implemented commands in ElFinder.Net
-
-            $.each(disabled, function (i, cmd) {
-                (idx = $.inArray(cmd, myCommands)) !== -1 && myCommands.splice(idx, 1);
+            var disabled = ['extract', 'archive', 'resize', 'help', 'select', 'chmod', 'netmount', 'netunmount', 'restore']; // Not yet implemented commands in ElFinder.Net
+            var myCommands = $.grep(Object.keys(elFinder.prototype.commands), function (cmd) {
+                return $.inArray(cmd, disabled) === -1;
             });
 
             var options = {
