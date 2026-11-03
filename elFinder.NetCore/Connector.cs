@@ -1,4 +1,5 @@
-﻿using elFinder.NetCore.Drawing;
+﻿using System.Globalization;
+using elFinder.NetCore.Drawing;
 using elFinder.NetCore.Drivers;
 using elFinder.NetCore.Exceptions;
 using elFinder.NetCore.Helpers;
@@ -19,8 +20,6 @@ public class Connector
         this.driver = driver;
     }
 
-    public MimeDetectOption MimeDetect { get; set; } = MimeDetectOption.Auto;
-
     /// <summary>
     /// Hosts from which the connector is allowed to fetch remote content for the "put" command when
     /// encoding is "scheme" (e.g. saving an image from the online editors). Empty by default, which
@@ -32,6 +31,8 @@ public class Connector
     /// Maximum number of bytes that will be downloaded for a "put" command with encoding "scheme". Defaults to 10 MB.
     /// </summary>
     public long MaxPutSchemeBytes { get; set; } = 10 * 1024 * 1024;
+
+    public MimeDetectOption MimeDetect { get; set; } = MimeDetectOption.Auto;
 
     /// <summary>
     /// Get actual filesystem path by hash
@@ -204,20 +205,15 @@ public class Connector
 
                     if (encoding == "scheme")
                     {
-                        if (!Uri.TryCreate(content, UriKind.Absolute, out var uri)
-                            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
-                            || !AllowedPutSchemeHosts.Contains(uri.Host))
+                        if (!Uri.TryCreate(content, UriKind.Absolute, out var uri) ||
+                            (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) ||
+                            !AllowedPutSchemeHosts.Contains(uri.Host))
                         {
                             return Error.AccessDenied();
                         }
 
                         byte[] data = await DownloadWithLimitAsync(uri, MaxPutSchemeBytes);
-                        if (data == null)
-                        {
-                            return Error.UploadFileTooLarge();
-                        }
-
-                        return await driver.PutAsync(path, data);
+                        return data == null ? Error.UploadFileTooLarge() : await driver.PutAsync(path, data);
                     }
                     else
                     {
@@ -237,29 +233,29 @@ public class Connector
                     {
                         case "resize":
                             {
-                                if (!TryGetInt(parameters, "width", out int width) || !TryGetInt(parameters, "height", out int height) || width <= 0 || height <= 0)
-                                {
-                                    return Error.InvalidCommandParams(cmd);
-                                }
-                                return await driver.ResizeAsync(path, width, height);
+                                return
+                                    !TryGetInt(parameters, "width", out int width) ||
+                                    !TryGetInt(parameters, "height", out int height) ||
+                                    width <= 0 || height <= 0
+                                        ? Error.InvalidCommandParams(cmd)
+                                        : await driver.ResizeAsync(path, width, height);
                             }
                         case "crop":
                             {
-                                if (!TryGetInt(parameters, "x", out int x) || !TryGetInt(parameters, "y", out int y)
-                                    || !TryGetInt(parameters, "width", out int width) || !TryGetInt(parameters, "height", out int height)
-                                    || x < 0 || y < 0 || width <= 0 || height <= 0)
-                                {
-                                    return Error.InvalidCommandParams(cmd);
-                                }
-                                return await driver.CropAsync(path, x, y, width, height);
+                                return
+                                    !TryGetInt(parameters, "x", out int x) ||
+                                    !TryGetInt(parameters, "y", out int y) ||
+                                    !TryGetInt(parameters, "width", out int width) ||
+                                    !TryGetInt(parameters, "height", out int height) ||
+                                    x < 0 || y < 0 || width <= 0 || height <= 0
+                                        ? Error.InvalidCommandParams(cmd)
+                                        : await driver.CropAsync(path, x, y, width, height);
                             }
                         case "rotate":
                             {
-                                if (!TryGetInt(parameters, "degree", out int degree))
-                                {
-                                    return Error.InvalidCommandParams(cmd);
-                                }
-                                return await driver.RotateAsync(path, degree);
+                                return !TryGetInt(parameters, "degree", out int degree)
+                                    ? Error.InvalidCommandParams(cmd)
+                                    : await driver.RotateAsync(path, degree);
                             }
                         default:
                             return Error.UnknownCommand();
@@ -331,15 +327,6 @@ public class Connector
     private static bool CanCreateThumbnail(FullPath path, IPictureEditor pictureEditor) =>
         !string.IsNullOrEmpty(path.RootVolume.ThumbnailUrl) && pictureEditor.CanProcessFile(path.File.Extension);
 
-    private async Task<IEnumerable<FullPath>> GetFullPathArrayAsync(StringValues targets)
-    {
-        var tasks = targets.Select(driver.ParsePathAsync);
-        return await Task.WhenAll(tasks);
-    }
-
-    private static bool TryGetInt(Dictionary<string, StringValues> parameters, string key, out int value) =>
-        int.TryParse(parameters.GetValueOrDefault(key).ToString(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out value);
-
     private static async Task<byte[]> DownloadWithLimitAsync(Uri uri, long maxBytes)
     {
         using var response = await httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead);
@@ -352,7 +339,7 @@ public class Connector
 
         using var source = await response.Content.ReadAsStreamAsync();
         using var destination = new MemoryStream();
-        var buffer = new byte[81920];
+        byte[] buffer = new byte[81920];
         int read;
         while ((read = await source.ReadAsync(buffer)) > 0)
         {
@@ -364,5 +351,14 @@ public class Connector
         }
 
         return destination.ToArray();
+    }
+
+    private static bool TryGetInt(Dictionary<string, StringValues> parameters, string key, out int value) =>
+        int.TryParse(parameters.GetValueOrDefault(key).ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
+
+    private async Task<IEnumerable<FullPath>> GetFullPathArrayAsync(StringValues targets)
+    {
+        var tasks = targets.Select(driver.ParsePathAsync);
+        return await Task.WhenAll(tasks);
     }
 }

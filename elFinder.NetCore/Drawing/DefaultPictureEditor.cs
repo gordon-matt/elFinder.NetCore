@@ -1,5 +1,5 @@
-using ImageMagick;
 using System.Drawing;
+using ImageMagick;
 
 namespace elFinder.NetCore.Drawing;
 
@@ -8,7 +8,10 @@ namespace elFinder.NetCore.Drawing;
 /// </summary>
 public class DefaultPictureEditor : IPictureEditor
 {
-    public DefaultPictureEditor(Color backgroundColor) => BackgroundColor = backgroundColor;
+    public DefaultPictureEditor(Color backgroundColor)
+    {
+        BackgroundColor = backgroundColor;
+    }
 
     public DefaultPictureEditor() : this(Color.Transparent)
     {
@@ -73,7 +76,7 @@ public class DefaultPictureEditor : IPictureEditor
 
     private static ImageWithMimeType SaveImage(MagickImage image)
     {
-        MagickFormat outputFormat = image.Format switch
+        var outputFormat = image.Format switch
         {
             MagickFormat.Jpeg or MagickFormat.Jpg => MagickFormat.Jpeg,
             MagickFormat.Gif => MagickFormat.Gif,

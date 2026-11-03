@@ -75,7 +75,6 @@ public static class HttpEncoder
             return null;
         }
 
-
         int endPos;
         ////////////////////////////////////////////////////////
         // Step 2: Find how many padding chars are present in the end

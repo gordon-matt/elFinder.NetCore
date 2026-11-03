@@ -1,6 +1,6 @@
+using System.Drawing;
 using elFinder.NetCore.Drawing;
 using ImageMagick;
-using System.Drawing;
 using Xunit;
 
 namespace elFinder.NetCore.Tests.Drawing;
@@ -76,10 +76,7 @@ public class DefaultPictureEditorTests
     [InlineData(".jpeg")]
     [InlineData(".gif")]
     [InlineData(".tiff")]
-    public void CanProcessFile_AcceptsSupportedFormats(string extension)
-    {
-        Assert.True(_editor.CanProcessFile(extension));
-    }
+    public void CanProcessFile_AcceptsSupportedFormats(string extension) => Assert.True(_editor.CanProcessFile(extension));
 
     private static MemoryStream CreateImage(uint width, uint height, MagickFormat format = MagickFormat.Png)
     {
