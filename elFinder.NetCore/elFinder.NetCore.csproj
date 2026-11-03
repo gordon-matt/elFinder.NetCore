@@ -7,17 +7,6 @@
 		<Description>elFinder ASP.NET Core backend</Description>
 		<PackageProjectUrl>https://github.com/gordon-matt/elFinder.NetCore</PackageProjectUrl>
 		<Version>1.7.0</Version>
-		<PackageReleaseNotes>
-Security hardening aligned with elFinder client 2.1.70:
-- Extract: Zip-Slip protection (entries outside the destination are skipped and reported via "warning"); extracted files now obey UploadAllow/UploadDeny/UploadOrder.
-- Archive: archive name is sanitized and the archive path and all targets must be inside the volume root.
-- put (encoding=scheme): remote fetching is disabled by default; opt in with Connector.AllowedPutSchemeHosts (http/https only, size-capped by Connector.MaxPutSchemeBytes).
-- file: HTML/XHTML/SVG/XML/JS are served as application/octet-stream attachments; X-Content-Type-Options: nosniff is set on all file responses.
-- resize/crop/rotate: numeric parameters are validated and return errCmdParams instead of throwing.
-- Options.disabled now also lists netunmount and restore.
-		</PackageReleaseNotes>
-		<PackageLicenseUrl>
-		</PackageLicenseUrl>
 		<OutputType>Library</OutputType>
 		<IsPackable>true</IsPackable>
 		<ImplicitUsings>enable</ImplicitUsings>
