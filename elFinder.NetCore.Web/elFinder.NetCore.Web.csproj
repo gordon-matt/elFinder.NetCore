@@ -7,9 +7,7 @@
 		<Company>N/A</Company>
 		<Description>Demo Project for elFinder ASP.NET Core backend</Description>
 		<PackageProjectUrl>https://github.com/gordon-matt/elFinder.NetCore</PackageProjectUrl>
-		<PackageLicenseUrl>
-		</PackageLicenseUrl>
-		<Version>1.6.0</Version>
+		<IsPackable>false</IsPackable>
 		<ImplicitUsings>enable</ImplicitUsings>
 	</PropertyGroup>
 	<ItemGroup>
