@@ -22,7 +22,7 @@ public class DefaultPictureEditor : IPictureEditor
     public bool CanProcessFile(string fileExtension)
     {
         string ext = fileExtension.ToLowerInvariant();
-        return ext is ".png" or ".jpg" or ".jpeg" or ".gif" or ".tiff";
+        return ext is ".png" or ".jpg" or ".jpeg" or ".gif" or ".tiff" or ".webp" or ".bmp";
     }
 
     public string ConvertThumbnailExtension(string originalImageExtension)
@@ -30,7 +30,7 @@ public class DefaultPictureEditor : IPictureEditor
         string ext = originalImageExtension.ToLowerInvariant();
         return ext == ".tiff"
             ? ".png"
-            : ext is ".png" or ".jpg" or ".jpeg" or ".gif"
+            : ext is ".png" or ".jpg" or ".jpeg" or ".gif" or ".bmp" or ".webp"
                 ? ext
                 : throw new ArgumentException($"{typeof(DefaultPictureEditor).FullName} does not support thumbnails for '{originalImageExtension}' files.");
     }

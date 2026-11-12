@@ -198,6 +198,7 @@ internal static class MimeTypeMap
             { ".exe", "application/vnd.microsoft.portable-executable" },
             { ".exe.config", "text/xml" },
             { ".f4v", "video/mp4" },
+            { ".fcstd", "application/x-extension-fcstd" },
             { ".fdf", "application/vnd.fdf" },
             { ".fif", "application/fractals" },
             { ".filters", "application/xml" },

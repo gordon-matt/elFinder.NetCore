@@ -13,7 +13,7 @@
 ## About
 
 elFinder.NetCore is a .NET Core backend implementation of [elFinder](https://github.com/Studio-42/elFinder), a popular open-source file manager for web applications.
-
+Now includes video thumbnail generation using [FFmpeg.GPL](https://www.nuget.org/packages/FFmpeg.GPL/20260316.1.0) and [ThumbGen](https://github.com/thesn10/ThumbGen)
 ## Instructions
 
 1. Install the NuGet package: https://www.nuget.org/packages/elFinder.NetCore/

@@ -1,11 +1,37 @@
-﻿using elFinder.NetCore.Drivers.FileSystem;
+﻿using System.Runtime.InteropServices;
+using elFinder.NetCore.Drivers.FileSystem;
 using Microsoft.AspNetCore.Http.Extensions;
+using ThumbGen;
 
 namespace elFinder.NetCore.Web.Controllers;
 
 [Route("el-finder/file-system")]
 public class FileSystemController : Controller
 {
+    private readonly IWebHostEnvironment _env;
+    public FileSystemController(IWebHostEnvironment env)
+    {
+        // Setup for video thumbnails here
+        _env = env;
+        // We need the FFmpeg libs for ThumbGen https://github.com/thesn10/ThumbGen
+        // Here we set the path to the libraries.
+        bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+        bool isOsx = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+        string ffmpegLibs = env.IsDevelopment()
+            ? Path.GetFullPath(".\\bin\\Debug\\net10.0\\runtimes\\win-x64\\native\\")
+            : Path.GetFullPath(".\\runtimes\\win-x64\\native\\");
+        if (isLinux) { ffmpegLibs = "/usr/lib/x86_64-linux-gnu/"; }
+        if (isOsx) { ffmpegLibs = "/usr/local/lib/"; } // /opt/homebrew/lib/
+        try
+        {
+            FFmpegBindings.Initialize(ffmpegLibs);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+
     [Route("connector")]
     public async Task<IActionResult> Connector()
     {
@@ -52,7 +78,7 @@ public class FileSystemController : Controller
             IsReadOnly = false, // Can be readonly according to user's membership permission
             IsLocked = false, // If locked, files and directories cannot be deleted, renamed or moved
             Alias = "Files", // Beautiful name given to the root/home folder
-            //MaxUploadSizeInKb = 2048, // Limit imposed to user uploaded file <= 2048 KB
+            MaxUploadSizeInMb = 2048, // Limit imposed to user uploaded file <= 2048 KB
             AccessControlAttributes = new HashSet<NamedAccessControlAttributeSet>()
             {
                 new(PathHelper.MapPath("~/Files/readonly.txt"))
@@ -74,9 +100,9 @@ public class FileSystemController : Controller
                 }
             },
             // Upload file type constraints
-            //UploadAllow = new[] { "image", "text" },
-            //UploadDeny = new[] { "text/csv" },
-            //UploadOrder = new[] { "allow", "deny" }
+            UploadAllow = ["image", "text", "video", "audio", "application/x-extension-fcstd"],
+            //UploadDeny = ["text/csv"],
+            //UploadOrder = ["allow", "deny"]
         };
 
         driver.AddRoot(root);

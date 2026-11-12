@@ -24,7 +24,7 @@ public class RootVolume
     {
         if (rootDirectory == null)
         {
-            throw new ArgumentNullException("rootDirectory", "Root directory cannot be null");
+            throw new ArgumentNullException(nameof(rootDirectory), "Root directory cannot be null");
         }
 
         Alias = Path.GetFileNameWithoutExtension(rootDirectory);
@@ -32,6 +32,7 @@ public class RootVolume
         Url = url;
         UploadOverwrite = true;
         PictureEditor = new DefaultPictureEditor();
+        VideoEditor = new DefaultVideoEditor();
 
         // https://github.com/EvgenNoskov/Elfinder.NET/blob/fb19f17a3682ed81cadcfea978dcce575806eebd/docs/Documentation.md
         if (!string.IsNullOrEmpty(thumbnailsUrl))
@@ -120,6 +121,11 @@ public class RootVolume
     public IPictureEditor PictureEditor { get; }
 
     /// <summary>
+    /// Gets the video editor for this volume
+    /// </summary>
+    public IVideoEditor VideoEditor { get; }
+
+    /// <summary>
     /// Get or sets a directory which is root
     /// </summary>
     public string RootDirectory { get; }
@@ -175,7 +181,7 @@ public class RootVolume
     /// </summary>
     public IEnumerable<string> UploadOrder { get; set; }
 
-    public bool CanCreateThumbnail(IFile input) => ThumbnailUrl != null && PictureEditor.CanProcessFile(input.Extension);
+    public bool CanCreateThumbnail(IFile input) => (ThumbnailUrl != null && PictureEditor.CanProcessFile(input.Extension)) || VideoEditor.CanProcessFile(input.Extension);
 
     public async Task<string> GenerateThumbHashAsync(IFile originalImage)
     {

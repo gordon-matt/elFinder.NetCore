@@ -1,4 +1,5 @@
-﻿using elFinder.NetCore.Drawing;
+﻿using System.Drawing;
+using elFinder.NetCore.Drawing;
 using elFinder.NetCore.Drivers;
 using elFinder.NetCore.Helpers;
 
@@ -44,9 +45,12 @@ public class FullPath
     public string RelativePath { get; protected set; }
 
     public RootVolume RootVolume { get; protected set; }
+    private int Size { get; set; }
 
     public async Task<ImageWithMimeType> GenerateThumbnailAsync()
     {
+        bool isVideo = File.MimeType.Full.Contains("video", StringComparison.InvariantCultureIgnoreCase);
+        Size = RootVolume.ThumbnailSize;
         string name = File.FullName;
         for (int i = name.Length - 1; i >= 0; i--)
         {
@@ -73,14 +77,27 @@ public class FullPath
                     thumbDir.Attributes = FileAttributes.Hidden;
                 }
 
+                if (isVideo)
+                {
+                    var vthumb = await RootVolume.VideoEditor.GenerateThumbnailAsync(RootVolume, File, true, new CancellationToken());
+                    await thumbFile.PutAsync(vthumb.ImageStream);
+                    vthumb.ImageStream.Position = 0;
+                    return vthumb;
+                }
+
                 using var original = await File.Open(fullPath).OpenReadAsync();
-                var thumb = RootVolume.PictureEditor.GenerateThumbnail(original, RootVolume.ThumbnailSize, true);
+                var thumb = RootVolume.PictureEditor.GenerateThumbnail(original, Size, true);
                 await thumbFile.PutAsync(thumb.ImageStream);
                 thumb.ImageStream.Position = 0;
                 return thumb;
             }
             else
             {
+                if (isVideo)
+                {
+                    string vmimeType = File.MimeType.Full;
+                    return new ImageWithMimeType(vmimeType, await thumbFile.OpenReadAsync());
+                }
                 string mimeType = MimeHelper.GetMimeType(RootVolume.PictureEditor.ConvertThumbnailExtension(thumbFile.Extension));
                 return new ImageWithMimeType(mimeType, await thumbFile.OpenReadAsync());
             }
@@ -88,7 +105,7 @@ public class FullPath
         else
         {
             using var original = await File.Open(fullPath).OpenReadAsync();
-            return RootVolume.PictureEditor.GenerateThumbnail(original, RootVolume.ThumbnailSize, true);
+            return RootVolume.PictureEditor.GenerateThumbnail(original, Size, true);
         }
     }
 }

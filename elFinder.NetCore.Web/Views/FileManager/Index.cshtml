@@ -1,60 +1,62 @@
 ﻿@{
-    ViewBag.Title = "File Manager";
+  ViewBag.Title = "File Manager";
 }
-
+@section head {
+  <link href="~/css/elfinder/elfinder-custom-icon.min.css" rel="stylesheet" />
+}
 <div id="elfinder"></div>
 
 @section scripts {
-    <script type="text/javascript">
-		// Documentation for client options:
-		// https://github.com/Studio-42/elFinder/wiki/Client-configuration-options
-        $(document).ready(function () {
-            // Since elFinder 2.1.x `_options.commands` is ['*'], so build an explicit list from all registered commands
-            var disabled = ['callback', 'chmod', 'editor', 'netmount', 'netunmount', 'ping', 'help', 'restore']; // Not yet implemented commands in elFinder.NetCore
-            var myCommands = $.grep(Object.keys(elFinder.prototype.commands), function (cmd) {
-                return $.inArray(cmd, disabled) === -1;
-            });
-            elFinder.prototype.i18.en.messages.TextArea = "Edit";
-            elFinder.prototype.i18.en.messages.errNewNameSelection = 'Unable to create new file with name "$1"';
-
-            var options = {
-                baseUrl: '/lib/elfinder/',
-                url: '/el-finder/file-system/connector', // Default (Local File System)
-                @*//customData: { folder: '@Model.Folder', subFolder: '@Model.SubFolder' }, // customData passed in every request to the connector as query strings. These values are used in FileController's Index method.*@
-                rememberLastDir: false, // Prevent elFinder saving in the Browser LocalStorage the last visited directory
-                commands: myCommands,
-                //lang: 'pt_BR', // elFinder supports UI and messages localization. Check the folder Content\elfinder\js\i18n for all available languages. Be sure to include the corresponding .js file(s) in the JavaScript bundle.
-                uiOptions: { // UI buttons available to the user
-                    toolbar: [
-                        ['back', 'forward'],
-                        ['reload'],
-                        ['home', 'up'],
-                        ['mkdir', 'mkfile', 'upload'],
-                        ['open', 'download'],
-                        ['undo', 'redo'],
-                        ['info'],
-                        ['quicklook'],
-                        ['copy', 'cut', 'paste'],
-                        ['rm'],
-                        ['duplicate', 'rename', 'edit'],
-                        ['selectall', 'selectnone', 'selectinvert'],
-                        ['view', 'sort'],
-                        ['search']
-                    ]
-                },
-                themes : {
-                    'mt-gray'     : 'https://robinn1.github.io/elFinder-Material-Theme/manifests/gray.json',
-                    'dark-slim'   : 'https://johnfort.github.io/elFinder.themes/dark-slim/manifest.json',
-                    'mt-darkblue' : 'https://robinn1.github.io/elFinder-Material-Theme/manifests/darkblue.json',
-                    'mt-light'    : 'https://robinn1.github.io/elFinder-Material-Theme/manifests/light.json',
-                    'bootstrap'   : 'https://nao-pon.github.io/elfinder-theme-manifests/bootstrap.json',
-                    'moono'       : 'https://nao-pon.github.io/elfinder-theme-manifests/moono.json',
-                    'win10'       : 'https://nao-pon.github.io/elfinder-theme-manifests/win10.json'
-                }
-                //onlyMimes: ["image", "text/plain"] // Get files of requested mime types only
-                //lang: 'vi', // Change language
-            };
-            $('#elfinder').elfinder(options).elfinder('instance');
+  <script type="text/javascript">
+    // Documentation for client options:
+    // https://github.com/Studio-42/elFinder/wiki/Client-configuration-options
+    $(document).ready(function() {
+        // Since elFinder 2.1.x `_options.commands` is ['*'], so build an explicit list from all registered commands
+        var disabled = ['callback', 'chmod', 'editor', 'netmount', 'netunmount', 'ping', 'help', 'restore']; // Not yet implemented commands in elFinder.NetCore
+        var myCommands = $.grep(Object.keys(elFinder.prototype.commands), function(cmd) {
+            return $.inArray(cmd, disabled) === -1;
         });
-    </script>
+        elFinder.prototype.i18.en.messages.TextArea = "Edit";
+        elFinder.prototype.i18.en.messages.errNewNameSelection = 'Unable to create new file with name "$1"';
+
+        var options = {
+            baseUrl: '/lib/elfinder/',
+            url: '/el-finder/file-system/connector', // Default (Local File System)
+                   @*//customData: { folder: '@Model.Folder', subFolder: '@Model.SubFolder' }, // customData passed in every request to the connector as query strings. These values are used in FileController's Index method.*@
+            rememberLastDir: false, // Prevent elFinder saving in the Browser LocalStorage the last visited directory
+                commands: myCommands,
+                    //lang: 'pt_BR', // elFinder supports UI and messages localization. Check the folder Content\elfinder\js\i18n for all available languages. Be sure to include the corresponding .js file(s) in the JavaScript bundle.
+                    uiOptions: { // UI buttons available to the user
+            toolbar: [
+                ['back', 'forward'],
+                ['reload'],
+                ['home', 'up'],
+                ['mkdir', 'mkfile', 'upload'],
+                ['open', 'download'],
+                ['undo', 'redo'],
+                ['info'],
+                ['quicklook'],
+                ['copy', 'cut', 'paste'],
+                ['rm'],
+                ['duplicate', 'rename', 'edit'],
+                ['selectall', 'selectnone', 'selectinvert'],
+                ['view', 'sort'],
+                ['search']
+            ]
+        },
+        themes: {
+          'mt-gray'     : 'https://robinn1.github.io/elFinder-Material-Theme/manifests/gray.json',
+          'dark-slim'   : 'https://johnfort.github.io/elFinder.themes/dark-slim/manifest.json',
+          'mt-darkblue' : 'https://robinn1.github.io/elFinder-Material-Theme/manifests/darkblue.json',
+          'mt-light'    : 'https://robinn1.github.io/elFinder-Material-Theme/manifests/light.json',
+          'bootstrap'   : 'https://nao-pon.github.io/elfinder-theme-manifests/bootstrap.json',
+          'moono'       : 'https://nao-pon.github.io/elfinder-theme-manifests/moono.json',
+          'win10'       : 'https://nao-pon.github.io/elfinder-theme-manifests/win10.json'
+        },
+        onlyMimes: ["image", "audio", "text/plain", "application/pdf", "video", "application/x-extension-fcstd", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/zip", "application/vnd.ms-pki.stl"],
+        //lang: 'vi', // Change language
+     };
+    $('#elfinder').elfinder(options).elfinder('instance');
+    });
+  </script>
 }

@@ -7,13 +7,31 @@
 		<Company>N/A</Company>
 		<Description>Demo Project for elFinder ASP.NET Core backend</Description>
 		<PackageProjectUrl>https://github.com/gordon-matt/elFinder.NetCore</PackageProjectUrl>
-		<IsPackable>false</IsPackable>
+		<PackageLicenseUrl>
+		</PackageLicenseUrl>
+		<Version>1.8.0</Version>
 		<ImplicitUsings>enable</ImplicitUsings>
+        <PackageReleaseNotes>v1.8.0:
+  -  Update js libs to latest versions at 2026-11-08.
+    </PackageReleaseNotes>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\elFinder.NetCore\elFinder.NetCore.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<Folder Include="wwwroot\Files\Prohibited\" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Include="..\README.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="BuildBundlerMinifier2022" Version="2.9.11" />
+	  <PackageReference Include="FFmpeg.GPL" Version="[20260316.1.0]" />
+	  <PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="3.0.114" />
+	  <PackageReference Include="ThumbGen.Magick" Version="0.5.1" />
 	</ItemGroup>
 </Project>

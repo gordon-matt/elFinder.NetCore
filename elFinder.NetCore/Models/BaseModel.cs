@@ -1,4 +1,5 @@
-﻿using elFinder.NetCore.Drivers;
+﻿using System.Drawing;
+using elFinder.NetCore.Drivers;
 using elFinder.NetCore.Extensions;
 using elFinder.NetCore.Helpers;
 
@@ -74,12 +75,24 @@ public abstract class BaseModel
             using var stream = await file.OpenReadAsync();
             try
             {
-                var dim = volume.PictureEditor.ImageSize(stream);
-                response = new ImageModel
+                if (file.MimeType.ToString().Contains("video", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    Thumbnail = await volume.GenerateThumbHashAsync(file),
-                    Dimension = $"{dim.Width}x{dim.Height}"
-                };
+                    var thumb = await volume.VideoEditor.GenerateThumbnailAsync(volume, file, true);
+                    response = new ImageModel
+                    {
+                        Thumbnail = await volume.GenerateThumbHashAsync(file),
+                        Dimension = $"{thumb.Size.Width}x{thumb.Size.Height}"
+                    };
+                }
+                else
+                {
+                    var dim = volume.PictureEditor.ImageSize(stream);
+                    response = new ImageModel
+                    {
+                        Thumbnail = await volume.GenerateThumbHashAsync(file),
+                        Dimension = $"{dim.Width}x{dim.Height}"
+                    };
+                }
             }
             catch
             {

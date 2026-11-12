@@ -1,83 +1,79 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - elFinder.NetCore.Web</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>@ViewData["Title"] - elFinder.NetCore.Web</title>
 
-    <environment names="Development">
-        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
-        <link rel="stylesheet" href="~/css/site.css" />
-    </environment>
-    <environment names="Staging,Production">
-        <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/css/bootstrap.min.css"
-              asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
-              asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
-        <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
-    </environment>
+  <environment names="Development">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+  </environment>
+  <environment names="Staging,Production">
+    <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/5.3.8/css/bootstrap.min.css"
+          asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
+          asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
+    <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
+  </environment>
 
-    <link rel="stylesheet" href="~/lib/jquery-ui/themes/base/theme.css" />
-    <link rel="stylesheet" href="~/lib/jquery-ui/themes/base/jquery-ui.css" />
-    <link rel="stylesheet" href="~/lib/elfinder/css/elfinder.full.css" />
+  <link rel="stylesheet" href="~/lib/jquery-ui/themes/base/theme.css" />
+  <link rel="stylesheet" href="~/lib/jquery-ui/themes/base/jquery-ui.css" />
+  <link rel="stylesheet" href="~/lib/elfinder/css/elfinder.full.css" />
+  @await RenderSectionAsync("head", required: false)
 
-    <style>
-        .elfinder-cwd table td {
-            /* fix conflict with Bootstrap CSS. See: https://github.com/Studio-42/elFinder/commit/4f858d5ffc9a8f41b4cc07a063782abe2e722bdf */
-            box-sizing: content-box;
-        }
-    </style>
+  <style>
+      .elfinder-cwd table td {
+        /* fix conflict with Bootstrap CSS. See: https://github.com/Studio-42/elFinder/commit/4f858d5ffc9a8f41b4cc07a063782abe2e722bdf */
+        box-sizing: content-box;
+      }
+  </style>
 </head>
 <body>
-    <nav class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a asp-area="" asp-controller="Home" asp-action="Index" class="navbar-brand">
-                    elFinder.Net Web
-                </a>
-            </div>
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-                    <li><a asp-area="" asp-controller="FileManager" asp-action="Index">Files</a></li>
-                    <li><a asp-area="" asp-controller="TinyMCE" asp-action="Index">TinyMCE</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-    <div class="container body-content">
-        @RenderBody()
-        <hr />
-        <footer>
-            <p>&copy; @DateTime.Now.Year - elFinder.NetCore.Web</p>
-        </footer>
+  <nav class="navbar navbar-dark bg-primary navbar-expand-lg mt-0">
+    <div class="container-fluid">
+      <a asp-area="" asp-controller="Home" asp-action="Index" class="navbar-brand">
+        elFinder.Net Web
+      </a>
+      <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
+        <span class="navbar-toggler">Toggle navbar</span>
+      </button>
+      <div class="navbar-collapse collapse">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a asp-area="" asp-controller="Home" asp-action="Index" class="nav-link active">Home</a></li>
+          <li class="nav-item"><a asp-area="" asp-controller="FileManager" asp-action="Index" class="nav-link active">Files</a></li>
+          <li class="nav-item"><a asp-area="" asp-controller="TinyMCE" asp-action="Index" class="nav-link active">TinyMCE</a></li>
+        </ul>
+      </div>
     </div>
+  </nav>
+  <div class="container-fluid body-content">
+    @RenderBody()
+    <hr />
+    <footer>
+      <p>&copy; @DateTime.Now.Year - elFinder.NetCore.Web</p>
+    </footer>
+  </div>
 
-    <environment names="Development">
-        <script src="~/lib/jquery/dist/jquery.js"></script>
-        <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
-        <script src="~/js/site.js" asp-append-version="true"></script>
-    </environment>
-    <environment names="Staging,Production">
-        @*<script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-2.2.0.min.js"
+  <environment names="Development">
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+  </environment>
+  <environment names="Staging,Production">
+    @*<script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-4.0.0.min.js"
                 asp-fallback-src="~/lib/jquery/dist/jquery.min.js"
                 asp-fallback-test="window.jQuery">
         </script>*@
-        <script src="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/bootstrap.min.js"
-                asp-fallback-src="~/lib/bootstrap/dist/js/bootstrap.min.js"
-                asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal">
-        </script>
-        <script src="~/js/site.min.js" asp-append-version="true"></script>
-    </environment>
+    <script src="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.8/bootstrap.min.js"
+            asp-fallback-src="~/lib/bootstrap/dist/js/bootstrap.min.js"
+            asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal">
+    </script>
+    <script src="~/js/site.min.js" asp-append-version="true"></script>
+  </environment>
 
-    <script src="~/lib/jquery-ui/jquery-ui.min.js"></script>
-    <script src="~/lib/elfinder/js/elfinder.full.js"></script>
+  <script src="~/lib/jquery-ui/jquery-ui.min.js"></script>
+  <script src="~/lib/elfinder/js/elfinder.full.js"></script>
 
-    @RenderSection("scripts", required: false)
+  @RenderSection("scripts", required: false)
 </body>
 </html>

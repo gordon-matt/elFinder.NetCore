@@ -1,0 +1,20 @@
+﻿/* Change icon in the main current working directory grid */
+div.elfinder-cwd-icon-x-extension-fcstd {
+  background-image: url("/css/elfinder/img/custom-fcstd-icon-48.png") !important;
+  background-position: 0 0;
+}
+
+span.elfinder-cwd-icon-x-extension-fcstd {
+  background-image: url("/css/elfinder/img/custom-fcstd-icon.png") !important;
+  background-position: 0 0;
+}
+
+div.elfinder-cwd-icon-vnd-ms-pki-stl {
+  background-image: url("/css/elfinder/img/custom-stl-icon-48.png") !important;
+  background-position: 0 0;
+}
+
+span.elfinder-cwd-icon-vnd-ms-pki-stl {
+  background-image: url("/css/elfinder/img/custom-stl-icon.png") !important;
+  background-position: 0 0;
+}

@@ -49,7 +49,7 @@ public class Connector
         if (hash != null)
         {
             var path = await driver.ParsePathAsync(hash);
-            if (!path.IsDirectory && CanCreateThumbnail(path, path.RootVolume.PictureEditor))
+            if ((!path.IsDirectory && CanCreateThumbnail(path, path.RootVolume.PictureEditor)) || (!path.IsDirectory && CanCreateThumbnail(path, path.RootVolume.VideoEditor)))
             {
                 //if (!await HttpCacheHelper.IsFileFromCache(path.File, request, response))
                 //{
@@ -88,7 +88,7 @@ public class Connector
 
     protected async Task<IActionResult> ProcessCoreAsync(HttpRequest request)
     {
-        var parameters = request.Query.Any()
+        var parameters = request.Query.Count != 0
             ? request.Query.ToDictionary(k => k.Key, v => v.Value)
             : request.Form.ToDictionary(k => k.Key, v => v.Value);
 
@@ -132,7 +132,7 @@ public class Connector
 
                     var result = await driver.FileAsync(path, parameters.GetValueOrDefault("download") == "1");
 
-                    request.HttpContext.Response.Headers["X-Content-Type-Options"] = "nosniff";
+                    request.HttpContext.Response.Headers.XContentTypeOptions = "nosniff";
 
                     if (!string.IsNullOrEmpty(cPath))
                     {
@@ -279,7 +279,7 @@ public class Connector
                 }
             case "size":
                 {
-                    var paths = new StringValues(parameters.Where(p => p.Key.StartsWith("target")).Select(p => (string)p.Value).ToArray());
+                    var paths = new StringValues([.. parameters.Where(p => p.Key.StartsWith("target")).Select(p => (string)p.Value)]);
                     return await driver.SizeAsync(await GetFullPathArrayAsync(paths));
                 }
             case "tmb":
@@ -326,6 +326,9 @@ public class Connector
 
     private static bool CanCreateThumbnail(FullPath path, IPictureEditor pictureEditor) =>
         !string.IsNullOrEmpty(path.RootVolume.ThumbnailUrl) && pictureEditor.CanProcessFile(path.File.Extension);
+
+    private static bool CanCreateThumbnail(FullPath path, IVideoEditor videoEditor) =>
+        !string.IsNullOrEmpty(path.RootVolume.ThumbnailUrl) && videoEditor.CanProcessFile(path.File.Extension);
 
     private static async Task<byte[]> DownloadWithLimitAsync(Uri uri, long maxBytes)
     {
