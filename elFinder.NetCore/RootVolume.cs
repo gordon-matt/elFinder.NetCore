@@ -25,7 +25,7 @@ public class RootVolume
     {
         if (rootDirectory == null)
         {
-            throw new ArgumentNullException("rootDirectory", "Root directory cannot be null");
+            throw new ArgumentNullException(nameof(rootDirectory), "Root directory cannot be null");
         }
 
         Alias = Path.GetFileNameWithoutExtension(rootDirectory);

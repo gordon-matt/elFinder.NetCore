@@ -136,7 +136,7 @@ public class Connector
 
                     var result = await driver.FileAsync(path, parameters.GetValueOrDefault("download") == "1");
 
-                    request.HttpContext.Response.Headers["X-Content-Type-Options"] = "nosniff";
+                    request.HttpContext.Response.Headers.XContentTypeOptions = "nosniff";
 
                     if (!string.IsNullOrEmpty(cPath))
                     {

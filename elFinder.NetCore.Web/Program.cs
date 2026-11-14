@@ -1,16 +1,21 @@
 ﻿using elFinder.NetCore.Ffmpeg;
 using elFinder.NetCore.Web;
+using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews(); // Register MVC services
 
+// Set upload size limit to maximum value. Change this if you want to limit the upload size.
+builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = int.MaxValue);
+builder.Services.Configure<FormOptions>(options => options.MultipartBodyLengthLimit = int.MaxValue);
+
 var app = builder.Build();
 
 // Video thumbnails need ffmpeg and ffprobe. An official build is downloaded into ./ffmpeg
 // only when neither is already installed. That folder is gitignored.
-ILogger ffmpegLogger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("FFmpeg");
+var ffmpegLogger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("FFmpeg");
 try
 {
     await FfmpegBootstrap.EnsureAsync(
