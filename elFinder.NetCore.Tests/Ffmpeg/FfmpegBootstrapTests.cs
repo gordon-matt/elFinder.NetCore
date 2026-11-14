@@ -29,6 +29,47 @@ public class FfmpegBootstrapTests
     }
 
     [Fact]
+    public async Task EnsureAsync_ReturnsNullWhenFfmpegIsMissing()
+    {
+        FfmpegLocation found = await FfmpegBootstrap.EnsureAsync(new FfmpegBootstrapOptions
+        {
+            ConfiguredPath = Path.Combine(Path.GetTempPath(), "elfinder-missing-" + Guid.NewGuid().ToString("N")),
+            SearchWellKnownLocations = false,
+            SearchApplicationDirectories = false,
+            SearchPath = false,
+            PreferLinuxSystemDirectory = false,
+            DownloadIfMissing = false
+        }, cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Null(found);
+    }
+
+    [Fact]
+    public async Task EnsureAsync_ReturnsNullWhenTheDownloadDirectoryCannotBeCreated()
+    {
+        string file = Path.Combine(Path.GetTempPath(), "elfinder-not-a-dir-" + Guid.NewGuid().ToString("N"));
+        await File.WriteAllTextAsync(file, "x", TestContext.Current.CancellationToken);
+        try
+        {
+            FfmpegLocation found = await FfmpegBootstrap.EnsureAsync(new FfmpegBootstrapOptions
+            {
+                SearchWellKnownLocations = false,
+                SearchApplicationDirectories = false,
+                SearchPath = false,
+                PreferLinuxSystemDirectory = false,
+                DownloadIfMissing = true,
+                DownloadDirectory = file
+            }, cancellationToken: TestContext.Current.CancellationToken);
+
+            Assert.Null(found);
+        }
+        finally
+        {
+            File.Delete(file);
+        }
+    }
+
+    [Fact]
     public void Probe_AcceptsAnExecutablePath()
     {
         using var dir = new TempDirectory();

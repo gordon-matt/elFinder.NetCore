@@ -41,9 +41,9 @@ public class DefaultVideoEditor : IVideoEditor
         await Gate.WaitAsync(cancellationToken);
         try
         {
-            // One second in, then the first frame. Short clips have nothing at one second.
-            bool captured = await TryCaptureAsync(videoPath, tempFile, TimeSpan.FromSeconds(1), cancellationToken)
-                || await TryCaptureAsync(videoPath, tempFile, TimeSpan.Zero, cancellationToken);
+            TimeSpan at = await GetMidpointAsync(videoPath, cancellationToken);
+            bool captured = await TryCaptureAsync(videoPath, tempFile, at, cancellationToken)
+                || (at > TimeSpan.Zero && await TryCaptureAsync(videoPath, tempFile, TimeSpan.Zero, cancellationToken));
             if (!captured)
             {
                 return null;
@@ -65,6 +65,20 @@ public class DefaultVideoEditor : IVideoEditor
             Gate.Release();
             TryDelete(tempFile);
         }
+    }
+
+    private static async Task<TimeSpan> GetMidpointAsync(string videoPath, CancellationToken cancellationToken)
+    {
+        IMediaInfo media = await FFmpeg.GetMediaInfo(videoPath, cancellationToken);
+        TimeSpan duration = media.Duration;
+        if (duration <= TimeSpan.Zero)
+        {
+            duration = media.VideoStreams.FirstOrDefault()?.Duration ?? TimeSpan.Zero;
+        }
+
+        return duration > TimeSpan.Zero
+            ? TimeSpan.FromTicks(duration.Ticks / 2)
+            : TimeSpan.Zero;
     }
 
     private static async Task<bool> TryCaptureAsync(

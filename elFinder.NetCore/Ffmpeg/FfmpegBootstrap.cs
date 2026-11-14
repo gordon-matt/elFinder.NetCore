@@ -60,52 +60,55 @@ public static class FfmpegBootstrap
     {
         ArgumentNullException.ThrowIfNull(options);
 
-        FfmpegLocation resolved = Resolve(options);
-        if (resolved is not null)
-        {
-            Use(resolved);
-            logger?.LogInformation("FFmpeg tools directory: {Path}", resolved.Directory);
-            return resolved;
-        }
-
-        if (!options.DownloadIfMissing || string.IsNullOrWhiteSpace(options.DownloadDirectory))
-        {
-            logger?.LogInformation("FFmpeg was not found. Video thumbnails are disabled.");
-            return null;
-        }
-
-        string downloadDir = Path.GetFullPath(options.DownloadDirectory);
-        Directory.CreateDirectory(downloadDir);
-        resolved = Probe(downloadDir, options.RequireFfprobe);
-        if (resolved is not null)
-        {
-            Use(resolved);
-            logger?.LogInformation("FFmpeg tools directory: {Path}", resolved.Directory);
-            return resolved;
-        }
-
         try
         {
+            FfmpegLocation resolved = Resolve(options);
+            if (resolved is not null)
+            {
+                Use(resolved);
+                logger?.LogInformation("FFmpeg tools directory: {Path}", resolved.Directory);
+                return resolved;
+            }
+
+            if (!options.DownloadIfMissing || string.IsNullOrWhiteSpace(options.DownloadDirectory))
+            {
+                logger?.LogInformation("FFmpeg was not found. Video thumbnails are disabled.");
+                return null;
+            }
+
+            string downloadDir = Path.GetFullPath(options.DownloadDirectory);
+            Directory.CreateDirectory(downloadDir);
+            resolved = Probe(downloadDir, options.RequireFfprobe);
+            if (resolved is not null)
+            {
+                TryMarkExecutable(resolved, logger);
+                Use(resolved);
+                logger?.LogInformation("FFmpeg tools directory: {Path}", resolved.Directory);
+                return resolved;
+            }
+
             logger?.LogInformation("Downloading FFmpeg (official build) to {Path}", downloadDir);
             await FFmpegDownloader.GetLatestVersion(FFmpegVersion.Official, downloadDir, progress: null)
                 .WaitAsync(cancellationToken);
+
+            resolved = Probe(downloadDir, options.RequireFfprobe);
+            if (resolved is null)
+            {
+                logger?.LogError("FFmpeg download finished but the binaries were not found under {Path}", downloadDir);
+                return null;
+            }
+
+            TryMarkExecutable(resolved, logger);
+            Use(resolved);
+            logger?.LogInformation("FFmpeg tools directory: {Path}", resolved.Directory);
+            return resolved;
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (Exception ex)
         {
-            logger?.LogError(ex, "Failed to download FFmpeg into {Path}", downloadDir);
+            // A missing or failed download must not stop the host. Video thumbnails stay off.
+            logger?.LogWarning(ex, "FFmpeg is not available. Video thumbnails are disabled.");
             return null;
         }
-
-        resolved = Probe(downloadDir, options.RequireFfprobe);
-        if (resolved is null)
-        {
-            logger?.LogError("FFmpeg download finished but the binaries were not found under {Path}", downloadDir);
-            return null;
-        }
-
-        Use(resolved);
-        logger?.LogInformation("FFmpeg tools directory: {Path}", resolved.Directory);
-        return resolved;
     }
 
     /// <summary>Looks on disk only. Does not download and does not change Xabe's path.</summary>
@@ -188,6 +191,11 @@ public static class FfmpegBootstrap
                 yield return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ffmpeg");
             }
 
+            if (OperatingSystem.IsMacOS())
+            {
+                yield return "/opt/homebrew/bin";
+            }
+
             yield return "/usr/bin";
             yield return "/usr/local/bin";
         }
@@ -212,6 +220,36 @@ public static class FfmpegBootstrap
         foreach (string entry in pathEnv.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
         {
             yield return entry.Trim();
+        }
+    }
+
+    /// <summary>
+    /// Zip extraction does not keep the executable bit, so a downloaded binary cannot be started on Linux or macOS until it is set.
+    /// </summary>
+    private static void TryMarkExecutable(FfmpegLocation location, ILogger logger)
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        try
+        {
+            Mark(location.FfmpegPath);
+            if (!string.Equals(location.FfmpegPath, location.FfprobePath, StringComparison.Ordinal))
+            {
+                Mark(location.FfprobePath);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger?.LogWarning(ex, "Could not mark {Path} as executable.", location.FfmpegPath);
+        }
+
+        static void Mark(string path)
+        {
+            UnixFileMode mode = File.GetUnixFileMode(path);
+            File.SetUnixFileMode(path, mode | UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute);
         }
     }
 }

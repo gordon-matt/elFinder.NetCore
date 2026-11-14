@@ -11,17 +11,24 @@ var app = builder.Build();
 // Video thumbnails need ffmpeg and ffprobe. An official build is downloaded into ./ffmpeg
 // only when neither is already installed. That folder is gitignored.
 ILogger ffmpegLogger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("FFmpeg");
-await FfmpegBootstrap.EnsureAsync(
-    new FfmpegBootstrapOptions
-    {
-        PreferLinuxSystemDirectory = true,
-        SearchWellKnownLocations = true,
-        SearchApplicationDirectories = true,
-        DownloadDirectory = Path.Combine(app.Environment.ContentRootPath, "ffmpeg"),
-        DownloadIfMissing = true,
-        RequireFfprobe = true
-    },
-    ffmpegLogger);
+try
+{
+    await FfmpegBootstrap.EnsureAsync(
+        new FfmpegBootstrapOptions
+        {
+            PreferLinuxSystemDirectory = true,
+            SearchWellKnownLocations = true,
+            SearchApplicationDirectories = true,
+            DownloadDirectory = Path.Combine(app.Environment.ContentRootPath, "ffmpeg"),
+            DownloadIfMissing = true,
+            RequireFfprobe = true
+        },
+        ffmpegLogger);
+}
+catch (Exception ex)
+{
+    ffmpegLogger.LogWarning(ex, "FFmpeg setup failed. Video thumbnails are disabled.");
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
