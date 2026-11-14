@@ -45,7 +45,7 @@ public class FullPath
 
     public RootVolume RootVolume { get; protected set; }
 
-    public async Task<ImageWithMimeType> GenerateThumbnailAsync()
+    public Task<ImageWithMimeType> GenerateThumbnailAsync(CancellationToken cancellationToken = default)
     {
         string name = File.FullName;
         for (int i = name.Length - 1; i >= 0; i--)
@@ -57,8 +57,13 @@ public class FullPath
             }
         }
 
+        // The thumb hash keeps the source extension, so stripping _{md5} recovers the original file.
         string fullPath = $"{name}{File.Extension}";
+        return GenerateThumbnailCoreAsync(fullPath, cancellationToken);
+    }
 
+    private async Task<ImageWithMimeType> GenerateThumbnailCoreAsync(string fullPath, CancellationToken cancellationToken)
+    {
         if (RootVolume.ThumbnailDirectory != null)
         {
             var thumbFile = File.FullName.StartsWith(RootVolume.ThumbnailDirectory)
@@ -73,22 +78,35 @@ public class FullPath
                     thumbDir.Attributes = FileAttributes.Hidden;
                 }
 
-                using var original = await File.Open(fullPath).OpenReadAsync();
-                var thumb = RootVolume.PictureEditor.GenerateThumbnail(original, RootVolume.ThumbnailSize, true);
+                ImageWithMimeType thumb = await CreateThumbnailAsync(fullPath, cancellationToken);
+                if (thumb == null)
+                {
+                    return null;
+                }
+
                 await thumbFile.PutAsync(thumb.ImageStream);
                 thumb.ImageStream.Position = 0;
                 return thumb;
             }
-            else
-            {
-                string mimeType = MimeHelper.GetMimeType(RootVolume.PictureEditor.ConvertThumbnailExtension(thumbFile.Extension));
-                return new ImageWithMimeType(mimeType, await thumbFile.OpenReadAsync());
-            }
+
+            // Video thumbs are JPEG bytes stored under the source extension so the hash still maps back.
+            string mimeType = RootVolume.VideoEditor.CanProcessFile(thumbFile.Extension)
+                ? "image/jpeg"
+                : MimeHelper.GetMimeType(RootVolume.PictureEditor.ConvertThumbnailExtension(thumbFile.Extension));
+            return new ImageWithMimeType(mimeType, await thumbFile.OpenReadAsync());
         }
-        else
+
+        return await CreateThumbnailAsync(fullPath, cancellationToken);
+    }
+
+    private async Task<ImageWithMimeType> CreateThumbnailAsync(string fullPath, CancellationToken cancellationToken)
+    {
+        if (RootVolume.VideoEditor.CanProcessFile(Path.GetExtension(fullPath)))
         {
-            using var original = await File.Open(fullPath).OpenReadAsync();
-            return RootVolume.PictureEditor.GenerateThumbnail(original, RootVolume.ThumbnailSize, true);
+            return await RootVolume.VideoEditor.GenerateThumbnailAsync(fullPath, RootVolume.ThumbnailSize, true, cancellationToken);
         }
+
+        using var original = await File.Open(fullPath).OpenReadAsync();
+        return RootVolume.PictureEditor.GenerateThumbnail(original, RootVolume.ThumbnailSize, true);
     }
 }

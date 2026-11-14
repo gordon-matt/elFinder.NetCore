@@ -71,21 +71,32 @@ public abstract class BaseModel
         FileModel response;
         if (volume.CanCreateThumbnail(file) && fileLength > 0)
         {
-            using var stream = await file.OpenReadAsync();
-            try
+            // A video frame is captured when the thumbnail is requested. Listing only publishes the hash.
+            if (volume.VideoEditor.CanProcessFile(file.Extension))
             {
-                var dim = volume.PictureEditor.ImageSize(stream);
                 response = new ImageModel
                 {
-                    Thumbnail = await volume.GenerateThumbHashAsync(file),
-                    Dimension = $"{dim.Width}x{dim.Height}"
+                    Thumbnail = await volume.GenerateThumbHashAsync(file)
                 };
             }
-            catch
+            else
             {
-                // Fix for non-standard formats
-                // https://github.com/gordon-matt/elFinder.NetCore/issues/36
-                response = new FileModel();
+                using var stream = await file.OpenReadAsync();
+                try
+                {
+                    var dim = volume.PictureEditor.ImageSize(stream);
+                    response = new ImageModel
+                    {
+                        Thumbnail = await volume.GenerateThumbHashAsync(file),
+                        Dimension = $"{dim.Width}x{dim.Height}"
+                    };
+                }
+                catch
+                {
+                    // Fix for non-standard formats
+                    // https://github.com/gordon-matt/elFinder.NetCore/issues/36
+                    response = new FileModel();
+                }
             }
         }
         else

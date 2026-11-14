@@ -37,6 +37,7 @@ bld/
 
 elFinder.NetCore.Web/wwwroot/Files/
 elFinder.NetCore.Web/wwwroot/lib/
+elFinder.NetCore.Web/ffmpeg/
 
 # MSTest test Results
 [Tt]est[Rr]esult*/

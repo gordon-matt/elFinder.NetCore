@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using elFinder.NetCore.Drawing;
 using elFinder.NetCore.Drivers;
 using elFinder.NetCore.Exceptions;
 using elFinder.NetCore.Helpers;
@@ -49,11 +48,16 @@ public class Connector
         if (hash != null)
         {
             var path = await driver.ParsePathAsync(hash);
-            if (!path.IsDirectory && CanCreateThumbnail(path, path.RootVolume.PictureEditor))
+            if (!path.IsDirectory && path.RootVolume.CanCreateThumbnail(path.File))
             {
                 //if (!await HttpCacheHelper.IsFileFromCache(path.File, request, response))
                 //{
-                var thumb = await path.GenerateThumbnailAsync();
+                var thumb = await path.GenerateThumbnailAsync(request.HttpContext.RequestAborted);
+                if (thumb == null)
+                {
+                    return new EmptyResult();
+                }
+
                 return new FileStreamResult(thumb.ImageStream, thumb.MimeType);
                 //}
                 //else
@@ -323,9 +327,6 @@ public class Connector
             default: return Error.UnknownCommand();
         }
     }
-
-    private static bool CanCreateThumbnail(FullPath path, IPictureEditor pictureEditor) =>
-        !string.IsNullOrEmpty(path.RootVolume.ThumbnailUrl) && pictureEditor.CanProcessFile(path.File.Extension);
 
     private static async Task<byte[]> DownloadWithLimitAsync(Uri uri, long maxBytes)
     {

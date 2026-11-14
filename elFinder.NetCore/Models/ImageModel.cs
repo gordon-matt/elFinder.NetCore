@@ -6,5 +6,6 @@ internal class ImageModel : FileModel
     public object Thumbnail { get; set; }
 
     [JsonPropertyName("dim")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string Dimension { get; set; }
 }
