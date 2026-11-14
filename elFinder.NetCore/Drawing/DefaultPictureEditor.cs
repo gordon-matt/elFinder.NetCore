@@ -21,18 +21,22 @@ public class DefaultPictureEditor : IPictureEditor
 
     public bool CanProcessFile(string fileExtension)
     {
+        // Formats this Magick.NET build can read and write, and that a browser can show.
+        // TIFF is re-encoded as PNG. Read-only formats such as HEIC are omitted because crop, resize, and rotate replace the original file.
         string ext = fileExtension.ToLowerInvariant();
-        return ext is ".png" or ".jpg" or ".jpeg" or ".gif" or ".tiff";
+        return ext is ".png" or ".jpg" or ".jpeg" or ".jpe" or ".jfif" or ".gif" or ".tif" or ".tiff" or ".webp" or ".bmp" or ".avif";
     }
 
     public string ConvertThumbnailExtension(string originalImageExtension)
     {
         string ext = originalImageExtension.ToLowerInvariant();
-        return ext == ".tiff"
-            ? ".png"
-            : ext is ".png" or ".jpg" or ".jpeg" or ".gif"
-                ? ext
-                : throw new ArgumentException($"{typeof(DefaultPictureEditor).FullName} does not support thumbnails for '{originalImageExtension}' files.");
+        return ext switch
+        {
+            ".tif" or ".tiff" => ".png",
+            ".jfif" => ".jpg",
+            ".png" or ".jpg" or ".jpeg" or ".jpe" or ".gif" or ".webp" or ".bmp" or ".avif" => ext,
+            _ => throw new ArgumentException($"{typeof(DefaultPictureEditor).FullName} does not support thumbnails for '{originalImageExtension}' files.")
+        };
     }
 
     public ImageWithMimeType Crop(Stream input, int x, int y, int width, int height)
@@ -78,8 +82,11 @@ public class DefaultPictureEditor : IPictureEditor
     {
         var outputFormat = image.Format switch
         {
-            MagickFormat.Jpeg or MagickFormat.Jpg => MagickFormat.Jpeg,
-            MagickFormat.Gif => MagickFormat.Gif,
+            MagickFormat.Jpeg or MagickFormat.Jpg or MagickFormat.Jpe or MagickFormat.Pjpeg => MagickFormat.Jpeg,
+            MagickFormat.Gif or MagickFormat.Gif87 => MagickFormat.Gif,
+            MagickFormat.WebP => MagickFormat.WebP,
+            MagickFormat.Bmp or MagickFormat.Bmp2 or MagickFormat.Bmp3 => MagickFormat.Bmp,
+            MagickFormat.Avif => MagickFormat.Avif,
             _ => MagickFormat.Png
         };
 
@@ -91,6 +98,9 @@ public class DefaultPictureEditor : IPictureEditor
         {
             MagickFormat.Jpeg => "image/jpeg",
             MagickFormat.Gif => "image/gif",
+            MagickFormat.WebP => "image/webp",
+            MagickFormat.Bmp => "image/bmp",
+            MagickFormat.Avif => "image/avif",
             _ => "image/png"
         };
         return new ImageWithMimeType(mimeType, memoryStream);

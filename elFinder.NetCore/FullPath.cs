@@ -78,7 +78,7 @@ public class FullPath
                     thumbDir.Attributes = FileAttributes.Hidden;
                 }
 
-                ImageWithMimeType thumb = await CreateThumbnailAsync(fullPath, cancellationToken);
+                var thumb = await CreateThumbnailAsync(fullPath, cancellationToken);
                 if (thumb == null)
                 {
                     return null;

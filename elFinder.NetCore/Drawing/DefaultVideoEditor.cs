@@ -41,7 +41,7 @@ public class DefaultVideoEditor : IVideoEditor
         await Gate.WaitAsync(cancellationToken);
         try
         {
-            TimeSpan at = await GetMidpointAsync(videoPath, cancellationToken);
+            var at = await GetMidpointAsync(videoPath, cancellationToken);
             bool captured = await TryCaptureAsync(videoPath, tempFile, at, cancellationToken)
                 || (at > TimeSpan.Zero && await TryCaptureAsync(videoPath, tempFile, TimeSpan.Zero, cancellationToken));
             if (!captured)
@@ -69,8 +69,8 @@ public class DefaultVideoEditor : IVideoEditor
 
     private static async Task<TimeSpan> GetMidpointAsync(string videoPath, CancellationToken cancellationToken)
     {
-        IMediaInfo media = await FFmpeg.GetMediaInfo(videoPath, cancellationToken);
-        TimeSpan duration = media.Duration;
+        var media = await FFmpeg.GetMediaInfo(videoPath, cancellationToken);
+        var duration = media.Duration;
         if (duration <= TimeSpan.Zero)
         {
             duration = media.VideoStreams.FirstOrDefault()?.Duration ?? TimeSpan.Zero;
@@ -91,7 +91,7 @@ public class DefaultVideoEditor : IVideoEditor
         timeout.CancelAfter(CaptureTimeout);
         try
         {
-            IConversion conversion = await FFmpeg.Conversions.FromSnippet.Snapshot(videoPath, outputPath, at);
+            var conversion = await FFmpeg.Conversions.FromSnippet.Snapshot(videoPath, outputPath, at);
             conversion.SetOverwriteOutput(true);
             // A crafted file can otherwise make ffmpeg open http, concat, or subfile targets.
             conversion.AddParameter("-nostdin -protocol_whitelist file", ParameterPosition.PreInput);

@@ -11,7 +11,7 @@ public class FfmpegBootstrapTests
         using var dir = new TempDirectory();
         WriteTools(dir.Path, includeProbe: true);
 
-        FfmpegLocation found = FfmpegBootstrap.Resolve(Options(dir.Path));
+        var found = FfmpegBootstrap.Resolve(Options(dir.Path));
 
         Assert.NotNull(found);
         Assert.Equal(Path.GetFullPath(dir.Path), found.Directory);
@@ -31,7 +31,7 @@ public class FfmpegBootstrapTests
     [Fact]
     public async Task EnsureAsync_ReturnsNullWhenFfmpegIsMissing()
     {
-        FfmpegLocation found = await FfmpegBootstrap.EnsureAsync(new FfmpegBootstrapOptions
+        var found = await FfmpegBootstrap.EnsureAsync(new FfmpegBootstrapOptions
         {
             ConfiguredPath = Path.Combine(Path.GetTempPath(), "elfinder-missing-" + Guid.NewGuid().ToString("N")),
             SearchWellKnownLocations = false,
@@ -51,7 +51,7 @@ public class FfmpegBootstrapTests
         await File.WriteAllTextAsync(file, "x", TestContext.Current.CancellationToken);
         try
         {
-            FfmpegLocation found = await FfmpegBootstrap.EnsureAsync(new FfmpegBootstrapOptions
+            var found = await FfmpegBootstrap.EnsureAsync(new FfmpegBootstrapOptions
             {
                 SearchWellKnownLocations = false,
                 SearchApplicationDirectories = false,
@@ -76,7 +76,7 @@ public class FfmpegBootstrapTests
         WriteTools(dir.Path, includeProbe: true);
         string ffmpeg = Path.Combine(dir.Path, OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg");
 
-        FfmpegLocation found = FfmpegBootstrap.Probe(ffmpeg, requireFfprobe: true);
+        var found = FfmpegBootstrap.Probe(ffmpeg, requireFfprobe: true);
 
         Assert.NotNull(found);
         Assert.Equal(Path.GetFullPath(dir.Path), found.Directory);

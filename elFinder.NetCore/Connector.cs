@@ -53,12 +53,7 @@ public class Connector
                 //if (!await HttpCacheHelper.IsFileFromCache(path.File, request, response))
                 //{
                 var thumb = await path.GenerateThumbnailAsync(request.HttpContext.RequestAborted);
-                if (thumb == null)
-                {
-                    return new EmptyResult();
-                }
-
-                return new FileStreamResult(thumb.ImageStream, thumb.MimeType);
+                return thumb == null ? new EmptyResult() : new FileStreamResult(thumb.ImageStream, thumb.MimeType);
                 //}
                 //else
                 //{

@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using Xabe.FFmpeg;
 using Xabe.FFmpeg.Downloader;
 
@@ -62,7 +61,7 @@ public static class FfmpegBootstrap
 
         try
         {
-            FfmpegLocation resolved = Resolve(options);
+            var resolved = Resolve(options);
             if (resolved is not null)
             {
                 Use(resolved);
@@ -123,7 +122,7 @@ public static class FfmpegBootstrap
                 continue;
             }
 
-            FfmpegLocation found = Probe(candidate, options.RequireFfprobe);
+            var found = Probe(candidate, options.RequireFfprobe);
             if (found is not null)
             {
                 return found;
@@ -163,12 +162,7 @@ public static class FfmpegBootstrap
         bool hasFfmpeg = File.Exists(ffmpeg);
         bool hasFfprobe = File.Exists(ffprobe);
 
-        if (!hasFfmpeg || (requireFfprobe && !hasFfprobe))
-        {
-            return null;
-        }
-
-        return new FfmpegLocation(directory, ffmpeg, hasFfprobe ? ffprobe : ffmpeg);
+        return !hasFfmpeg || (requireFfprobe && !hasFfprobe) ? null : new FfmpegLocation(directory, ffmpeg, hasFfprobe ? ffprobe : ffmpeg);
     }
 
     private static IEnumerable<string> Candidates(FfmpegBootstrapOptions options)
@@ -248,7 +242,7 @@ public static class FfmpegBootstrap
 
         static void Mark(string path)
         {
-            UnixFileMode mode = File.GetUnixFileMode(path);
+            var mode = File.GetUnixFileMode(path);
             File.SetUnixFileMode(path, mode | UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute);
         }
     }

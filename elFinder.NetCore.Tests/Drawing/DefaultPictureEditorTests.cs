@@ -61,6 +61,9 @@ public class DefaultPictureEditorTests
     [InlineData(MagickFormat.Jpeg, "image/jpeg")]
     [InlineData(MagickFormat.Gif, "image/gif")]
     [InlineData(MagickFormat.Tiff, "image/png")]
+    [InlineData(MagickFormat.WebP, "image/webp")]
+    [InlineData(MagickFormat.Bmp, "image/bmp")]
+    [InlineData(MagickFormat.Avif, "image/avif")]
     public void Resize_UsesBrowserCompatibleOutputFormat(MagickFormat inputFormat, string expectedMimeType)
     {
         using var input = CreateImage(120, 80, inputFormat);
@@ -74,9 +77,34 @@ public class DefaultPictureEditorTests
     [InlineData(".png")]
     [InlineData(".jpg")]
     [InlineData(".jpeg")]
+    [InlineData(".jpe")]
+    [InlineData(".jfif")]
     [InlineData(".gif")]
+    [InlineData(".tif")]
     [InlineData(".tiff")]
+    [InlineData(".webp")]
+    [InlineData(".bmp")]
+    [InlineData(".avif")]
     public void CanProcessFile_AcceptsSupportedFormats(string extension) => Assert.True(_editor.CanProcessFile(extension));
+
+    [Theory]
+    [InlineData(".svg")]
+    [InlineData(".heic")]
+    [InlineData(".ico")]
+    [InlineData(".jp2")]
+    [InlineData(".jxl")]
+    public void CanProcessFile_RejectsFormatsThatCannotRoundTrip(string extension) => Assert.False(_editor.CanProcessFile(extension));
+
+    [Theory]
+    [InlineData(".webp", ".webp")]
+    [InlineData(".bmp", ".bmp")]
+    [InlineData(".avif", ".avif")]
+    [InlineData(".jpe", ".jpe")]
+    [InlineData(".jfif", ".jpg")]
+    [InlineData(".tif", ".png")]
+    [InlineData(".tiff", ".png")]
+    public void ConvertThumbnailExtension_MatchesBytesWrittenForFormat(string extension, string expected) =>
+        Assert.Equal(expected, _editor.ConvertThumbnailExtension(extension));
 
     private static MemoryStream CreateImage(uint width, uint height, MagickFormat format = MagickFormat.Png)
     {

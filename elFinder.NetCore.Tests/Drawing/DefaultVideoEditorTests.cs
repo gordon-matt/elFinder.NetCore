@@ -1,4 +1,3 @@
-using elFinder.NetCore;
 using elFinder.NetCore.Drawing;
 using elFinder.NetCore.Drivers.FileSystem;
 using Xunit;
