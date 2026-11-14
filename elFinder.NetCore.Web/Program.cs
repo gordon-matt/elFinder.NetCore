@@ -1,8 +1,12 @@
 ﻿using elFinder.NetCore.Ffmpeg;
+using elFinder.NetCore.Helpers;
 using elFinder.NetCore.Web;
 using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Extensions listed under elFinder:MimeTypeMap override the built-in map and can add new ones.
+MimeHelper.Configure(builder.Configuration);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews(); // Register MVC services

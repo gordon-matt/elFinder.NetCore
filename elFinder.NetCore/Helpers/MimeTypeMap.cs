@@ -1,4 +1,4 @@
-﻿// Taken from: https://github.com/samuelneff/MimeTypeMap
+// Taken from: https://github.com/samuelneff/MimeTypeMap
 // Would have used a NuGet package, but there doesn't appear to be one...
 
 namespace elFinder.NetCore.Helpers;
@@ -7,20 +7,11 @@ internal static class MimeTypeMap
 {
     private const string DefaultMimeType = "application/octet-stream";
     private const char Dot = '.';
-    private static readonly Lazy<IDictionary<string, string>> mappings = new(BuildMappings);
 
-    public static string GetExtension(string mimeType, bool throwErrorIfNotFound = true)
-    {
-        ArgumentNullException.ThrowIfNull(mimeType);
+    // Published as a whole dictionary so a configuration override is visible to readers without mutating the defaults.
+    private static readonly Dictionary<string, string> defaultMappings = BuildMappings();
 
-        return mimeType.StartsWith(Dot)
-            ? throw new ArgumentException("Requested mime type is not valid: " + mimeType)
-            : mappings.Value.TryGetValue(mimeType, out string extension)
-                ? extension
-                : throwErrorIfNotFound
-                    ? throw new ArgumentException("Requested mime type is not registered: " + mimeType)
-                    : string.Empty;
-    }
+    private static volatile Dictionary<string, string> mappings = defaultMappings;
 
     public static string GetMimeType(string extension)
     {
@@ -31,23 +22,49 @@ internal static class MimeTypeMap
             extension = Dot + extension;
         }
 
-        return mappings.Value.TryGetValue(extension, out string mime) ? mime : DefaultMimeType;
+        return mappings.TryGetValue(extension, out string mime) ? mime : DefaultMimeType;
     }
 
-    private static IDictionary<string, string> BuildMappings()
+    internal static void ApplyOverrides(IEnumerable<KeyValuePair<string, string>> overrides)
+    {
+        var composed = new Dictionary<string, string>(defaultMappings, StringComparer.OrdinalIgnoreCase);
+        foreach (var pair in overrides)
+        {
+            if (string.IsNullOrWhiteSpace(pair.Key) || string.IsNullOrWhiteSpace(pair.Value))
+            {
+                continue;
+            }
+
+            string extension = pair.Key.Trim();
+            if (!extension.StartsWith(Dot))
+            {
+                extension = Dot + extension;
+            }
+
+            string mimeType = pair.Value.Trim();
+            if (!mimeType.Contains('/'))
+            {
+                throw new ArgumentException($"MIME type override for '{extension}' must be a type/subtype value.");
+            }
+
+            composed[extension] = mimeType;
+        }
+
+        mappings = composed;
+    }
+
+    internal static void ResetOverrides()
+    {
+        mappings = defaultMappings;
+    }
+
+    private static Dictionary<string, string> BuildMappings()
     {
         var mappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             #region Big list of mime types
 
-            // maps both ways,
             // extension -> mime type
-            //   and
-            // mime type -> extension
-            //
-            // any mime types on left side not pre-loaded on right side, are added automatically
-            // some mime types can map to multiple extensions, so to get a deterministic mapping,
-            // add those to the dictionary specifically
             //
             // combination of values from Windows 7 Registry and
             // from C:\Windows\System32\inetsrv\config\applicationHost.config
@@ -689,70 +706,328 @@ internal static class MimeTypeMap
             { ".z", "application/x-compress" },
             { ".zip", "application/zip" },
 
-            // TODO: Is the reverse here ever used? And if so, why isn't it in a separate dictionary?
-            { "application/fsharp-script", ".fsx" },
-            { "application/msaccess", ".adp" },
-            { "application/msword", ".doc" },
-            { "application/octet-stream", ".bin" },
-            { "application/onenote", ".one" },
-            { "application/postscript", ".eps" },
-            { "application/step", ".step" },
-            { "application/vnd.ms-excel", ".xls" },
-            { "application/vnd.ms-powerpoint", ".ppt" },
-            { "application/vnd.ms-works", ".wks" },
-            { "application/vnd.visio", ".vsd" },
-            { "application/x-director", ".dir" },
-            { "application/xhtml+xml", ".xhtml" },
-            { "application/xml", ".xml" }, // anomaly, .xml -> text/xml, but application/xml -> many things, but all are xml, so safest is .xml
-            { "application/x-shockwave-flash", ".swf" },
-            { "application/x-x509-ca-cert", ".cer" },
-            { "application/x-zip-compressed", ".zip" },
-            { "audio/aac", ".AAC" },
-            { "audio/aiff", ".aiff" },
-            { "audio/basic", ".snd" },
-            { "audio/mid", ".midi" },
-            { "audio/wav", ".wav" },
-            { "audio/x-m4a", ".m4a" },
-            { "audio/x-mpegurl", ".m3u" },
-            { "audio/x-pn-realaudio", ".ra" },
-            { "audio/x-smd", ".smd" },
-            { "image/bmp", ".bmp" },
-            { "image/jpeg", ".jpg" },
-            { "image/pict", ".pic" },
-            { "image/png", ".png" }, // Defined in [RFC-2045], [RFC-2048]
-            { "image/tiff", ".tiff" },
-            { "image/x-macpaint", ".mac" },
-            { "image/x-png", ".png" }, // See https://www.w3.org/TR/PNG/#A-Media-type :"It is recommended that implementations also recognize the media type "image/x-png"."
-            { "image/x-quicktime", ".qti" },
-            { "message/rfc822", ".eml" },
-            { "text/calendar", ".ics" },
-            { "text/html", ".html" },
-            { "text/plain", ".txt" },
-            { "text/scriptlet", ".wsc" },
-            { "text/xml", ".xml" },
-            { "video/3gpp", ".3gp" },
-            { "video/3gpp2", ".3gp2" },
-            { "video/mp4", ".mp4" },
-            { "video/mpeg", ".mpg" },
-            { "video/quicktime", ".mov" },
-            { "video/vnd.dlna.mpeg-tts", ".m2t" },
-            { "video/x-dv", ".dv" },
-            { "video/x-la-asf", ".lsf" },
-            { "video/x-ms-asf", ".asf" },
-            { "x-world/x-vrml", ".xof" },
+            // Extensions from the retired mimeTypes.txt list that were not already mapped above.
+            // Compound suffixes (for example .tar.gz) are included for callers that pass them whole.
+            // FileInfo.Extension only returns the last segment, so those keys do not affect normal file lookups.
+
+            { ".123", "application/vnd.lotus-1-2-3" },
+            { ".3ds", "image/x-3ds" },
+            { ".669", "audio/x-mod" },
+            { ".a", "application/x-archive" },
+            { ".abw", "application/x-abiword" },
+            { ".abw.crashed", "application/x-abiword" },
+            { ".abw.gz", "application/x-abiword" },
+            { ".adb", "text/x-adasrc" },
+            { ".ads", "text/x-adasrc" },
+            { ".ag", "image/x-applix-graphics" },
+            { ".al", "application/x-perl" },
+            { ".aop", "application/x-frontline" },
+            { ".arj", "application/x-arj" },
+            { ".as", "application/x-applix-spreadsheet" },
+            { ".asc", "text/plain" },
+            { ".asix", "application/x-asix" },
+            { ".asp", "application/x-asp" },
+            { ".aw", "application/x-applix-word" },
+            { ".axd", "application/x-axd" },
+            { ".bak", "application/x-trash" },
+            { ".bay", "image/x-dcraw" },
+            { ".bdf", "application/x-font-bdf" },
+            { ".bib", "text/x-bibtex" },
+            { ".blend", "application/x-blender" },
+            { ".blender", "application/x-blender" },
+            { ".bmq", "image/x-dcraw" },
+            { ".boo", "text/x-boo" },
+            { ".bz", "application/x-bzip" },
+            { ".bz2", "application/x-bzip" },
+            { ".c++", "text/x-c++src" },
+            { ".caves", "application/x-gnome-stones" },
+            { ".cdr", "application/vnd.corel-draw" },
+            { ".cert", "application/x-x509-ca-cert" },
+            { ".cgi", "application/x-cgi" },
+            { ".cgm", "image/cgm" },
+            { ".chrt", "application/x-kchart" },
+            { ".cht", "application/chemtool" },
+            { ".cls", "text/x-tex" },
+            { ".cmbx", "application/x-cmbx" },
+            { ".connection", "application/x-gnome-db-connection" },
+            { ".cpio.gz", "application/x-cpio-compressed" },
+            { ".cr2", "image/x-dcraw" },
+            { ".crw", "image/x-dcraw" },
+            { ".cs1", "image/x-dcraw" },
+            { ".cssl", "text/css" },
+            { ".cue", "application/x-cue" },
+            { ".d", "text/x-dsrc" },
+            { ".database", "application/x-gnome-db-database" },
+            { ".dbf", "application/x-dbase" },
+            { ".dc", "application/x-dc-rom" },
+            { ".dc2", "image/x-dcraw" },
+            { ".dcl", "text/x-dcl" },
+            { ".dcm", "application/dicom" },
+            { ".deb", "application/x-deb" },
+            { ".desktop", "application/x-desktop" },
+            { ".devhelp", "application/x-devhelp" },
+            { ".dia", "application/x-dia-diagram" },
+            { ".diff", "text/x-patch" },
+            { ".display", "application/x-gdesklets-display" },
+            { ".djv", "image/vnd.djvu" },
+            { ".djvu", "image/vnd.djvu" },
+            { ".docbook", "application/docbook+xml" },
+            { ".dsl", "text/x-dsl" },
+            { ".ear", "application/x-java-archive" },
+            { ".ecma", "application/ecmascript" },
+            { ".egon", "application/x-egon" },
+            { ".el", "text/x-emacs-lisp" },
+            { ".epsf", "image/x-eps" },
+            { ".epsi", "image/x-eps" },
+            { ".etheme", "application/x-e-theme" },
+            { ".ez", "application/andrew-inset" },
+            { ".f", "text/x-fortran" },
+            { ".fff", "image/x-dcraw" },
+            { ".fig", "image/x-xfig" },
+            { ".fits", "image/x-fits" },
+            { ".flc", "video/x-flic" },
+            { ".fli", "video/x-flic" },
+            { ".flw", "application/x-kivio" },
+            { ".fo", "text/x-xslfo" },
+            { ".g3", "image/fax-g3" },
+            { ".gb", "application/x-gameboy-rom" },
+            { ".gcrd", "text/directory" },
+            { ".gen", "application/x-genesis-rom" },
+            { ".gf", "application/x-tex-gf" },
+            { ".gg", "application/x-sms-rom" },
+            { ".glabels", "application/x-glabels" },
+            { ".glade", "application/x-glade" },
+            { ".gmo", "application/x-gettext-translation" },
+            { ".gnc", "application/x-gnucash" },
+            { ".gnucash", "application/x-gnucash" },
+            { ".gnumeric", "application/x-gnumeric" },
+            { ".gpg", "application/pgp-encrypted" },
+            { ".gra", "application/x-graphite" },
+            { ".gsf", "application/x-font-type1" },
+            { ".h++", "text/x-chdr" },
+            { ".hh", "text/x-c++hdr" },
+            { ".hp", "text/x-chdr" },
+            { ".hpgl", "application/vnd.hp-hpgl" },
+            { ".hs", "text/x-haskell" },
+            { ".ica", "application/x-ica" },
+            { ".icb", "image/x-icb" },
+            { ".iff", "image/x-iff" },
+            { ".il", "text/x-msil" },
+            { ".ilbm", "image/x-ilbm" },
+            { ".iso", "application/x-cd-image" },
+            { ".jam", "application/x-jamin" },
+            { ".jng", "image/x-jng" },
+            { ".jp2", "image/jpeg2000" },
+            { ".jpr", "application/x-jbuilder-project" },
+            { ".jpx", "application/x-jbuilder-project" },
+            { ".k", "application/x-tex-pk" },
+            { ".k25", "image/x-dcraw" },
+            { ".karbon", "application/x-karbon" },
+            { ".kdc", "image/x-dcraw" },
+            { ".kdelnk", "application/x-desktop" },
+            { ".kfo", "application/x-kformula" },
+            { ".kil", "application/x-killustrator" },
+            { ".kino", "application/x-smil" },
+            { ".kon", "application/x-kontour" },
+            { ".kpm", "application/x-kpovmodeler" },
+            { ".kpr", "application/x-kpresenter" },
+            { ".kpt", "application/x-kpresenter" },
+            { ".kra", "application/x-krita" },
+            { ".ksp", "application/x-kspread" },
+            { ".kud", "application/x-kugar" },
+            { ".kwd", "application/x-kword" },
+            { ".kwt", "application/x-kword" },
+            { ".la", "application/x-shared-library-la" },
+            { ".lha", "application/x-lha" },
+            { ".lhs", "text/x-literate-haskell" },
+            { ".lhz", "application/x-lhz" },
+            { ".log", "text/x-log" },
+            { ".ltx", "text/x-tex" },
+            { ".lwo", "image/x-lwo" },
+            { ".lwob", "image/x-lwo" },
+            { ".lws", "image/x-lws" },
+            { ".lyx", "application/x-lyx" },
+            { ".lzo", "application/x-lzop" },
+            { ".m", "text/x-objcsrc" },
+            { ".m15", "audio/x-mod" },
+            { ".mds", "application/x-mds" },
+            { ".mdsx", "application/x-mdsx" },
+            { ".mergeant", "application/x-mergeant" },
+            { ".mgp", "application/x-magicpoint" },
+            { ".mif", "application/x-mif" },
+            { ".mm", "text/x-troff-mm" },
+            { ".mml", "text/mathml" },
+            { ".mng", "video/x-mng" },
+            { ".moc", "text/x-moc" },
+            { ".moov", "video/quicktime" },
+            { ".mos", "image/x-dcraw" },
+            { ".mps", "application/x-mps" },
+            { ".mrproject", "application/x-planner" },
+            { ".mrw", "image/x-dcraw" },
+            { ".msod", "image/x-msod" },
+            { ".msx", "application/x-msx-rom" },
+            { ".mtm", "audio/x-mod" },
+            { ".n", "text/x-nemerle" },
+            { ".n64", "application/x-n64-rom" },
+            { ".nb", "application/mathematica" },
+            { ".nef", "image/x-dcraw" },
+            { ".nes", "application/x-nes-rom" },
+            { ".nsv", "video/x-nsv" },
+            { ".o", "application/x-object" },
+            { ".obj", "application/x-tgif" },
+            { ".old", "application/x-trash" },
+            { ".oleo", "application/x-oleo" },
+            { ".orf", "image/x-dcraw" },
+            { ".p", "text/x-pascal" },
+            { ".par2", "application/x-par2" },
+            { ".pas", "text/x-pascal" },
+            { ".patch", "text/x-patch" },
+            { ".pcd", "image/x-photo-cd" },
+            { ".pcf", "application/x-font-pcf" },
+            { ".pcf.gz", "application/x-font-pcf" },
+            { ".pcf.z", "application/x-font-type1" },
+            { ".pcl", "application/vnd.hp-pcl" },
+            { ".pdb", "application/vnd.palm" },
+            { ".pef", "image/x-dcraw" },
+            { ".pem", "application/x-x509-ca-cert" },
+            { ".perl", "application/x-perl" },
+            { ".pfa", "application/x-font-type1" },
+            { ".pgn", "application/x-chess-pgn" },
+            { ".pgp", "application/pgp-encrypted" },
+            { ".php", "application/x-php" },
+            { ".php3", "application/x-php" },
+            { ".php4", "application/x-php" },
+            { ".pict1", "image/x-pict" },
+            { ".pict2", "image/x-pict" },
+            { ".pkr", "application/pgp-keys" },
+            { ".pl", "application/x-perl" },
+            { ".planner", "application/x-planner" },
+            { ".pln", "application/x-planperfect" },
+            { ".pm", "application/x-perl" },
+            { ".po", "text/x-gettext-translation" },
+            { ".ppz", "application/vnd.ms-powerpoint" },
+            { ".prc", "application/x-palm-database" },
+            { ".prj", "application/x-anjuta-project" },
+            { ".prjx", "application/x-prjx" },
+            { ".ps.gz", "application/x-gzpostscript" },
+            { ".psf", "application/x-font-linux-psf" },
+            { ".psid", "audio/prs.sid" },
+            { ".pto", "application/x-ptoptimizer-script" },
+            { ".pw", "application/x-pw" },
+            { ".py", "text/x-python" },
+            { ".pyc", "application/x-python-bytecode" },
+            { ".pyo", "application/x-python-bytecode" },
+            { ".qif", "application/x-qw" },
+            { ".qtvr", "video/quicktime" },
+            { ".raf", "image/x-dcraw" },
+            { ".rdc", "image/x-dcraw" },
+            { ".rdf", "text/rdf" },
+            { ".rdp", "application/x-rdp" },
+            { ".rej", "application/x-reject" },
+            { ".rem", "application/x-remoting" },
+            { ".resources", "application/x-resources" },
+            { ".rle", "image/rle" },
+            { ".rmm", "audio/x-pn-realaudio" },
+            { ".rms", "application/vnd.rn-realmedia-secure" },
+            { ".rng", "text/x-rng" },
+            { ".rss", "text/rss" },
+            { ".rt", "text/vnd.rn-realtext" },
+            { ".rv", "video/vnd.rn-realvideo" },
+            { ".s3m", "audio/x-s3m" },
+            { ".sam", "application/x-amipro" },
+            { ".sc", "application/x-sc" },
+            { ".scd.gz", "application/x-scribus" },
+            { ".scm", "text/x-scheme" },
+            { ".sda", "application/vnd.stardivision.draw" },
+            { ".sdc", "application/vnd.stardivision.calc" },
+            { ".sdd", "application/vnd.stardivision.impress" },
+            { ".sds", "application/vnd.stardivision.chart" },
+            { ".sdw", "application/vnd.stardivision.writer" },
+            { ".sgi", "image/x-sgi" },
+            { ".sgl", "application/vnd.stardivision.writer" },
+            { ".sgm", "text/sgml" },
+            { ".siag", "application/x-siag" },
+            { ".sid", "audio/prs.sid" },
+            { ".sig", "application/pgp-signature" },
+            { ".sik", "application/x-trash" },
+            { ".skr", "application/pgp-keys" },
+            { ".sla", "application/x-scribus" },
+            { ".sla.gz", "application/x-scribus" },
+            { ".smf", "application/vnd.stardivision.math" },
+            { ".smil", "application/smil" },
+            { ".sml", "application/smil" },
+            { ".sms", "application/x-sms-rom" },
+            { ".so", "application/x-sharedlib" },
+            { ".soap", "application/x-soap-remoting" },
+            { ".spd", "application/x-font-speedo" },
+            { ".sql", "text/x-sql" },
+            { ".stc", "application/vnd.sun.xml.calc.template" },
+            { ".std", "application/vnd.sun.xml.draw.template" },
+            { ".sti", "application/vnd.sun.xml.impress.template" },
+            { ".stm", "audio/x-stm" },
+            { ".stw", "application/vnd.sun.xml.writer.template" },
+            { ".sty", "text/x-tex" },
+            { ".sun", "image/x-sun-raster" },
+            { ".sxc", "application/vnd.sun.xml.calc" },
+            { ".sxd", "application/vnd.sun.xml.draw" },
+            { ".sxg", "application/vnd.sun.xml.writer.global" },
+            { ".sxi", "application/vnd.sun.xml.impress" },
+            { ".sxm", "application/vnd.sun.xml.math" },
+            { ".sxw", "application/vnd.sun.xml.writer" },
+            { ".sylk", "text/spreadsheet" },
+            { ".tar.bz", "application/x-bzip-compressed-tar" },
+            { ".tar.bz2", "application/x-bzip-compressed-tar" },
+            { ".tar.gz", "application/x-compressed-tar" },
+            { ".tar.lzo", "application/x-lzop-compressed-tar" },
+            { ".tar.z", "application/x-compressed-tar" },
+            { ".taz", "application/x-compressed-tar" },
+            { ".tbz", "application/x-bzip-compressed-tar" },
+            { ".tbz2", "application/x-bzip-compressed-tar" },
+            { ".tga", "image/x-tga" },
+            { ".theme", "application/x-theme" },
+            { ".tk", "text/x-tcl" },
+            { ".tm", "text/x-texmacs" },
+            { ".torrent", "application/x-bittorrent" },
+            { ".tzo", "application/x-lzop-compressed-tar" },
+            { ".ui", "application/x-designer" },
+            { ".uil", "text/x-uil" },
+            { ".ult", "audio/x-mod" },
+            { ".uni", "audio/x-mod" },
+            { ".uri", "text/x-uri" },
+            { ".url", "text/x-uri" },
+            { ".vct", "text/directory" },
+            { ".vob", "video/mpeg" },
+            { ".voc", "audio/x-voc" },
+            { ".vor", "application/vnd.stardivision.writer" },
+            { ".war", "application/x-java-archive" },
+            { ".wb1", "application/x-quattro-pro" },
+            { ".wb2", "application/x-quattro-pro" },
+            { ".wb3", "application/x-quattro-pro" },
+            { ".wk1", "application/vnd.lotus-1-2-3" },
+            { ".wk3", "application/vnd.lotus-1-2-3" },
+            { ".wk4", "application/vnd.lotus-1-2-3" },
+            { ".wpd", "application/vnd.wordperfect" },
+            { ".wpg", "application/x-wpg" },
+            { ".x3f", "image/x-dcraw" },
+            { ".xac", "application/x-gnucash" },
+            { ".xbel", "application/x-xbel" },
+            { ".xcf", "image/x-xcf" },
+            { ".xcf.bz2", "image/x-compressed-xcf" },
+            { ".xcf.gz", "image/x-compressed-xcf" },
+            { ".xds", "text/x-xds" },
+            { ".xi", "audio/x-xi" },
+            { ".xm", "audio/x-xm" },
+            { ".xmi", "text/x-xmi" },
+            { ".xpl", "audio/x-scpls" },
+            { ".xslfo", "text/x-xslfo" },
+            { ".xul", "application/vnd.mozilla.xul+xml" },
+            { ".ymp", "text/x-suse-ymp" },
+            { ".ymu", "text/x-suse-ymu" },
+            { ".zabw", "application/x-abiword" },
+            { ".zoo", "application/x-zoo" },
 
             #endregion Big list of mime types
         };
-
-        var cache = mappings.ToList(); // need ToList() to avoid modifying while still enumerating
-
-        foreach (var mapping in cache)
-        {
-            if (!mappings.ContainsKey(mapping.Value))
-            {
-                mappings.Add(mapping.Value, mapping.Key);
-            }
-        }
 
         return mappings;
     }
