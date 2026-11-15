@@ -1,3 +1,4 @@
+using System.Drawing;
 using elFinder.NetCore.Ffmpeg;
 using Xabe.FFmpeg;
 
@@ -119,6 +120,27 @@ public class DefaultVideoEditor : IVideoEditor
         }
         catch (IOException)
         {
+        }
+    }
+    public async Task<Size> GetVideoSize(string videoPath)
+    {
+        // Optional: Point to the folder containing ffmpeg.exe and ffprobe.exe if not in PATH
+        // FFmpeg.SetExecutablesPath(@"C:\Tools\ffmpeg");
+
+        var mediaInfo = await FFmpeg.GetMediaInfo(videoPath);
+        var videoStream = mediaInfo.VideoStreams.FirstOrDefault();
+
+        Size size = new();
+        if (videoStream != null)
+        {
+            size.Width = videoStream.Width;
+            size.Height = videoStream.Height;
+
+            return size;
+        }
+        else
+        {
+            return new Size(-1, -1);
         }
     }
 }

@@ -1,3 +1,5 @@
+using System.Drawing;
+
 namespace elFinder.NetCore.Drawing;
 
 /// <summary>
@@ -19,4 +21,9 @@ public interface IVideoEditor
         int size,
         bool keepAspectRatio,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the width and height of an video.
+    /// </summary>
+    Task<Size> GetVideoSize(string videoPath);
 }
