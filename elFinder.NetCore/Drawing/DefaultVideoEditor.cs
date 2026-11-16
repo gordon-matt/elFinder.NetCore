@@ -1,3 +1,4 @@
+using System.Drawing;
 using elFinder.NetCore.Ffmpeg;
 using Xabe.FFmpeg;
 
@@ -119,6 +120,29 @@ public class DefaultVideoEditor : IVideoEditor
         }
         catch (IOException)
         {
+        }
+    }
+
+    public async Task<Size?> GetVideoSize(string videoPath)
+    {
+        try
+        {
+            var mediaInfo = await FFmpeg.GetMediaInfo(videoPath);
+            var videoStream = mediaInfo.VideoStreams.FirstOrDefault();
+
+            return videoStream is not null
+                ? videoStream.Width <= 0 || videoStream.Height <= 0
+                    ? null
+                    : new()
+                    {
+                        Width = videoStream.Width,
+                        Height = videoStream.Height
+                    }
+                : null;
+        }
+        catch
+        {
+            return null;
         }
     }
 }
