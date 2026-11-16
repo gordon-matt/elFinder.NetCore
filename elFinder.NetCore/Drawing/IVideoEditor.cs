@@ -25,5 +25,5 @@ public interface IVideoEditor
     /// <summary>
     /// Gets the width and height of an video.
     /// </summary>
-    Task<Size> GetVideoSize(string videoPath);
+    Task<Size?> GetVideoSize(string videoPath);
 }
