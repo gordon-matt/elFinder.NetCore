@@ -1,4 +1,5 @@
 ﻿using elFinder.NetCore.Drivers.FileSystem;
+using elFinder.NetCore.Helpers;
 using Microsoft.AspNetCore.Http.Extensions;
 
 namespace elFinder.NetCore.Web.Controllers;
@@ -6,6 +7,15 @@ namespace elFinder.NetCore.Web.Controllers;
 [Route("el-finder/file-system")]
 public class FileSystemController : Controller
 {
+    private readonly IConfiguration config;
+
+    public FileSystemController(IConfiguration config)
+    {
+        this.config = config;
+
+        // Extensions listed under elFinder:MimeTypeMap override the built-in map and can add new ones.
+        MimeHelper.Configure(config);
+    }
     [Route("connector")]
     public async Task<IActionResult> Connector()
     {
