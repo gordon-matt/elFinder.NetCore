@@ -74,12 +74,17 @@ public abstract class BaseModel
             // A video frame is captured when the thumbnail is requested. Listing only publishes the hash.
             if (volume.VideoEditor.CanProcessFile(file.Extension))
             {
-                var dim = await volume.VideoEditor.GetVideoSize(file.FullName);
-                response = new ImageModel
-                {
-                    Thumbnail = await volume.GenerateThumbHashAsync(file),
-                    Dimension=$"{dim.Width}x{dim.Height}"
-                };
+                Size? dim = await volume.VideoEditor.GetVideoSize(file.FullName);
+                response = dim != null
+                    ? new ImageModel
+                    {
+                        Thumbnail = await volume.GenerateThumbHashAsync(file),
+                        Dimension = $"{dim.Value.Width}x{dim.Value.Height}"
+                    }
+                    : new ImageModel
+                    {
+                        Thumbnail = await volume.GenerateThumbHashAsync(file)
+                    };
             }
             else
             {
