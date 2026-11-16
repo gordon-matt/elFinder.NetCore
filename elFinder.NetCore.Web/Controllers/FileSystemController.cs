@@ -1,4 +1,4 @@
-﻿using elFinder.NetCore.Drivers.FileSystem;
+using elFinder.NetCore.Drivers.FileSystem;
 using elFinder.NetCore.Ffmpeg;
 using elFinder.NetCore.Helpers;
 using Microsoft.AspNetCore.Http.Extensions;
