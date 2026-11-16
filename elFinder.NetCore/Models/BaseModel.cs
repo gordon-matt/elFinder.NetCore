@@ -76,16 +76,11 @@ public abstract class BaseModel
             if (volume.VideoEditor.CanProcessFile(file.Extension))
             {
                 var dim = await volume.VideoEditor.GetVideoSize(file.FullName);
-                response = dim != null
-                    ? new ImageModel
-                    {
-                        Thumbnail = await volume.GenerateThumbHashAsync(file),
-                        Dimension = $"{dim.Value.Width}x{dim.Value.Height}"
-                    }
-                    : new ImageModel
-                    {
-                        Thumbnail = await volume.GenerateThumbHashAsync(file)
-                    };
+                response = new ImageModel
+                {
+                    Thumbnail = await volume.GenerateThumbHashAsync(file),
+                    Dimension=$"{dim.Width}x{dim.Height}"
+                };
             }
             else
             {
