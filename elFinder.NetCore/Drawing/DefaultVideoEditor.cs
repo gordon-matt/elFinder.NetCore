@@ -124,18 +124,25 @@ public class DefaultVideoEditor : IVideoEditor
     }
     public async Task<Size?> GetVideoSize(string videoPath)
     {
-        var mediaInfo = await FFmpeg.GetMediaInfo(videoPath);
-        var videoStream = mediaInfo.VideoStreams.FirstOrDefault();
-
-        Size size = new();
-        if (videoStream != null)
+        try
         {
-            size.Width = videoStream.Width;
-            size.Height = videoStream.Height;
+            var mediaInfo = await FFmpeg.GetMediaInfo(videoPath);
+            var videoStream = mediaInfo.VideoStreams.FirstOrDefault();
 
-            return size;
+            Size size = new();
+            if (videoStream != null)
+            {
+                size.Width = videoStream.Width;
+                size.Height = videoStream.Height;
+
+                return size;
+            }
+            else
+            {
+                return null;
+            }
         }
-        else
+        catch
         {
             return null;
         }
