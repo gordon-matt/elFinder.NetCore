@@ -8,40 +8,6 @@ namespace elFinder.NetCore.Web.Controllers;
 [Route("el-finder/file-system")]
 public class FileSystemController : Controller
 {
-    private readonly IWebHostEnvironment env;
-    private readonly IConfiguration config;
-    private readonly ILogger<FileSystemController> logger;
-
-    public FileSystemController(IWebHostEnvironment env, IConfiguration config, ILogger<FileSystemController> logger)
-    {
-        this.env = env;
-        this.config = config;
-        this.logger = logger;
-
-        // Extensions listed under elFinder:MimeTypeMap override the built-in map and can add new ones.
-        MimeHelper.Configure(config);
-
-        // Video thumbnails need ffmpeg and ffprobe. An official build is downloaded into ./ffmpeg
-        // only when neither is already installed. That folder is gitignored.
-        try
-        {
-            FfmpegBootstrap.EnsureAsync(
-                new FfmpegBootstrapOptions
-                {
-                    PreferLinuxSystemDirectory = true,
-                    SearchWellKnownLocations = true,
-                    SearchApplicationDirectories = true,
-                    DownloadDirectory = Path.Combine(env.ContentRootPath, "ffmpeg"),
-                    DownloadIfMissing = true,
-                    RequireFfprobe = true
-                },
-                logger).Wait();
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "FFmpeg setup failed. Video thumbnails are disabled.");
-        }
-    }
     [Route("connector")]
     public async Task<IActionResult> Connector()
     {
