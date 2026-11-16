@@ -2,6 +2,7 @@
 using elFinder.NetCore.Helpers;
 using elFinder.NetCore.Web;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.StaticFiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,7 +52,15 @@ else
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+
+// The built-in static-file map has no .mkv entry. Unknown types are skipped, then nothing else
+// handles /Files and the browser gets a 404. Playback uses that URL because the demo volume publishes it.
+var contentTypes = new FileExtensionContentTypeProvider();
+contentTypes.Mappings[".mkv"] = MimeHelper.GetMimeType(".mkv");
+app.UseStaticFiles(new StaticFileOptions
+{
+    ContentTypeProvider = contentTypes
+});
 app.UseRouting();
 
 app.MapControllerRoute(
