@@ -11,7 +11,6 @@
 		<RepositoryType>git</RepositoryType>
 		<PackageIcon>Icon.png</PackageIcon>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<Version>1.8.1</Version>
 		<OutputType>Library</OutputType>
 		<IsPackable>true</IsPackable>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -25,8 +24,8 @@
 		<InternalsVisibleTo Include="elFinder.NetCore.Tests" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="15.1.0" />
-		<PackageReference Include="Xabe.FFmpeg" Version="6.1.1" />
-		<PackageReference Include="Xabe.FFmpeg.Downloader" Version="6.1.1" />
+		<PackageReference Include="Magick.NET-Q8-AnyCPU" />
+		<PackageReference Include="Xabe.FFmpeg" />
+		<PackageReference Include="Xabe.FFmpeg.Downloader" />
 	</ItemGroup>
 </Project>
