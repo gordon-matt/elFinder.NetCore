@@ -56,8 +56,14 @@ public class DefaultPictureEditor : IPictureEditor
 
     public Size ImageSize(Stream input)
     {
-        using var image = new MagickImage(input);
-        return new Size((int)image.Width, (int)image.Height);
+        var info = new MagickImageInfo(input);
+        return new Size((int)info.Width, (int)info.Height);
+    }
+
+    public Size ImageSize(string filePath)
+    {
+        var info = new MagickImageInfo(filePath);
+        return new Size((int)info.Width, (int)info.Height);
     }
 
     public ImageWithMimeType Resize(Stream input, int width, int height)

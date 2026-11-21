@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using System.Drawing;
+using System.IO.Compression;
 using System.Net.Mime;
 using elFinder.NetCore.Drawing;
 using elFinder.NetCore.Exceptions;
@@ -141,9 +142,19 @@ public partial class FileSystemDriver : BaseDriver, IDriver
 
     public async Task<JsonResult> DimAsync(FullPath path)
     {
+        if (path.RootVolume.VideoEditor.CanProcessFile(path.File.Extension))
+        {
+            Size? size = await path.RootVolume.VideoEditor.GetVideoSize(path.File.FullName);
+            if (size is null)
+            {
+                return Error.InvalidCommandParams("dim");
+            }
+
+            return await Json(new DimResponseModel(size.Value));
+        }
+
         using var stream = new FileStream(path.File.FullName, FileMode.Open);
-        var response = new DimResponseModel(path.RootVolume.PictureEditor.ImageSize(stream));
-        return await Json(response);
+        return await Json(new DimResponseModel(path.RootVolume.PictureEditor.ImageSize(stream)));
     }
 
     public async Task<JsonResult> DuplicateAsync(IEnumerable<FullPath> paths)

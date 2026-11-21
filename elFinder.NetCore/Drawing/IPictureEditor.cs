@@ -38,6 +38,11 @@ public interface IPictureEditor
     Size ImageSize(Stream input);
 
     /// <summary>
+    /// Gets the width and height from the image header, without decoding the bitmap.
+    /// </summary>
+    Size ImageSize(string filePath);
+
+    /// <summary>
     /// Resizes an image to the requested dimensions.
     /// </summary>
     ImageWithMimeType Resize(Stream input, int width, int height);

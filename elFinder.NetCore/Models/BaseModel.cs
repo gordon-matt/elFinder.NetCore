@@ -1,4 +1,5 @@
-﻿using elFinder.NetCore.Drivers;
+﻿using System.Drawing;
+using elFinder.NetCore.Drivers;
 using elFinder.NetCore.Extensions;
 using elFinder.NetCore.Helpers;
 
@@ -71,10 +72,10 @@ public abstract class BaseModel
         FileModel response;
         if (volume.CanCreateThumbnail(file) && fileLength > 0)
         {
-            // A video frame is captured when the thumbnail is requested. Listing only publishes the hash.
+            // The preview reads dim from this response. Image dimensions come from the header, not a full decode.
             if (volume.VideoEditor.CanProcessFile(file.Extension))
             {
-                var videoSize = await volume.VideoEditor.GetVideoSize(file.FullName);
+                Size? videoSize = await volume.VideoEditor.GetVideoSize(file.FullName);
                 response = new ImageModel
                 {
                     Thumbnail = await volume.GenerateThumbHashAsync(file),
@@ -83,10 +84,9 @@ public abstract class BaseModel
             }
             else
             {
-                using var stream = await file.OpenReadAsync();
                 try
                 {
-                    var dim = volume.PictureEditor.ImageSize(stream);
+                    Size dim = volume.PictureEditor.ImageSize(file.FullName);
                     response = new ImageModel
                     {
                         Thumbnail = await volume.GenerateThumbHashAsync(file),
@@ -95,7 +95,7 @@ public abstract class BaseModel
                 }
                 catch
                 {
-                    // Fix for non-standard formats
+                    // A file with an image extension that is not a readable image still has to appear in the listing.
                     // https://github.com/gordon-matt/elFinder.NetCore/issues/36
                     response = new FileModel();
                 }
