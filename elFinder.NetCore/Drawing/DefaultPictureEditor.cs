@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Drawing;
 using ImageMagick;
 
@@ -8,6 +9,10 @@ namespace elFinder.NetCore.Drawing;
 /// </summary>
 public class DefaultPictureEditor : IPictureEditor
 {
+    private const int MaxCachedDimensions = 20000;
+
+    private static readonly ConcurrentDictionary<string, Size> dimensionCache = new(StringComparer.Ordinal);
+
     public DefaultPictureEditor(Color backgroundColor)
     {
         BackgroundColor = backgroundColor;
@@ -56,13 +61,54 @@ public class DefaultPictureEditor : IPictureEditor
 
     public Size ImageSize(Stream input)
     {
-        var info = new MagickImageInfo(input);
-        return new Size((int)info.Width, (int)info.Height);
+        if (input.CanSeek && ImageMetadataSize.TryRead(input, out var size))
+        {
+            return size;
+        }
+
+        if (input.CanSeek)
+        {
+            input.Position = 0;
+        }
+
+        return ReadSizeWithMagick(input);
     }
 
     public Size ImageSize(string filePath)
     {
-        var info = new MagickImageInfo(filePath);
+        var file = new FileInfo(filePath);
+        string key = string.Concat(file.FullName, "|", file.Length.ToString(), "|", file.LastWriteTimeUtc.Ticks.ToString());
+        if (dimensionCache.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+
+        Size size;
+        using (var stream = file.OpenRead())
+        {
+            if (!ImageMetadataSize.TryRead(stream, out size))
+            {
+                size = ReadSizeWithMagick(stream);
+            }
+        }
+
+        if (dimensionCache.Count >= MaxCachedDimensions)
+        {
+            dimensionCache.Clear();
+        }
+
+        dimensionCache[key] = size;
+        return size;
+    }
+
+    private static Size ReadSizeWithMagick(Stream input)
+    {
+        if (input.CanSeek)
+        {
+            input.Position = 0;
+        }
+
+        var info = new MagickImageInfo(input);
         return new Size((int)info.Width, (int)info.Height);
     }
 

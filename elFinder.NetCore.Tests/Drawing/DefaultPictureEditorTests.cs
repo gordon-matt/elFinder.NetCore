@@ -17,6 +17,43 @@ public class DefaultPictureEditorTests
     }
 
     [Fact]
+    public void ImageSize_UsesMagickWhenHeaderReadThrows()
+    {
+        using var input = CreateImage(90, 40);
+        using var stream = new ThrowOnceStream(input);
+        Assert.Equal(new Size(90, 40), _editor.ImageSize(stream));
+    }
+
+    [Theory]
+    [InlineData(MagickFormat.Jpeg, 30, 18)]
+    [InlineData(MagickFormat.Png, 7, 13)]
+    [InlineData(MagickFormat.Gif, 64, 40)]
+    [InlineData(MagickFormat.Bmp, 21, 9)]
+    [InlineData(MagickFormat.WebP, 48, 32)]
+    [InlineData(MagickFormat.Tiff, 15, 11)]
+    [InlineData(MagickFormat.Avif, 19, 17)]
+    public void ImageSize_File_ReadsHeaderOrFallsBack(MagickFormat format, int width, int height)
+    {
+        string path = Path.Combine(Path.GetTempPath(), "elfinder-dim-" + Guid.NewGuid().ToString("N") + "." + format.ToString().ToLowerInvariant());
+        try
+        {
+            WriteImage(path, (uint)width, (uint)height, format);
+            Assert.Equal(new Size(width, height), _editor.ImageSize(path));
+            Assert.Equal(new Size(width, height), _editor.ImageSize(path));
+
+            WriteImage(path, (uint)(width + 4), (uint)(height + 2), format);
+            Assert.Equal(new Size(width + 4, height + 2), _editor.ImageSize(path));
+        }
+        finally
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+    }
+
+    [Fact]
     public void GenerateThumbnail_PreservesAspectRatio()
     {
         using var input = CreateImage(120, 80);
@@ -105,6 +142,60 @@ public class DefaultPictureEditorTests
     [InlineData(".tiff", ".png")]
     public void ConvertThumbnailExtension_MatchesBytesWrittenForFormat(string extension, string expected) =>
         Assert.Equal(expected, _editor.ConvertThumbnailExtension(extension));
+
+    private sealed class ThrowOnceStream : Stream
+    {
+        private readonly Stream inner;
+        private int reads;
+
+        public ThrowOnceStream(Stream inner)
+        {
+            this.inner = inner;
+        }
+
+        public override bool CanRead => true;
+
+        public override bool CanSeek => true;
+
+        public override bool CanWrite => false;
+
+        public override long Length => inner.Length;
+
+        public override long Position
+        {
+            get => inner.Position;
+            set => inner.Position = value;
+        }
+
+        public override void Flush()
+        {
+        }
+
+        public override int Read(byte[] buffer, int offset, int count) => Read(buffer.AsSpan(offset, count));
+
+        public override int Read(Span<byte> buffer)
+        {
+            reads++;
+            if (reads == 2)
+            {
+                throw new IOException("header read failed");
+            }
+
+            return inner.Read(buffer);
+        }
+
+        public override long Seek(long offset, SeekOrigin origin) => inner.Seek(offset, origin);
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+    }
+
+    private static void WriteImage(string path, uint width, uint height, MagickFormat format)
+    {
+        using var image = new MagickImage(MagickColors.CornflowerBlue, width, height);
+        image.Write(path, format);
+    }
 
     private static MemoryStream CreateImage(uint width, uint height, MagickFormat format = MagickFormat.Png)
     {
