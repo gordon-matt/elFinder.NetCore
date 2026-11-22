@@ -127,6 +127,19 @@ public class DefaultVideoEditor : IVideoEditor
     {
         try
         {
+            using var stream = File.OpenRead(videoPath);
+            if (MetadataReader.TryReadSize(stream, out Size headerSize))
+            {
+                return headerSize;
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+
+        try
+        {
             var mediaInfo = await FFmpeg.GetMediaInfo(videoPath);
             var videoStream = mediaInfo.VideoStreams.FirstOrDefault();
 

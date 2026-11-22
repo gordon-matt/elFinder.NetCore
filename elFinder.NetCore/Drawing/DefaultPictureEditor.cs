@@ -61,7 +61,7 @@ public class DefaultPictureEditor : IPictureEditor
 
     public Size ImageSize(Stream input)
     {
-        if (input.CanSeek && ImageMetadataSize.TryRead(input, out var size))
+        if (input.CanSeek && MetadataReader.TryReadSize(input, out var size))
         {
             return size;
         }
@@ -86,7 +86,7 @@ public class DefaultPictureEditor : IPictureEditor
         Size size;
         using (var stream = file.OpenRead())
         {
-            if (!ImageMetadataSize.TryRead(stream, out size))
+            if (!MetadataReader.TryReadSize(stream, out size))
             {
                 size = ReadSizeWithMagick(stream);
             }
