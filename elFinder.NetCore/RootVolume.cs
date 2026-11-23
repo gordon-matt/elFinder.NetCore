@@ -21,6 +21,7 @@ public class RootVolume
         string rootDirectory,
         string url,
         string thumbnailsUrl = null,
+        string thumbnailDirectory = null,
         char directorySeparatorChar = default)
     {
         if (rootDirectory == null)
@@ -34,6 +35,7 @@ public class RootVolume
         UploadOverwrite = true;
         PictureEditor = new DefaultPictureEditor();
         VideoEditor = new DefaultVideoEditor(PictureEditor);
+        ThumbnailDirectory= thumbnailDirectory;
 
         // https://github.com/EvgenNoskov/Elfinder.NET/blob/fb19f17a3682ed81cadcfea978dcce575806eebd/docs/Documentation.md
         if (!string.IsNullOrEmpty(thumbnailsUrl))
@@ -45,7 +47,7 @@ public class RootVolume
             ? Path.DirectorySeparatorChar
             : directorySeparatorChar; // Can be changed for other providers
 
-        ThumbnailDirectory = $"{rootDirectory}{DirectorySeparatorChar}.tmb";
+        ThumbnailDirectory = thumbnailDirectory == null ? $"{rootDirectory}{DirectorySeparatorChar}.tmb" : thumbnailDirectory;
         UploadOrder = ["deny", "allow"];
     }
 
@@ -139,7 +141,7 @@ public class RootVolume
     /// <summary>
     /// Get ot sets thumbnals directory
     /// </summary>
-    public string ThumbnailDirectory { get; private set; }
+    public string ThumbnailDirectory { get; set; }
 
     /// <summary>
     /// Thumbnails size in pixels. Thumbnails are square
