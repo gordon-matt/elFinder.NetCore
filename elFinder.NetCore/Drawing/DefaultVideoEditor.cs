@@ -1,4 +1,5 @@
 using System.Drawing;
+using System.Globalization;
 using elFinder.NetCore.Ffmpeg;
 using Xabe.FFmpeg;
 
@@ -43,8 +44,8 @@ public class DefaultVideoEditor : IVideoEditor
         try
         {
             var at = await GetMidpointAsync(videoPath, cancellationToken);
-            bool captured = await TryCaptureAsync(videoPath, tempFile, at, cancellationToken)
-                || (at > TimeSpan.Zero && await TryCaptureAsync(videoPath, tempFile, TimeSpan.Zero, cancellationToken));
+            bool captured = await TryCaptureAsync(videoPath, tempFile, at, size, keepAspectRatio, cancellationToken)
+                || (at > TimeSpan.Zero && await TryCaptureAsync(videoPath, tempFile, TimeSpan.Zero, size, keepAspectRatio, cancellationToken));
             if (!captured)
             {
                 return null;
@@ -86,17 +87,34 @@ public class DefaultVideoEditor : IVideoEditor
         string videoPath,
         string outputPath,
         TimeSpan at,
+        int size,
+        bool keepAspectRatio,
         CancellationToken cancellationToken)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(CaptureTimeout);
         try
         {
-            var conversion = await FFmpeg.Conversions.FromSnippet.Snapshot(videoPath, outputPath, at);
-            conversion.SetOverwriteOutput(true);
-            // A crafted file can otherwise make ffmpeg open http, concat, or subfile targets.
-            conversion.AddParameter("-nostdin -protocol_whitelist file", ParameterPosition.PreInput);
-            await conversion.Start(timeout.Token);
+            // -ss before -i stops at the nearest keyframe, so ffmpeg does not decode up to the exact time.
+            // The scale filter writes a thumbnail-sized frame. Snapshot() would probe the file again and
+            // leave a full-size image for Magick to shrink.
+            string seek = at.TotalSeconds.ToString("0.###", CultureInfo.InvariantCulture);
+            string scale = keepAspectRatio
+                ? $"scale={size}:{size}:force_original_aspect_ratio=decrease"
+                : $"scale={size}:{size}";
+            string arguments = string.Join(' ',
+                "-nostdin",
+                "-protocol_whitelist", "file",
+                "-ss", seek,
+                "-i", Quote(videoPath),
+                "-an",
+                "-frames:v", "1",
+                "-vf", scale,
+                "-q:v", "5",
+                "-y",
+                Quote(outputPath));
+
+            await FFmpeg.Conversions.New().Start(arguments, timeout.Token);
             return File.Exists(outputPath) && new FileInfo(outputPath).Length > 0;
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
@@ -108,6 +126,8 @@ public class DefaultVideoEditor : IVideoEditor
             return false;
         }
     }
+
+    private static string Quote(string path) => "\"" + path.Replace("\"", "\\\"") + "\"";
 
     private static void TryDelete(string path)
     {

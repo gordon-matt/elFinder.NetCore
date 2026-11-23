@@ -63,6 +63,15 @@ public class DefaultPictureEditorTests
     }
 
     [Fact]
+    public void GenerateThumbnail_LargeJpeg_FitsInsideTheRequestedBox()
+    {
+        using var input = CreateImage(1600, 800, MagickFormat.Jpeg);
+        using var result = _editor.GenerateThumbnail(input, 80, true);
+        Assert.Equal("image/jpeg", result.MimeType);
+        Assert.Equal(new Size(80, 40), ReadSize(result.ImageStream));
+    }
+
+    [Fact]
     public void GenerateThumbnail_CanCreateSquareImage()
     {
         using var input = CreateImage(120, 80);

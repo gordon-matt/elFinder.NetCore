@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Drawing;
 using ImageMagick;
+using ImageMagick.Formats;
 
 namespace elFinder.NetCore.Drawing;
 
@@ -54,8 +55,19 @@ public class DefaultPictureEditor : IPictureEditor
 
     public ImageWithMimeType GenerateThumbnail(Stream input, int size, bool keepAspectRatio)
     {
-        using var image = new MagickImage(input);
-        image.Resize(new MagickGeometry((uint)size, (uint)size) { IgnoreAspectRatio = !keepAspectRatio });
+        // jpeg:size makes libjpeg decode at 1/2, 1/4, or 1/8. Other formats ignore the define.
+        // Thumbnail() then fits the exact box and is cheaper than Resize on what remains.
+        var settings = new MagickReadSettings();
+        settings.SetDefines(new JpegReadDefines
+        {
+            Size = new MagickGeometry((uint)size, (uint)size)
+        });
+
+        using var image = new MagickImage(input, settings);
+        image.Thumbnail(new MagickGeometry((uint)size, (uint)size)
+        {
+            IgnoreAspectRatio = !keepAspectRatio
+        });
         return SaveImage(image);
     }
 
