@@ -69,15 +69,9 @@ public class FullPath
             var thumbFile = File.FullName.StartsWith(RootVolume.ThumbnailDirectory)
                 ? File
                 : File.Open($"{RootVolume.ThumbnailDirectory}{RootVolume.DirectorySeparatorChar}{RelativePath}");
+            await EnsureHiddenThumbnailDirectoryAsync(thumbFile.Directory);
             if (!await thumbFile.ExistsAsync)
             {
-                var thumbDir = thumbFile.Directory;
-                if (!await thumbDir.ExistsAsync)
-                {
-                    await thumbDir.CreateAsync();
-                    thumbDir.Attributes = FileAttributes.Hidden;
-                }
-
                 var thumb = await CreateThumbnailAsync(fullPath, cancellationToken);
                 if (thumb == null)
                 {
@@ -98,6 +92,69 @@ public class FullPath
 
         return await CreateThumbnailAsync(fullPath, cancellationToken);
     }
+
+    private async Task EnsureHiddenThumbnailDirectoryAsync(IDirectory thumbDirectory)
+    {
+        // Directory.Create creates missing parents, and only the leaf was marked hidden.
+        var missing = new List<IDirectory>();
+        var current = thumbDirectory;
+        while (current != null && !await current.ExistsAsync)
+        {
+            missing.Add(current);
+            current = current.Parent;
+        }
+
+        if (missing.Count > 0)
+        {
+            await thumbDirectory.CreateAsync();
+        }
+
+        foreach (var directory in missing)
+        {
+            await MarkHiddenAsync(directory);
+        }
+
+        string thumbnailRoot = NormalizePath(RootVolume.ThumbnailDirectory);
+        current = thumbDirectory;
+        while (current != null && IsInsideDirectory(NormalizePath(current.FullName), thumbnailRoot))
+        {
+            var parent = current.Parent;
+            await MarkHiddenAsync(current);
+            current = parent;
+        }
+
+        // A thumbnail root such as ".tmb/Files" leaves ".tmb" outside ThumbnailDirectory.
+        if (current != null
+            && current.Name.Equals(".tmb", StringComparison.OrdinalIgnoreCase)
+            && !NormalizePath(current.FullName).Equals(NormalizePath(RootVolume.RootDirectory), StringComparison.OrdinalIgnoreCase))
+        {
+            await MarkHiddenAsync(current);
+        }
+    }
+
+    private static async Task MarkHiddenAsync(IDirectory directory)
+    {
+        await directory.RefreshAsync();
+        if (!await directory.ExistsAsync)
+        {
+            return;
+        }
+
+        var attributes = directory.Attributes & ~FileAttributes.Directory;
+        if ((attributes & FileAttributes.Hidden) != 0)
+        {
+            return;
+        }
+
+        directory.Attributes = attributes | FileAttributes.Hidden;
+    }
+
+    private static string NormalizePath(string path) =>
+        Path.TrimEndingDirectorySeparator(path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar));
+
+    private static bool IsInsideDirectory(string directory, string root) =>
+        directory.Equals(root, StringComparison.OrdinalIgnoreCase)
+        || directory.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
 
     private async Task<ImageWithMimeType> CreateThumbnailAsync(string fullPath, CancellationToken cancellationToken)
     {

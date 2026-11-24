@@ -11,5 +11,5 @@ public struct MimeType
 
     public static implicit operator string(MimeType m) => m.Full;
 
-    public readonly override string ToString() => Full;
+    public override readonly string ToString() => Full;
 }

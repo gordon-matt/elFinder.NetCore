@@ -22,6 +22,21 @@ public class RootVolume
         string url,
         string thumbnailsUrl = null,
         char directorySeparatorChar = default)
+        : this(rootDirectory, url, thumbnailsUrl, null, directorySeparatorChar)
+    {
+    }
+
+    /// <param name="rootDirectory">The root directory (physical location)</param>
+    /// <param name="url">URL of root directory</param>
+    /// <param name="thumbnailsUrl">URL of where to find thumbnails</param>
+    /// <param name="thumbnailDirectory">Physical directory for thumbnail files. Null or whitespace stores them in a .tmb folder under <paramref name="rootDirectory"/>.</param>
+    /// <param name="directorySeparatorChar">Character used to separate directory levels in a path string. Default is System.IO.Path.DirectorySeparatorChar</param>
+    public RootVolume(
+        string rootDirectory,
+        string url,
+        string thumbnailsUrl,
+        string thumbnailDirectory,
+        char directorySeparatorChar = default)
     {
         if (rootDirectory == null)
         {
@@ -45,7 +60,8 @@ public class RootVolume
             ? Path.DirectorySeparatorChar
             : directorySeparatorChar; // Can be changed for other providers
 
-        ThumbnailDirectory = $"{rootDirectory}{DirectorySeparatorChar}.tmb";
+        // The root-relative path already starts with a separator, so a trailing separator here would be doubled.
+        ThumbnailDirectory = ResolveThumbnailDirectory(rootDirectory, DirectorySeparatorChar, thumbnailDirectory);
         UploadOrder = ["deny", "allow"];
     }
 
@@ -270,4 +286,20 @@ public class RootVolume
         string thumbDir = ThumbnailDirectory + relativePath;
         return thumbDir;
     }
+
+    private static string ResolveThumbnailDirectory(string rootDirectory, char directorySeparatorChar, string thumbnailDirectory)
+    {
+        if (string.IsNullOrWhiteSpace(thumbnailDirectory))
+        {
+            return DefaultThumbnailDirectory(rootDirectory, directorySeparatorChar);
+        }
+
+        string normalized = Path.TrimEndingDirectorySeparator(thumbnailDirectory.Trim());
+        return normalized.Length == 0
+            ? DefaultThumbnailDirectory(rootDirectory, directorySeparatorChar)
+            : normalized;
+    }
+
+    private static string DefaultThumbnailDirectory(string rootDirectory, char directorySeparatorChar) =>
+        $"{rootDirectory}{directorySeparatorChar}.tmb";
 }

@@ -43,17 +43,23 @@ public class FileSystemController : Controller
         string absoluteUrl = UriHelper.BuildAbsolute(Request.Scheme, Request.Host);
         var uri = new Uri(absoluteUrl);
 
+        // Beside wwwroot, so thumbnail files are neither listed in the volume nor served by static files.
+        // The directory is created on the first thumbnail request.
+        string thumbnailDirectory = Path.TrimEndingDirectorySeparator(
+            Path.GetFullPath(Path.Combine(PathHelper.WebRootPath, "..", ".tmb", "Files")));
+
         var root = new RootVolume(
             PathHelper.MapPath("~/Files"),
             $"{uri.Scheme}://{uri.Authority}/Files/",
-            $"{uri.Scheme}://{uri.Authority}/el-finder/file-system/thumb/")
+            $"{uri.Scheme}://{uri.Authority}/el-finder/file-system/thumb/",
+            thumbnailDirectory)
         {
             //IsReadOnly = !User.IsInRole("Administrators")
             IsReadOnly = false, // Can be readonly according to user's membership permission
             IsLocked = false, // If locked, files and directories cannot be deleted, renamed or moved
             Alias = "Files", // Beautiful name given to the root/home folder
             //MaxUploadSizeInKb = 2048, // Limit imposed to user uploaded file <= 2048 KB
-            AccessControlAttributes = new HashSet<NamedAccessControlAttributeSet>()
+            AccessControlAttributes = new HashSet<NamedAccessControlAttributeSet>
             {
                 new(PathHelper.MapPath("~/Files/readonly.txt"))
                 {
